@@ -1,0 +1,47 @@
+# Exa release — builds the CLI binaries for every platform from ONE runner
+# (the build script cross-compiles via bun --target) and uploads them as
+# release assets whose names match Exasol Studio's installer expectations
+# (opencode-darwin-arm64.zip, opencode-linux-x64.tar.gz, ...).
+#
+# Trigger: push a tag like v1.18.12-exa.1 (upstream version + our patch rev).
+name: exa-release
+
+on:
+  push:
+    tags: ["v*-exa.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14 # matches root package.json packageManager
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Create the GitHub release (assets attach below)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes "Exa engine — opencode ${GITHUB_REF_NAME%-exa.*} with Exa branding patches. See EXA.md for the patch series." \
+            --repo "${GITHUB_REPOSITORY}" || true
+
+      - name: Build all targets and upload assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          # v1.18.12-exa.1 -> 1.18.12-exa.1 (build script prefixes the v)
+          OPENCODE_RELEASE: "1"
+        run: |
+          export OPENCODE_VERSION="${GITHUB_REF_NAME#v}"
+          bun ./packages/opencode/script/build.ts
