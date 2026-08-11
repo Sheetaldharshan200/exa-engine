@@ -214,7 +214,7 @@ const STYLES = `
     text-align: center;
   }
   .brand { display: flex; justify-content: center; margin-bottom: 1.75rem; }
-  .brand svg { height: 19px; width: auto; }
+  .brand svg { height: 30px; width: auto; }
   .status { display: flex; justify-content: center; margin-bottom: 1.125rem; }
   .icon { display: none; line-height: 0; }
   .icon svg { display: block; }
@@ -250,8 +250,16 @@ const STYLES = `
 `
 
 // Exa wordmark — a simple original text mark; theme-aware via the oc tokens.
-const WORDMARK = `<svg class="wordmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 42" fill="none" aria-label="Exa" role="img">
-        <text x="0" y="31" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="30" font-weight="700" letter-spacing="2" fill="var(--oc-icon-strong)">exa</text>
+// Exa's mark — the Exasol Studio agent logo ("Spark Human": head dot, the
+// Exasol X body, an AI spark). Brand green fixed; structural half follows the
+// page's strong icon color so it reads on light and dark.
+const WORDMARK = `<svg class="wordmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250" fill="none" aria-label="Exa" role="img">
+        <circle cx="125" cy="42" r="19" fill="#5FC33B" />
+        <path d="M191 33L194.8 42.2L204 46L194.8 49.8L191 59L187.2 49.8L178 46L187.2 42.2L191 33Z" fill="var(--oc-icon-strong)" />
+        <path d="M35 213H82.5L126.4 155.5L102.6 124.5L35 213Z" fill="#5FC33B" />
+        <path d="M35.5 69H83L215 213H167.6L35.5 69Z" fill="#5FC33B" />
+        <path d="M167 69H215L147.3 157.5L123.5 126.5L167 69Z" fill="var(--oc-icon-strong)" />
+        <path d="M123.6 155.6L147.4 124.6L215 213H167.5L123.6 155.6Z" fill="var(--oc-icon-strong)" />
 </svg>`
 
 const ICON_CHECK = `<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="m8.5 12.5 2.4 2.4 4.6-5.4" /></svg>`
