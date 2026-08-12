@@ -2,11 +2,12 @@ import { EOL } from "os"
 import { Schema } from "effect"
 import { logo as glyphs } from "./logo"
 
+// exa branding (plain-text fallback for non-TTY output).
 const wordmark = [
-  `⠀                                ▄     `,
-  `█▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█`,
-  `█  █ █  █ █▀▀▀ █  █ █    █  █ █  █ █▀▀▀`,
-  `▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀  ▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀`,
+  `█▀▀█ █  █ ▄▀▀▄`,
+  `█▀▀▀  ██  █▀▀█`,
+  `▀▀▀▀ █  █ ▀  ▀`,
+  `by Exasol`,
 ]
 
 export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}
@@ -100,6 +101,9 @@ export function logo(pad?: string) {
     result.push(draw(other, right.fg, right.shadow, right.bg))
     result.push(EOL)
   })
+  // exa branding: attribution line under the wordmark.
+  if (pad) result.push(pad)
+  result.push("\x1b[90m", "by Exasol", reset, EOL)
   return result.join("").trimEnd()
 }
 
