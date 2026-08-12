@@ -1,8 +1,9 @@
-// exa branding — ANSI Shadow (matches the CLI banner; box-drawing chars pass
-// through the renderer untouched, so no renderer changes are needed).
+// exa branding — solid block EXA (no shadow lines), X drawn in Exasol green
+// by the renderer (left = E, mid = X, right = A + attribution).
 export const logo = {
-  left: ["███████╗██╗  ██╗ █████╗ ", "██╔════╝╚██╗██╔╝██╔══██╗", "█████╗   ╚███╔╝ ███████║", "██╔══╝   ██╔██╗ ██╔══██║", "███████╗██╔╝ ██╗██║  ██║", "╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝"],
-  right: ["", "", "", "", "", "by Exasol"],
+  left: ["███████", "██     ", "█████  ", "██     ", "███████"],
+  mid: ["██   ██", " ██ ██ ", "  ███  ", " ██ ██ ", "██   ██"],
+  right: [" █████ ", "██   ██", "███████", "██   ██", "██   ██  by Exasol"],
 }
 
 export const go = {

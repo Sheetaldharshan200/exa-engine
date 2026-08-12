@@ -1,15 +1,14 @@
 import { EOL } from "os"
 import { Schema } from "effect"
 
-// exa branding — ANSI Shadow, same style as Exasol's installer wordmarks.
-// The X is two-tone in the TTY path: left strokes + crossing peak in Exasol
-// green, the rest in the terminal's default colour.
-const EXA_E = ["███████╗", "██╔════╝", "█████╗  ", "██╔══╝  ", "███████╗", "╚══════╝"]
-const EXA_XL = ["██╗ ", "╚██╗", " ╚███", " ██╔", "██╔╝", "╚═╝ "]
-const EXA_XR = [" ██╗", "██╔╝", "╔╝ ", "██╗ ", " ██╗", " ╚═╝"]
-const EXA_A = [" █████╗ ", "██╔══██╗", "███████║", "██╔══██║", "██║  ██║", "╚═╝  ╚═╝"]
+// exa branding — solid block EXA, X in Exasol green, no shadow lines.
+const EXA_E = ["███████", "██     ", "█████  ", "██     ", "███████"]
+const EXA_X = ["██   ██", " ██ ██ ", "  ███  ", " ██ ██ ", "██   ██"]
+const EXA_A = [" █████ ", "██   ██", "███████", "██   ██", "██   ██"]
 const wordmark = [
-  ...EXA_E.map((e, i) => `${e}${EXA_XL[i]}${EXA_XR[i]}${EXA_A[i]}`),
+  ...EXA_E.map((e, i) => `${e} ${EXA_X[i]} ${EXA_A[i]}`),
+  "by Exasol",
+]}${EXA_XR[i]}${EXA_A[i]}`),
   "by Exasol",
 ]
 
@@ -62,14 +61,13 @@ export function logo(pad?: string) {
 
   const reset = "\x1b[0m"
   const bold = "\x1b[1m"
-  const green = "\x1b[92m"
+  const green = "\x1b[38;2;95;195;59m"
   const dim = "\x1b[90m"
   const result: string[] = []
   for (let i = 0; i < EXA_E.length; i++) {
     if (pad) result.push(pad)
-    result.push(bold, EXA_E[i], reset)
-    result.push(bold, green, EXA_XL[i], reset)
-    result.push(bold, EXA_XR[i], reset)
+    result.push(bold, EXA_E[i], reset, " ")
+    result.push(bold, green, EXA_X[i], reset, " ")
     result.push(bold, EXA_A[i], reset)
     result.push(EOL)
   }
