@@ -651,7 +651,8 @@ const layer = Layer.effect(
               .getModel(model.providerID, model.modelID)
               .pipe(Effect.catchIf(Provider.ModelNotFoundError.isInstance, () => Effect.succeed(undefined)))
           : undefined
-      const variant = input.variant ?? (ag.variant && full?.variants?.[ag.variant] ? ag.variant : undefined)
+      const variant =
+        input.variant ?? input.model?.variant ?? (ag.variant && full?.variants?.[ag.variant] ? ag.variant : undefined)
 
       const info: SessionV1.User = {
         id: input.messageID ?? MessageID.ascending(),
@@ -1494,6 +1495,10 @@ const layer = Layer.effect(
 const ModelRef = Schema.Struct({
   providerID: ProviderV2.ID,
   modelID: ModelV2.ID,
+  // exa: allow the reasoning-effort variant to ride WITH the model ref —
+  // runtime clients (assistant-ui) forward the model object verbatim but
+  // have no channel for the top-level `variant` field.
+  variant: Schema.optional(Schema.String),
 })
 
 export const PromptInput = Schema.Struct({
