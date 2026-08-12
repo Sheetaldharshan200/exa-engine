@@ -1,9 +1,8 @@
-// exa branding: same block font + shadow marks as upstream's logo, so the
-// renderer (component/logo.tsx) needs no changes and upstream merges stay
-// contained to this constant.
+// exa branding — ANSI Shadow (matches the CLI banner; box-drawing chars pass
+// through the renderer untouched, so no renderer changes are needed).
 export const logo = {
-  left: ["              ", "█▀▀█ █__█ ▄▀▀▄", "█^^^ _██_ █▀▀█", "▀▀▀▀ █__█ ▀__▀"],
-  right: ["", "", "", ""],
+  left: ["███████╗██╗  ██╗ █████╗ ", "██╔════╝╚██╗██╔╝██╔══██╗", "█████╗   ╚███╔╝ ███████║", "██╔══╝   ██╔██╗ ██╔══██║", "███████╗██╔╝ ██╗██║  ██║", "╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝"],
+  right: ["", "", "", "", "", "by Exasol"],
 }
 
 export const go = {

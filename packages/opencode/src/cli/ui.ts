@@ -1,13 +1,16 @@
 import { EOL } from "os"
 import { Schema } from "effect"
-import { logo as glyphs } from "./logo"
 
-// exa branding (plain-text fallback for non-TTY output).
+// exa branding — ANSI Shadow, same style as Exasol's installer wordmarks.
+// The X is two-tone in the TTY path: left strokes + crossing peak in Exasol
+// green, the rest in the terminal's default colour.
+const EXA_E = ["███████╗", "██╔════╝", "█████╗  ", "██╔══╝  ", "███████╗", "╚══════╝"]
+const EXA_XL = ["██╗ ", "╚██╗", " ╚███", " ██╔", "██╔╝", "╚═╝ "]
+const EXA_XR = [" ██╗", "██╔╝", "╔╝ ", "██╗ ", " ██╗", " ╚═╝"]
+const EXA_A = [" █████╗ ", "██╔══██╗", "███████║", "██╔══██║", "██║  ██║", "╚═╝  ╚═╝"]
 const wordmark = [
-  `█▀▀█ █  █ ▄▀▀▄`,
-  `█▀▀▀  ██  █▀▀█`,
-  `▀▀▀▀ █  █ ▀  ▀`,
-  `by Exasol`,
+  ...EXA_E.map((e, i) => `${e}${EXA_XL[i]}${EXA_XR[i]}${EXA_A[i]}`),
+  "by Exasol",
 ]
 
 export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}
@@ -57,53 +60,21 @@ export function logo(pad?: string) {
     return result.join("").trimEnd()
   }
 
-  const result: string[] = []
   const reset = "\x1b[0m"
-  const left = {
-    fg: "\x1b[90m",
-    shadow: "\x1b[38;5;235m",
-    bg: "\x1b[48;5;235m",
-  }
-  const right = {
-    fg: reset,
-    shadow: "\x1b[38;5;238m",
-    bg: "\x1b[48;5;238m",
-  }
-  const gap = " "
-  const draw = (line: string, fg: string, shadow: string, bg: string) => {
-    const parts: string[] = []
-    for (const char of line) {
-      if (char === "_") {
-        parts.push(bg, " ", reset)
-        continue
-      }
-      if (char === "^") {
-        parts.push(fg, bg, "▀", reset)
-        continue
-      }
-      if (char === "~") {
-        parts.push(shadow, "▀", reset)
-        continue
-      }
-      if (char === " ") {
-        parts.push(" ")
-        continue
-      }
-      parts.push(fg, char, reset)
-    }
-    return parts.join("")
-  }
-  glyphs.left.forEach((row, index) => {
+  const bold = "\x1b[1m"
+  const green = "\x1b[92m"
+  const dim = "\x1b[90m"
+  const result: string[] = []
+  for (let i = 0; i < EXA_E.length; i++) {
     if (pad) result.push(pad)
-    result.push(draw(row, left.fg, left.shadow, left.bg))
-    result.push(gap)
-    const other = glyphs.right[index] ?? ""
-    result.push(draw(other, right.fg, right.shadow, right.bg))
+    result.push(bold, EXA_E[i], reset)
+    result.push(bold, green, EXA_XL[i], reset)
+    result.push(bold, EXA_XR[i], reset)
+    result.push(bold, EXA_A[i], reset)
     result.push(EOL)
-  })
-  // exa branding: attribution line under the wordmark.
+  }
   if (pad) result.push(pad)
-  result.push("\x1b[90m", "by Exasol", reset, EOL)
+  result.push(dim, "by Exasol", reset, EOL)
   return result.join("").trimEnd()
 }
 
