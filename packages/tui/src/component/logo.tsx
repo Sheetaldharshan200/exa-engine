@@ -46,7 +46,8 @@ export function Logo() {
     })
   }
 
-  // exa: the X (mid segment) draws in Exasol green.
+  // exa: the X's left chevron draws in Exasol green (xl), its right strokes
+  // in the default colour (xr) — adjacent, no gap, so the X stays whole.
   const exaGreen = RGBA.fromInts(95, 195, 59, 255)
   return (
     <box>
@@ -54,7 +55,10 @@ export function Logo() {
         {(line, index) => (
           <box flexDirection="row" gap={1}>
             <box flexDirection="row">{renderLine(line, theme.text, true)}</box>
-            <box flexDirection="row">{renderLine(logo.mid[index()], exaGreen, true)}</box>
+            <box flexDirection="row">
+              {renderLine(logo.xl[index()], exaGreen, true)}
+              {renderLine(logo.xr[index()], theme.text, true)}
+            </box>
             <box flexDirection="row">{renderLine(logo.right[index()], theme.text, true)}</box>
           </box>
         )}

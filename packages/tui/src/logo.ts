@@ -1,8 +1,11 @@
-// exa branding — solid block EXA (no shadow lines), X drawn in Exasol green
-// by the renderer (left = E, mid = X, right = A + attribution).
+// exa branding — solid block EXA. The X is two-tone like the Exasol mark:
+// its LEFT strokes + apex (the ">" chevron, xl) draw in Exasol green, the
+// right strokes (xr) in the default text colour. xl+xr concatenate to the
+// full X row — the renderer draws them adjacent with no gap.
 export const logo = {
   left: ["███████", "██     ", "█████  ", "██     ", "███████"],
-  mid: ["██   ██", " ██ ██ ", "  ███  ", " ██ ██ ", "██   ██"],
+  xl: ["██  ", " ██ ", "  ██", " ██ ", "██  "],
+  xr: [" ██", "██ ", "█  ", "██ ", " ██"],
   right: [" █████ ", "██   ██", "███████", "██   ██", "██   ██  by Exasol"],
 }
 
