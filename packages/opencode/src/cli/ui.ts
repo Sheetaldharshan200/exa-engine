@@ -10,8 +10,6 @@ const EXA_A = [" █████ ", "██   ██", "███████", 
 const wordmark = [
   ...EXA_E.map((e, i) => `${e} ${EXA_XL[i]}${EXA_XR[i]} ${EXA_A[i]}`),
   "by Exasol",
-]}${EXA_XR[i]}${EXA_A[i]}`),
-  "by Exasol",
 ]
 
 export class CancelledError extends Schema.TaggedErrorClass<CancelledError>()("UICancelledError", {}) {}
