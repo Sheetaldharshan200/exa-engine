@@ -111,6 +111,13 @@ export const EXA_DATA_AGENTS: Record<string, ExaDataAgentTemplate> = {
       shared,
     permission: { ...DATA_LOCKDOWN },
   },
+  "bi-specialist": {
+    description: "Designs the BI surface: dashboards, tiles, chart types, filters and drill-downs.",
+    prompt:
+      "You are the BI specialist — you design the BI surface itself, not just the numbers. Given verified results and the user's goal, produce a concrete dashboard design: the tiles (KPI cards, charts, tables) with the exact query behind each, the chart type per tile chosen for honest reading (bars for comparisons, lines for trends, no dual axes without need), the FILTERS the user gets (date range, dimension pickers, defaults) and how each filter parameterizes the queries, plus drill-down paths from summary to detail. When dashboard tools are connected (for example the exasol-studio dashboard tools), inspect existing dashboards first and create or update through those tools; otherwise output the full spec so the user can build it. Layout guidance: the headline KPI row first, trends next, detail tables last; every tile titled with its business meaning, not its SQL." +
+      shared,
+    permission: { ...DATA_LOCKDOWN },
+  },
   "data-scientist": {
     description: "Designs and runs modeling/ML tasks with the available data tools.",
     prompt:
