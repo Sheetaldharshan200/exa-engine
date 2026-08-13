@@ -1,7 +1,8 @@
 # Exa release — builds the CLI binaries for every platform from ONE runner
-# (the build script cross-compiles via bun --target) and uploads them as
-# release assets whose names match Exasol Studio's installer expectations
-# (opencode-darwin-arm64.zip, opencode-linux-x64.tar.gz, ...).
+# (the build script cross-compiles via bun --target). The build script
+# uploads upstream-named archives; the repackage step below replaces them
+# with the exa-branded set (exa-darwin-arm64.zip, exa-linux-x64.tar.gz, ...)
+# whose binary is named `exa` — the names Exasol Studio and install.sh use.
 #
 # Trigger: push a tag like v1.18.12-exa.1 (upstream version + our patch rev).
 name: exa-release
@@ -33,7 +34,7 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" \
             --title "${GITHUB_REF_NAME}" \
-            --notes "Exa engine — opencode ${GITHUB_REF_NAME%-exa.*} with Exa branding patches. See EXA.md for the patch series." \
+            --notes "exa by Exasol — the Exa data agent CLI + engine. Install: curl -fsSL https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/exa-main/install.sh | sh" \
             --repo "${GITHUB_REPOSITORY}" || true
 
       - name: Build all targets and upload assets
@@ -45,3 +46,27 @@ jobs:
         run: |
           export OPENCODE_VERSION="${GITHUB_REF_NAME#v}"
           bun ./packages/opencode/script/build.ts
+
+      - name: Repackage as exa-branded assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd dist
+          for d in opencode-*/; do
+            key="${d%/}"
+            newkey="exa-${key#opencode-}"
+            [ -f "$key/bin/opencode" ] && mv "$key/bin/opencode" "$key/bin/exa"
+            [ -f "$key/bin/opencode.exe" ] && mv "$key/bin/opencode.exe" "$key/bin/exa.exe"
+            case "$key" in
+              *linux*) tar -czf "$newkey.tar.gz" -C "$key/bin" . ;;
+              *) (cd "$key/bin" && zip -qr "../../$newkey.zip" .) ;;
+            esac
+            echo "packaged $newkey"
+          done
+          gh release upload "${GITHUB_REF_NAME}" ./exa-*.tar.gz ./exa-*.zip --clobber --repo "${GITHUB_REPOSITORY}"
+          # Drop the upstream-named archives build.ts uploaded — the exa-*
+          # set above is the release's public download surface.
+          for a in $(gh release view "${GITHUB_REF_NAME}" --json assets --jq '.assets[].name' --repo "${GITHUB_REPOSITORY}" | grep '^opencode-' || true); do
+            gh release delete-asset "${GITHUB_REF_NAME}" "$a" --yes --repo "${GITHUB_REPOSITORY}"
+          done

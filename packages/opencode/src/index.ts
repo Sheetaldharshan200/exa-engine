@@ -8,6 +8,7 @@ import { AgentCommand } from "./cli/cmd/agent"
 import { UpgradeCommand } from "./cli/cmd/upgrade"
 import { UninstallCommand } from "./cli/cmd/uninstall"
 import { ModelsCommand } from "./cli/cmd/models"
+import { SandboxCommand, OpsCommand } from "./cli/cmd/exa"
 import { UI } from "./cli/ui"
 import { InstallationVersion } from "@opencode-ai/core/installation/version"
 import { FormatError } from "./cli/error"
@@ -93,6 +94,8 @@ const cli = yargs(args)
   .command(ServeCommand)
   .command(WebCommand)
   .command(ModelsCommand)
+  .command(SandboxCommand)
+  .command(OpsCommand)
   .command(StatsCommand)
   .command(ExportCommand)
   .command(ImportCommand)

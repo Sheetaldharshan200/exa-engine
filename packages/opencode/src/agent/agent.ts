@@ -11,6 +11,18 @@ import { ProviderTransform } from "@/provider/transform"
 
 import PROMPT_GENERATE from "./generate.txt"
 import PROMPT_COMPACTION from "./prompt/compaction.txt"
+import PROMPT_EXA from "./prompt/exa.txt"
+
+// exa: SQL operation classes the user granted via `exa ops grant ...`
+// (stored in the exa agent's config options as `sqlOps`). Rendered into the
+// built-in prompt so the guardrail honors them; absent/empty = read-only.
+function exaOpsPromptSuffix(options: unknown): string {
+  const ops = (options as { sqlOps?: unknown } | undefined)?.sqlOps
+  if (!Array.isArray(ops) || ops.length === 0) return ""
+  const list = ops.filter((o): o is string => typeof o === "string").join(", ")
+  if (!list) return ""
+  return `\n\nThe user has granted these SQL operation classes on this machine: ${list}. Statements in a granted class may run when the user asks for them; anything outside the granted classes stays read-only unless the user explicitly confirms that exact change.`
+}
 import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
@@ -138,6 +150,41 @@ const layer = Layer.effect(
         const user = Permission.fromConfig(cfg.permission ?? {})
 
         const agents: Record<string, Info> = {
+          // exa: Exasol's data agent is the product default — first visible
+          // primary agent, so a fresh install (no config) boots into it.
+          // Coding/filesystem tools are denied: it works through connected
+          // MCP servers. Internet is sandboxed off until granted (the
+          // `exa sandbox` command or app toggle flips webfetch/websearch).
+          exa: {
+            name: "exa",
+            description: "Exa — the Exasol data agent (databases, SQL, insights, dashboards).",
+            options: {},
+            // `exa ops grant ...` persists granted SQL operation classes in
+            // this agent's config options; surface them to the model here.
+            // A config-level prompt override (the Studio app seeds one and
+            // manages ops per-message) replaces this whole prompt.
+            prompt: PROMPT_EXA + exaOpsPromptSuffix(cfg.agent?.["exa"]?.options),
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                bash: "deny",
+                edit: "deny",
+                read: "deny",
+                grep: "deny",
+                glob: "deny",
+                list: "deny",
+                todowrite: "deny",
+                todoread: "deny",
+                task: "deny",
+                question: "allow",
+                webfetch: "deny",
+                websearch: "deny",
+              }),
+              user,
+            ),
+            mode: "primary",
+            native: true,
+          },
           build: {
             name: "build",
             description: "The default agent. Executes tools based on configured permissions.",
@@ -319,7 +366,7 @@ const layer = Layer.effect(
             agents,
             values(),
             sortBy(
-              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "build"), "desc"],
+              [(x) => (cfg.default_agent ? x.name === cfg.default_agent : x.name === "exa"), "desc"],
               [(x) => x.name, "asc"],
             ),
           )

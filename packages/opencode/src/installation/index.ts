@@ -144,7 +144,10 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
 
     const upgradeCurl = Effect.fnUntraced(
       function* (target: string) {
-        const response = yield* httpOk.execute(HttpClientRequest.get("https://opencode.ai/install"))
+        // exa: the fork's own install script (installs exa-* release assets).
+        const response = yield* httpOk.execute(
+          HttpClientRequest.get("https://raw.githubusercontent.com/Sheetaldharshan200/exa/exa-main/install.sh"),
+        )
         const body = yield* response.text
         const bodyBytes = new TextEncoder().encode(body)
         const shell = yield* upgradeScriptShell()
@@ -255,7 +258,9 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         }
 
         const response = yield* httpOk.execute(
-          HttpClientRequest.get("https://api.github.com/repos/anomalyco/opencode/releases/latest").pipe(
+          // exa: upgrades track the Exasol fork's releases, never upstream —
+          // installing upstream here would replace exa with stock opencode.
+          HttpClientRequest.get("https://api.github.com/repos/Sheetaldharshan200/exa/releases/latest").pipe(
             HttpClientRequest.acceptJson,
           ),
         )
