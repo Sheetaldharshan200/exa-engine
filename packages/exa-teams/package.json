@@ -1,0 +1,18 @@
+{
+  "name": "@exa/teams",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Exa data teams — multi-agent orchestration for the Exa engine (vendored from hueyexe/opencode-ensemble, MIT).",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "workspace:*",
+    "@opencode-ai/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

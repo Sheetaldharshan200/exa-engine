@@ -111,10 +111,10 @@ export const OpsCommand = effectCmd({
       show()
       return
     }
-    const requested = (args.classes ?? []).map((c) => c.toLowerCase())
+    const requested = (args.classes ?? []).map((c: string) => c.toLowerCase())
     if (requested.length === 0) return yield* fail(`Name the classes to ${action}: ${SQL_OPS.join(", ")} — or "all".`)
     const expanded = requested.includes("all") ? [...SQL_OPS] : requested
-    const unknown = expanded.filter((c) => !SQL_OPS.includes(c as (typeof SQL_OPS)[number]))
+    const unknown = expanded.filter((c: string) => !SQL_OPS.includes(c as (typeof SQL_OPS)[number]))
     if (unknown.length > 0) return yield* fail(`Unknown operation class(es): ${unknown.join(", ")}. Valid: ${SQL_OPS.join(", ")}.`)
     for (const c of expanded) {
       if (action === "grant") current.add(c)

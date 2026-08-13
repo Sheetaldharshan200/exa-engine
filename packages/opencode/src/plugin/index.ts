@@ -13,6 +13,8 @@ import { CodexAuthPlugin } from "./openai/codex"
 import { Session } from "@/session/session"
 import { NamedError } from "@opencode-ai/core/util/error"
 import { CopilotAuthPlugin } from "./github-copilot/copilot"
+// exa: data-team orchestration (fork-only package, vendored ensemble)
+import ExaTeamsPlugin from "@exa/teams"
 import { ModalPlugin } from "./modal/modal"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "opencode-gitlab-auth"
 import { PoeAuthPlugin } from "opencode-poe-auth"
@@ -71,6 +73,7 @@ function internalPlugins(flags: RuntimeFlags.Info): PluginInstance[] {
         experimentalWebSockets: experimentalWebSocketsEnabled({ enabled: flags.experimentalWebSockets }),
       }),
     CopilotAuthPlugin,
+    ExaTeamsPlugin,
     ModalPlugin,
     GitlabAuthPlugin,
     PoeAuthPlugin,
