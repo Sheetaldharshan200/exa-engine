@@ -52,7 +52,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          cd dist
+          cd packages/opencode/dist
           for d in opencode-*/; do
             key="${d%/}"
             newkey="exa-${key#opencode-}"
