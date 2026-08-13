@@ -80,6 +80,55 @@ export const SandboxCommand = effectCmd({
   }),
 })
 
+const PERSONAS = ["data-analyst", "bi-analyst", "data-scientist", "finance-analyst", "data-engineer", "dba", "executive"] as const
+
+export const PersonaCommand = effectCmd({
+  command: "persona [action] [name]",
+  describe: "show or set the persona exa presents answers for",
+  builder: (yargs) =>
+    yargs
+      .positional("action", {
+        describe: "list = show, set = choose one, clear = remove",
+        type: "string",
+        choices: ["list", "set", "clear"] as const,
+      })
+      .positional("name", {
+        describe: `persona: ${PERSONAS.join(", ")}`,
+        type: "string",
+      }),
+  handler: Effect.fn("Cli.exa.persona")(function* (args) {
+    const root = yield* readConfig
+    const agent = exaAgent(root)
+    const current = () => {
+      const p = (agent.options as { persona?: unknown } | undefined)?.persona
+      return typeof p === "string" && p ? p : undefined
+    }
+    const action = args.action ?? "list"
+    if (action === "list") {
+      UI.println(`persona: ${current() ?? "none (adaptive)"}`)
+      UI.println(`available: ${PERSONAS.join(", ")}`)
+      return
+    }
+    if (action === "clear") {
+      agent.options = agent.options ?? {}
+      delete agent.options.persona
+      yield* writeConfig(root)
+      UI.println("persona: none (adaptive)")
+      UI.println(RESTART_NOTE)
+      return
+    }
+    const name = (args.name ?? "").toLowerCase()
+    if (!PERSONAS.includes(name as (typeof PERSONAS)[number])) {
+      return yield* fail(`Unknown persona: ${args.name ?? "(none)"}. Valid: ${PERSONAS.join(", ")}.`)
+    }
+    agent.options = agent.options ?? {}
+    agent.options.persona = name
+    yield* writeConfig(root)
+    UI.println(`persona: ${name}`)
+    UI.println(RESTART_NOTE)
+  }),
+})
+
 export const OpsCommand = effectCmd({
   command: "ops [action] [classes..]",
   describe: "show or change the SQL operation classes the exa agent may run",

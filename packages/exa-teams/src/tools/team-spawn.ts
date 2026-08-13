@@ -73,6 +73,16 @@ export async function executeTeamSpawn(
   const nameError = validateMemberName(args.name)
   if (nameError) throw new Error(nameError)
 
+  // Concurrency pool: hundreds of logical TASKS are fine, but active agents
+  // are capped — add tasks with team_tasks_add and spawn more workers as
+  // earlier ones complete, instead of spawning everything at once.
+  const cap = deps.config.maxActiveAgents
+  if (cap > 0 && deps.registry.activeCount() >= cap) {
+    throw new Error(
+      `Active agent limit reached (${cap}). Queue the work as tasks (team_tasks_add) and spawn new members after current ones finish (team_results / team_shutdown), or raise maxActiveAgents in the ensemble config.`,
+    )
+  }
+
   const teamInfo = requireLead(deps, sessionId)
 
   // Circuit breaker — stop retrying after 3 consecutive failures

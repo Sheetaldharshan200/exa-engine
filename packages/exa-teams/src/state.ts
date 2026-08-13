@@ -22,6 +22,11 @@ export class MemberRegistry {
     this.byTeamName.set(`${teamId}:${name}`, entry)
   }
 
+  /** Number of currently registered (active) members across all teams. */
+  activeCount(): number {
+    return this.bySession.size
+  }
+
   /** Look up a member by session ID. */
   getBySession(sessionId: string): MemberEntry | undefined {
     return this.bySession.get(sessionId)

@@ -12,10 +12,19 @@ import { ProviderTransform } from "@/provider/transform"
 import PROMPT_GENERATE from "./generate.txt"
 import PROMPT_COMPACTION from "./prompt/compaction.txt"
 import PROMPT_EXA from "./prompt/exa.txt"
+import { EXA_DATA_AGENTS } from "./exa-data-agents"
 
 // exa: SQL operation classes the user granted via `exa ops grant ...`
 // (stored in the exa agent's config options as `sqlOps`). Rendered into the
 // built-in prompt so the guardrail honors them; absent/empty = read-only.
+// exa: response persona set via `exa persona set ...` (or the app), stored in
+// the exa agent's config options; shapes depth/format of answers.
+function exaPersonaPromptSuffix(options: unknown): string {
+  const p = (options as { persona?: unknown } | undefined)?.persona
+  if (typeof p !== "string" || p.length === 0) return ""
+  return `\n\nThe user's persona is ${p}: adapt technical depth and presentation to it (executives get the headline and business meaning first; analysts and engineers get the SQL and detail).`
+}
+
 function exaOpsPromptSuffix(options: unknown): string {
   const ops = (options as { sqlOps?: unknown } | undefined)?.sqlOps
   if (!Array.isArray(ops) || ops.length === 0) return ""
@@ -163,7 +172,7 @@ const layer = Layer.effect(
             // this agent's config options; surface them to the model here.
             // A config-level prompt override (the Studio app seeds one and
             // manages ops per-message) replaces this whole prompt.
-            prompt: PROMPT_EXA + exaOpsPromptSuffix(cfg.agent?.["exa"]?.options),
+            prompt: PROMPT_EXA + exaOpsPromptSuffix(cfg.agent?.["exa"]?.options) + exaPersonaPromptSuffix(cfg.agent?.["exa"]?.options),
             permission: Permission.merge(
               defaults,
               Permission.fromConfig({
@@ -309,6 +318,20 @@ const layer = Layer.effect(
             ),
             prompt: PROMPT_SUMMARY,
           },
+        }
+
+        // exa: data-team worker roles, spawned via the @exa/teams tools —
+        // six role TYPES; many task instances of each are spawned per question.
+        for (const [name, t] of Object.entries(EXA_DATA_AGENTS)) {
+          agents[name] = {
+            name,
+            description: t.description,
+            prompt: t.prompt,
+            options: {},
+            permission: Permission.merge(defaults, Permission.fromConfig(t.permission), user),
+            mode: "subagent",
+            native: true,
+          }
         }
 
         for (const [key, value] of Object.entries(cfg.agent ?? {})) {
