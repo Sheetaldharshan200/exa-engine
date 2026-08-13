@@ -24,7 +24,19 @@ import { Reference } from "@opencode-ai/core/reference"
 import { MCP } from "@/mcp"
 import { PermissionV1 } from "@opencode-ai/core/v1/permission"
 
+// exa: rebrand the stock prompt identity in one place instead of editing every
+// upstream prompt file (merge-safe). Agents with custom prompts are unaffected.
+function rebrand(prompt: string) {
+  return prompt
+    .replaceAll("You are OpenCode", "You are Exa, Exasol's AI engineering agent")
+    .replaceAll("OpenCode", "Exa")
+}
+
 export function provider(model: Provider.Model) {
+  return stockPrompt(model).map(rebrand)
+}
+
+function stockPrompt(model: Provider.Model) {
   if (model.api.id.includes("muse-spark")) return [PROMPT_META]
   if (model.api.id.includes("gpt-4") || model.api.id.includes("o1") || model.api.id.includes("o3"))
     return [PROMPT_BEAST]
