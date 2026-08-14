@@ -146,7 +146,7 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
       function* (target: string) {
         // exa: the fork's own install script (installs exa-* release assets).
         const response = yield* httpOk.execute(
-          HttpClientRequest.get("https://raw.githubusercontent.com/Sheetaldharshan200/exa/exa-main/install.sh"),
+          HttpClientRequest.get("https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.sh"),
         )
         const body = yield* response.text
         const bodyBytes = new TextEncoder().encode(body)
@@ -260,7 +260,7 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
         const response = yield* httpOk.execute(
           // exa: upgrades track the Exasol fork's releases, never upstream —
           // installing upstream here would replace exa with stock exa.
-          HttpClientRequest.get("https://api.github.com/repos/Sheetaldharshan200/exa/releases/latest").pipe(
+          HttpClientRequest.get("https://api.github.com/repos/Sheetaldharshan200/exa-engine/releases/latest").pipe(
             HttpClientRequest.acceptJson,
           ),
         )

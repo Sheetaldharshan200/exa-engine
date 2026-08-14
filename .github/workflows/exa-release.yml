@@ -9,7 +9,7 @@ name: exa-release
 
 on:
   push:
-    tags: ["v*-exa.*"]
+    tags: ["v*"]
 
 permissions:
   contents: write

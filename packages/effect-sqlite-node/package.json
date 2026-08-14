@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "version": "1.18.18",
+  "version": "2026.1.0",
   "name": "@exa/effect-sqlite-node",
   "type": "module",
   "license": "MIT",

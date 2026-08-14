@@ -1,14 +1,14 @@
 #!/bin/sh
 # exa by Exasol — CLI installer (macOS / Linux).
 #
-#   curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exa/exa-main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.sh | sh
 #
 # Options (env vars):
-#   VERSION=1.18.12-exa.14   install a specific release (default: latest)
+#   VERSION=2026.1.0   install a specific release (default: latest)
 #   EXA_INSTALL_DIR=~/.local/bin   install directory (default shown)
 set -eu
 
-REPO="Sheetaldharshan200/exa"
+REPO="Sheetaldharshan200/exa-engine"
 INSTALL_DIR="${EXA_INSTALL_DIR:-$HOME/.local/bin}"
 GREEN="$(printf '\033[38;2;95;195;59m')"
 BOLD="$(printf '\033[1m')"

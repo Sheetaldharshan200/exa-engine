@@ -29,7 +29,7 @@
     },
     "packages/codemode": {
       "name": "@exa/codemode",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "dependencies": {
         "acorn": "8.15.0",
         "effect": "catalog:",
@@ -43,7 +43,7 @@
     },
     "packages/core": {
       "name": "@exa/core",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "bin": {
         "exa": "./bin/exa",
       },
@@ -137,7 +137,7 @@
     },
     "packages/effect-drizzle-sqlite": {
       "name": "@exa/effect-drizzle-sqlite",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "dependencies": {
         "drizzle-orm": "catalog:",
         "effect": "catalog:",
@@ -151,7 +151,7 @@
     },
     "packages/effect-sqlite-node": {
       "name": "@exa/effect-sqlite-node",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "dependencies": {
         "effect": "catalog:",
       },
@@ -163,7 +163,7 @@
     },
     "packages/exa": {
       "name": "exa",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "bin": {
         "exa": "./bin/exa",
       },
@@ -303,7 +303,7 @@
     },
     "packages/http-recorder": {
       "name": "@exa/http-recorder",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "dependencies": {
         "@effect/platform-node": "4.0.0-beta.83",
         "@effect/platform-node-shared": "4.0.0-beta.83",
@@ -322,7 +322,7 @@
     },
     "packages/llm": {
       "name": "@exa/llm",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "dependencies": {
         "@exa/schema": "workspace:*",
         "@smithy/eventstream-codec": "4.2.14",
@@ -341,7 +341,7 @@
     },
     "packages/plugin": {
       "name": "@exa/plugin",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "dependencies": {
         "@ai-sdk/provider": "3.0.8",
         "@exa/sdk": "workspace:*",
@@ -403,7 +403,7 @@
     },
     "packages/sdk/js": {
       "name": "@exa/sdk",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "dependencies": {
         "cross-spawn": "catalog:",
       },
@@ -418,7 +418,7 @@
     },
     "packages/server": {
       "name": "@exa/server",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "dependencies": {
         "@exa/core": "workspace:*",
         "@exa/protocol": "workspace:*",
@@ -433,7 +433,7 @@
     },
     "packages/tui": {
       "name": "@exa/tui",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "dependencies": {
         "@exa/core": "workspace:*",
         "@exa/plugin": "workspace:*",
@@ -460,7 +460,7 @@
     },
     "packages/ui": {
       "name": "@exa/ui",
-      "version": "1.18.18",
+      "version": "2026.1.0",
       "dependencies": {
         "@kobalte/core": "catalog:",
         "@pierre/diffs": "catalog:",
