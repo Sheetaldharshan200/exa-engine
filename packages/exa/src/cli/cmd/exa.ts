@@ -176,3 +176,54 @@ export const OpsCommand = effectCmd({
     UI.println(RESTART_NOTE)
   }),
 })
+
+const TOOL_GROUPS = ["files", "shell", "search", "tasks"] as const
+
+export const ToolsCommand = effectCmd({
+  command: "tools [action] [groups..]",
+  describe: "show or change the tool groups the exa agent may use",
+  builder: (yargs) =>
+    yargs
+      .positional("action", {
+        describe: "list = show grants, grant/revoke = change them",
+        type: "string",
+        choices: ["list", "grant", "revoke"] as const,
+      })
+      .positional("groups", {
+        describe: `tool groups: ${TOOL_GROUPS.join(", ")} — or "all"`,
+        type: "string",
+        array: true,
+      }),
+  handler: Effect.fn("Cli.exa.tools")(function* (args) {
+    const root = yield* readConfig
+    const agent = exaAgent(root)
+    const stored = (agent.options as { tools?: unknown } | undefined)?.tools
+    const current = new Set<string>(
+      Array.isArray(stored) ? stored.filter((g): g is string => TOOL_GROUPS.includes(g as (typeof TOOL_GROUPS)[number])) : [],
+    )
+    const show = () => {
+      const on = TOOL_GROUPS.filter((g) => current.has(g))
+      UI.println(on.length === 0 ? "enabled tool groups: none (data tools only)" : `enabled tool groups: ${on.join(", ")}`)
+      UI.println(`available: ${TOOL_GROUPS.join(", ")}  (files = read/edit, shell = bash, search = grep/glob/list, tasks = todo/subagents)`)
+    }
+    const action = args.action ?? "list"
+    if (action === "list") {
+      show()
+      return
+    }
+    const requested = (args.groups ?? []).map((g: string) => g.toLowerCase())
+    if (requested.length === 0) return yield* fail(`Name the groups to ${action}: ${TOOL_GROUPS.join(", ")} — or "all".`)
+    const expanded = requested.includes("all") ? [...TOOL_GROUPS] : requested
+    const unknown = expanded.filter((g: string) => !TOOL_GROUPS.includes(g as (typeof TOOL_GROUPS)[number]))
+    if (unknown.length > 0) return yield* fail(`Unknown tool group(s): ${unknown.join(", ")}. Valid: ${TOOL_GROUPS.join(", ")}.`)
+    for (const g of expanded) {
+      if (action === "grant") current.add(g)
+      else current.delete(g)
+    }
+    agent.options = agent.options ?? {}
+    agent.options.tools = TOOL_GROUPS.filter((g) => current.has(g))
+    yield* writeConfig(root)
+    show()
+    UI.println(RESTART_NOTE)
+  }),
+})

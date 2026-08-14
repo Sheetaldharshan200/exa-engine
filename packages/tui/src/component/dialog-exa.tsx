@@ -14,7 +14,7 @@ import { useToast } from "../ui/toast"
 
 type ExaAgentConfig = {
   permission?: Record<string, unknown>
-  options?: { sqlOps?: string[]; persona?: string } & Record<string, unknown>
+  options?: { sqlOps?: string[]; persona?: string; tools?: string[] } & Record<string, unknown>
 }
 
 async function readExaAgent(sdk: ReturnType<typeof useSDK>): Promise<ExaAgentConfig> {
@@ -160,6 +160,58 @@ export function DialogExaOps() {
           })
         } catch {
           toast.show({ message: "Could not update the SQL operation grants.", variant: "error" })
+        }
+      }}
+    />
+  )
+}
+
+const TOOL_GROUPS: { key: string; label: string }[] = [
+  { key: "files", label: "Files — read and edit local files" },
+  { key: "shell", label: "Shell — run commands" },
+  { key: "search", label: "Search — grep, glob, list the workspace" },
+  { key: "tasks", label: "Tasks — todos and subagents" },
+]
+
+export function DialogExaTools() {
+  const sdk = useSDK()
+  const dialog = useDialog()
+  const toast = useToast()
+  const [granted, setGranted] = createSignal<Set<string>>(new Set())
+  onMount(async () => {
+    const agent = await readExaAgent(sdk).catch(() => ({}) as ExaAgentConfig)
+    const tools = Array.isArray(agent.options?.tools) ? agent.options.tools : []
+    setGranted(new Set(tools.filter((t): t is string => typeof t === "string")))
+  })
+  const options = () => [
+    ...TOOL_GROUPS.map((g) => ({
+      title: `${granted().has(g.key) ? "[x]" : "[ ]"} ${g.label}`,
+      value: g.key,
+    })),
+    { title: "Done — save", value: "__done" },
+  ]
+  return (
+    <DialogSelect
+      title="Tool groups the agent may use (data tools are always on)"
+      options={options()}
+      onSelect={async (opt) => {
+        if (opt.value !== "__done") {
+          const next = new Set(granted())
+          if (next.has(opt.value)) next.delete(opt.value)
+          else next.add(opt.value)
+          setGranted(next)
+          return
+        }
+        dialog.clear()
+        const tools = TOOL_GROUPS.map((g) => g.key).filter((k) => granted().has(k))
+        try {
+          await patchExaAgent(sdk, { options: { tools } })
+          toast.show({
+            message: `Tool groups: ${tools.length ? tools.join(", ") : "none (data tools only)"} — ${APPLY_NOTE}.`,
+            variant: "success",
+          })
+        } catch {
+          toast.show({ message: "Could not update the tool groups.", variant: "error" })
         }
       }}
     />

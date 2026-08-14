@@ -25,6 +25,33 @@ function exaPersonaPromptSuffix(options: unknown): string {
   return `\n\nThe user's persona is ${p}: adapt technical depth and presentation to it (executives get the headline and business meaning first; analysts and engineers get the SQL and detail).`
 }
 
+/** Tool groups the user can grant the exa agent (`exa tools grant …`).
+ *  Absent = data-only defaults; granted groups flip to "allow". */
+const EXA_TOOL_GROUPS: Record<string, string[]> = {
+  files: ["read", "edit"],
+  shell: ["bash"],
+  search: ["grep", "glob", "list"],
+  tasks: ["todowrite", "todoread", "task"],
+}
+
+function exaToolPermissions(options: unknown): Record<string, "allow" | "deny"> {
+  const granted = (options as { tools?: unknown } | undefined)?.tools
+  const on = new Set(Array.isArray(granted) ? granted.filter((g): g is string => typeof g === "string") : [])
+  const result: Record<string, "allow" | "deny"> = {}
+  for (const [group, tools] of Object.entries(EXA_TOOL_GROUPS)) {
+    for (const tool of tools) result[tool] = on.has(group) ? "allow" : "deny"
+  }
+  return result
+}
+
+function exaToolsPromptSuffix(options: unknown): string {
+  const granted = (options as { tools?: unknown } | undefined)?.tools
+  if (!Array.isArray(granted) || granted.length === 0) return ""
+  const list = granted.filter((g): g is string => typeof g === "string").join(", ")
+  if (!list) return ""
+  return `\n\nThe user has also enabled these tool groups on this machine: ${list}. Use them when the task genuinely needs them (reading or editing local files, running commands, searching the workspace) — data work still comes first.`
+}
+
 function exaOpsPromptSuffix(options: unknown): string {
   const ops = (options as { sqlOps?: unknown } | undefined)?.sqlOps
   if (!Array.isArray(ops) || ops.length === 0) return ""
@@ -172,20 +199,19 @@ const layer = Layer.effect(
             // this agent's config options; surface them to the model here.
             // A config-level prompt override (the Studio app seeds one and
             // manages ops per-message) replaces this whole prompt.
-            prompt: PROMPT_EXA + exaOpsPromptSuffix(cfg.agent?.["exa"]?.options) + exaPersonaPromptSuffix(cfg.agent?.["exa"]?.options),
+            prompt:
+              PROMPT_EXA +
+              exaOpsPromptSuffix(cfg.agent?.["exa"]?.options) +
+              exaToolsPromptSuffix(cfg.agent?.["exa"]?.options) +
+              exaPersonaPromptSuffix(cfg.agent?.["exa"]?.options),
             permission: Permission.merge(
               defaults,
               Permission.fromConfig({
-                bash: "deny",
-                edit: "deny",
-                read: "deny",
-                grep: "deny",
-                glob: "deny",
-                list: "deny",
-                todowrite: "deny",
-                todoread: "deny",
-                task: "deny",
                 question: "allow",
+                // Data work is the default, so file/shell tools start off —
+                // but this is a preference, not a constraint: `exa tools grant
+                // files|shell|search|tasks` (or /tools) turns them on.
+                ...exaToolPermissions(cfg.agent?.["exa"]?.options),
                 webfetch: "deny",
                 websearch: "deny",
               }),

@@ -42,14 +42,10 @@ type ProviderOption =
       type: "custom"
     })
 
-// exa: upstream's paid model gateways are not part of the Exasol-branded
-// CLI — only real model providers are offered.
-const HIDDEN_PROVIDERS = new Set(["exa", "exa-go"])
-
 export function providerOptions(list: { id: string; name: string }[]): ProviderOption[] {
   return [
     ...pipe(
-      list.filter((x) => !HIDDEN_PROVIDERS.has(x.id)),
+      list,
       sortBy(
         (x) => PROVIDER_PRIORITY[x.id] ?? 99,
         (x) => x.name.toLowerCase(),

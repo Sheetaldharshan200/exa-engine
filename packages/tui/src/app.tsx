@@ -45,7 +45,7 @@ import { DialogMcp } from "./component/dialog-mcp"
 import { DialogStatus } from "./component/dialog-status"
 import { DialogDebug } from "./component/dialog-debug"
 import { DialogThemeList } from "./component/dialog-theme-list"
-import { DialogExaSandbox, DialogExaOps, DialogExaPersona } from "./component/dialog-exa"
+import { DialogExaSandbox, DialogExaOps, DialogExaPersona, DialogExaTools } from "./component/dialog-exa"
 import { DialogHelp } from "./ui/dialog-help"
 import { DialogAgent } from "./component/dialog-agent"
 import { DialogSessionList } from "./component/dialog-session-list"
@@ -777,6 +777,15 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         slashName: "ops",
         run: () => {
           dialog.replace(() => <DialogExaOps />)
+        },
+        category: "Exa",
+      },
+      {
+        name: "exa.tools",
+        title: "Tool groups the agent may use",
+        slashName: "tools",
+        run: () => {
+          dialog.replace(() => <DialogExaTools />)
         },
         category: "Exa",
       },
