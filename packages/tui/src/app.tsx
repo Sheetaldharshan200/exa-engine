@@ -781,6 +781,30 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         category: "Exa",
       },
       {
+        name: "exa.backup",
+        title: "Back up sessions now",
+        slashName: "backup",
+        run: async () => {
+          dialog.clear()
+          try {
+            const [{ Global }, { resolveBackup }, { createBackup }] = await Promise.all([
+              import("@exa/core/global"),
+              import("../../exa/src/backup/backup"),
+              import("../../exa/src/backup/create"),
+            ])
+            const resolved = resolveBackup(undefined, Global.Path.data)
+            const result = await createBackup(Global.Path.data, resolved)
+            toast.show({
+              message: result ? `Backup written: ${result.file}` : "Nothing to back up yet",
+              variant: result ? "success" : "info",
+            })
+          } catch (err) {
+            toast.show({ message: `Backup failed: ${err instanceof Error ? err.message : String(err)}`, variant: "error" })
+          }
+        },
+        category: "Exa",
+      },
+      {
         name: "exa.tools",
         title: "Tool groups the agent may use",
         slashName: "tools",
