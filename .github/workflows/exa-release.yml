@@ -1,0 +1,60 @@
+# Exa release — builds the CLI binaries for every platform from ONE runner
+# (the build script cross-compiles via bun --target). The build script
+# uploads upstream-named archives; the repackage step below replaces them
+# with the exa-branded set (exa-darwin-arm64.zip, exa-linux-x64.tar.gz, ...)
+# whose binary is named `exa` — the names Exasol Studio and install.sh use.
+#
+# Trigger: push a tag like v1.18.12-exa.1 (upstream version + our patch rev).
+name: exa-release
+
+on:
+  push:
+    tags: ["v*-exa.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14 # matches root package.json packageManager
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Create the GitHub release (assets attach below)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --notes "exa by Exasol — the Exa data agent CLI + engine. Install: curl -fsSL https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/exa-main/install.sh | sh" \
+            --repo "${GITHUB_REPOSITORY}" || true
+
+      - name: Build all targets and upload assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          # v1.18.12-exa.1 -> 1.18.12-exa.1 (build script prefixes the v)
+          EXA_RELEASE: "1"
+        run: |
+          export EXA_VERSION="${GITHUB_REF_NAME#v}"
+          bun ./packages/exa/script/build.ts
+
+      - name: Verify published assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # build.ts now emits exa-<os>-<arch> archives containing bin/exa
+          # directly (package renamed exa -> exa), so no repackaging is
+          # needed; just assert the release really carries exa-* assets.
+          names=$(gh release view "${GITHUB_REF_NAME}" --json assets --jq '.assets[].name' --repo "${GITHUB_REPOSITORY}")
+          echo "$names"
+          echo "$names" | grep -q '^exa-darwin-arm64\.zip$' || { echo "::error::exa-* assets missing"; exit 1; }

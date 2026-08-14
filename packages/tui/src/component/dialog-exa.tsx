@@ -1,0 +1,167 @@
+import { createSignal, onMount } from "solid-js"
+import { DialogSelect } from "../ui/dialog-select"
+import { useDialog } from "../ui/dialog"
+import { useSDK } from "../context/sdk"
+import { useToast } from "../ui/toast"
+
+/**
+ * exa in-session controls (fork-only file): /sandbox, /ops and /persona give
+ * the TUI the same switches the Exasol Studio chat panel has. Each edits the
+ * exa agent's config through the engine (PATCH /config — writes the file AND
+ * invalidates the config cache) and then disposes the instance so rebuilt
+ * agents pick the change up live, from the next message.
+ */
+
+type ExaAgentConfig = {
+  permission?: Record<string, unknown>
+  options?: { sqlOps?: string[]; persona?: string } & Record<string, unknown>
+}
+
+async function readExaAgent(sdk: ReturnType<typeof useSDK>): Promise<ExaAgentConfig> {
+  const response = await sdk.client.config.get(undefined, { throwOnError: true })
+  const agents = (response.data as { agent?: Record<string, ExaAgentConfig> } | undefined)?.agent
+  return agents?.["exa"] ?? {}
+}
+
+async function patchExaAgent(sdk: ReturnType<typeof useSDK>, patch: ExaAgentConfig): Promise<void> {
+  // GLOBAL config update (PATCH /global/config): writes the user's config
+  // file AND invalidates the engine's config cache — the instance-level
+  // PATCH /config writes a project config.json without invalidating.
+  await sdk.client.global.config.update({ config: { agent: { exa: patch } } as never }, { throwOnError: true })
+  // Dispose rebuilds the instance (and its agents) so the change applies to
+  // the NEXT message, not the next run.
+  await sdk.client.instance.dispose()
+}
+
+const APPLY_NOTE = "applies from your next message"
+
+export function DialogExaSandbox() {
+  const sdk = useSDK()
+  const dialog = useDialog()
+  const toast = useToast()
+  const [current, setCurrent] = createSignal<"on" | "off">("off")
+  onMount(async () => {
+    const agent = await readExaAgent(sdk).catch(() => ({}) as ExaAgentConfig)
+    setCurrent(agent.permission?.webfetch === "allow" ? "on" : "off")
+  })
+  return (
+    <DialogSelect
+      title="Internet access (sandbox)"
+      options={[
+        { title: "OFF — sandboxed (web tools denied)", value: "off" },
+        { title: "ON — web tools allowed", value: "on" },
+      ]}
+      current={current()}
+      onSelect={async (opt) => {
+        dialog.clear()
+        const action = opt.value === "on" ? "allow" : "deny"
+        try {
+          await patchExaAgent(sdk, { permission: { webfetch: action, websearch: action } })
+          toast.show({
+            message: `Internet access ${opt.value === "on" ? "ON" : "OFF (sandboxed)"} — ${APPLY_NOTE}.`,
+            variant: "success",
+          })
+        } catch {
+          toast.show({ message: "Could not update the sandbox setting.", variant: "error" })
+        }
+      }}
+    />
+  )
+}
+
+const PERSONAS = [
+  { key: "", label: "Adaptive — match each question" },
+  { key: "data-analyst", label: "Data Analyst — tables and SQL" },
+  { key: "bi-analyst", label: "BI Analyst — KPIs and comparisons" },
+  { key: "data-scientist", label: "Data Scientist — models and metrics" },
+  { key: "finance-analyst", label: "Finance Analyst — fiscal periods, margins" },
+  { key: "data-engineer", label: "Data Engineer — pipelines and schemas" },
+  { key: "dba", label: "DBA — administration and sessions" },
+  { key: "executive", label: "Executive — headline first" },
+]
+
+export function DialogExaPersona() {
+  const sdk = useSDK()
+  const dialog = useDialog()
+  const toast = useToast()
+  const [current, setCurrent] = createSignal("")
+  onMount(async () => {
+    const agent = await readExaAgent(sdk).catch(() => ({}) as ExaAgentConfig)
+    setCurrent(typeof agent.options?.persona === "string" ? agent.options.persona : "")
+  })
+  return (
+    <DialogSelect
+      title="Answers written for"
+      options={PERSONAS.map((p) => ({ title: p.label, value: p.key }))}
+      current={current()}
+      onSelect={async (opt) => {
+        dialog.clear()
+        try {
+          await patchExaAgent(sdk, { options: { persona: opt.value } })
+          toast.show({
+            message: `Persona: ${opt.value || "adaptive"} — ${APPLY_NOTE}.`,
+            variant: "success",
+          })
+        } catch {
+          toast.show({ message: "Could not update the persona.", variant: "error" })
+        }
+      }}
+    />
+  )
+}
+
+const SQL_OPS: { key: string; label: string }[] = [
+  { key: "insert", label: "INSERT — INSERT/IMPORT/MERGE-insert" },
+  { key: "update", label: "UPDATE — UPDATE/MERGE-update" },
+  { key: "delete", label: "DELETE — DELETE/TRUNCATE" },
+  { key: "create", label: "CREATE — schema/table/view/function" },
+  { key: "alter", label: "ALTER — ALTER/RENAME/COMMENT" },
+  { key: "drop", label: "DROP" },
+  { key: "dcl", label: "ACCESS — GRANT/REVOKE/users/roles" },
+  { key: "admin", label: "ADMIN — ALTER SYSTEM/SESSION/KILL" },
+]
+
+export function DialogExaOps() {
+  const sdk = useSDK()
+  const dialog = useDialog()
+  const toast = useToast()
+  const [granted, setGranted] = createSignal<Set<string>>(new Set())
+  onMount(async () => {
+    const agent = await readExaAgent(sdk).catch(() => ({}) as ExaAgentConfig)
+    const ops = Array.isArray(agent.options?.sqlOps) ? agent.options.sqlOps : []
+    setGranted(new Set(ops.filter((o): o is string => typeof o === "string")))
+  })
+  const options = () => [
+    ...SQL_OPS.map((op) => ({
+      title: `${granted().has(op.key) ? "[x]" : "[ ]"} ${op.label}`,
+      value: op.key,
+    })),
+    { title: "Done — save grants", value: "__done" },
+  ]
+  return (
+    <DialogSelect
+      title="SQL operations the agent may run (read is always allowed)"
+      options={options()}
+      onSelect={async (opt) => {
+        if (opt.value !== "__done") {
+          const next = new Set(granted())
+          if (next.has(opt.value)) next.delete(opt.value)
+          else next.add(opt.value)
+          setGranted(next)
+          return
+        }
+        dialog.clear()
+        const ops = SQL_OPS.map((o) => o.key).filter((k) => granted().has(k))
+        try {
+          await patchExaAgent(sdk, { options: { sqlOps: ops } })
+          toast.show({
+            message: `Granted SQL operations: ${ops.length ? ops.join(", ") : "none (read-only)"} — ${APPLY_NOTE}.`,
+            variant: "success",
+          })
+        } catch {
+          toast.show({ message: "Could not update the SQL operation grants.", variant: "error" })
+        }
+      }}
+    />
+  )
+}
