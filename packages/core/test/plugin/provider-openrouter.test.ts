@@ -39,7 +39,7 @@ describe("OpenRouterPlugin", () => {
 
       expect((yield* catalog.provider.get(ProviderV2.ID.openrouter))?.request.headers).toEqual({
         Existing: "value",
-        "HTTP-Referer": "https://exasol.com/exa/",
+        "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
         "X-Title": "exa",
       })
       expect((yield* catalog.provider.get(ProviderV2.ID.make("nvidia")))?.request.headers).toEqual({})

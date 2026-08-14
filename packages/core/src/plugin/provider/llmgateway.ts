@@ -15,7 +15,7 @@ export const LLMGatewayPlugin = define({
           if (item.provider.api.url !== "https://api.llmgateway.io/v1") continue
           if (!(yield* integrations.get(Integration.ID.make(item.provider.id)))) continue
           evt.provider.update(item.provider.id, (provider) => {
-            provider.request.headers["HTTP-Referer"] = "https://exasol.com/exa/"
+            provider.request.headers["HTTP-Referer"] = "https://github.com/Sheetaldharshan200/exa-engine/"
             provider.request.headers["X-Title"] = "exa"
             provider.request.headers["X-Source"] = "exa"
           })

@@ -59,7 +59,7 @@ function model(input: {
     providerID: "exa",
     api: {
       id: "exa",
-      url: "https://exasol.com/exa",
+      url: "https://github.com/Sheetaldharshan200/exa-engine",
       npm: "@ai-sdk/openai-compatible",
     },
     name: input.name,

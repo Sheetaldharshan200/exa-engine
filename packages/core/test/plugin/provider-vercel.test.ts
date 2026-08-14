@@ -32,7 +32,7 @@ describe("VercelPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.provider.get(ProviderV2.ID.make("vercel")))?.request.headers).toEqual({
         Existing: "1",
-        "http-referer": "https://exasol.com/exa/",
+        "http-referer": "https://github.com/Sheetaldharshan200/exa-engine/",
         "x-title": "exa",
       })
     }),

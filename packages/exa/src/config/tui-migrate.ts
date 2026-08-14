@@ -8,7 +8,7 @@ import { Global } from "@exa/core/global"
 import { Filesystem } from "@/util/filesystem"
 import * as ConfigPaths from "@/config/paths"
 
-const TUI_SCHEMA_URL = "https://exasol.com/exa/tui.json"
+const TUI_SCHEMA_URL = "https://github.com/Sheetaldharshan200/exa-engine/tui.json"
 
 const decodeTheme = Schema.decodeUnknownOption(Schema.String)
 const decodeRecord = Schema.decodeUnknownOption(Schema.Record(Schema.String, Schema.Unknown))

@@ -44,7 +44,7 @@ export class McpOAuthProvider implements OAuthClientProvider {
     return {
       redirect_uris: [this.redirectUrl],
       client_name: "Exa",
-      client_uri: "https://exasol.com/exa",
+      client_uri: "https://github.com/Sheetaldharshan200/exa-engine",
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code"],
       token_endpoint_auth_method: this.config.clientSecret ? "client_secret_post" : "none",

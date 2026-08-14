@@ -196,7 +196,6 @@ export function modelVariants(output: string, model: string) {
 
 export function translationConfig(agent: string, model: string, targets: string[]) {
   return {
-    $schema: "https://exasol.com/exa/config.json",
     model,
     default_agent: agent,
     share: "disabled" as const,

@@ -399,7 +399,7 @@ describe("workspace HttpApi", () => {
             "content-type": "application/json",
             "x-exa-workspace": "internal",
           },
-          body: JSON.stringify({ $schema: "https://exasol.com/exa/config.json" }),
+          body: JSON.stringify({ }),
         })
 
         const responseBody = yield* response.text
@@ -416,7 +416,7 @@ describe("workspace HttpApi", () => {
               "content-type": "application/json",
               "x-target-auth": "secret",
             }),
-            body: JSON.stringify({ $schema: "https://exasol.com/exa/config.json" }),
+            body: JSON.stringify({ }),
           },
         ])
         expect(forwarded[0]?.headers).not.toHaveProperty("x-exa-directory")

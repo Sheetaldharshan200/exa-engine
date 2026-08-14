@@ -207,7 +207,15 @@ const layer = Layer.effect(
       const headers: Record<string, string> = {}
       const active = yield* account.active()
       if (Option.isNone(active) || !active.value.active_org_id) {
-        const baseUrl = (yield* cfg.get()).enterprise?.url ?? "https://opncd.ai"
+        // No default share host: sharing uploads session content, so it must
+        // go to a host the operator chose. Without `enterprise.url` there is
+        // nowhere to send it — fail loudly rather than pick a destination.
+        const baseUrl = (yield* cfg.get()).enterprise?.url
+        if (!baseUrl) {
+          throw new Error(
+            "Sharing is not configured. Set `enterprise.url` in exa.json to the host that should receive shared sessions.",
+          )
+        }
         return { headers, api: legacyApi, baseUrl } satisfies Req
       }
 

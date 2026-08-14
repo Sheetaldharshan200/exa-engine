@@ -1,5 +1,4 @@
 {
-  "$schema": "https://exasol.com/exa/theme.json",
   "defs": {
     "frappeRosewater": "#f2d5cf",
     "frappeFlamingo": "#eebebe",

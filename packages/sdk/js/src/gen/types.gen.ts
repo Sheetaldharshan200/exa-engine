@@ -1209,7 +1209,7 @@ export type Config = {
     diff_style?: "auto" | "stacked"
   }
   /**
-   * Command configuration, see https://exasol.com/exa/docs/commands
+   * Command configuration, see https://github.com/Sheetaldharshan200/exa-engine#readme/commands
    */
   command?: {
     [key: string]: {
@@ -1266,7 +1266,7 @@ export type Config = {
     [key: string]: AgentConfig | undefined
   }
   /**
-   * Agent configuration, see https://exasol.com/exa/docs/agent
+   * Agent configuration, see https://github.com/Sheetaldharshan200/exa-engine#readme/agent
    */
   agent?: {
     plan?: AgentConfig

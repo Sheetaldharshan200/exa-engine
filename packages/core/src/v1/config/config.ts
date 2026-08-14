@@ -39,7 +39,7 @@ export const Info = Schema.Struct({
     description: "Server configuration for exa serve and web commands",
   }),
   command: Schema.optional(Schema.Record(Schema.String, ConfigCommandV1.Info)).annotate({
-    description: "Command configuration, see https://exasol.com/exa/docs/commands",
+    description: "Command configuration, see https://github.com/Sheetaldharshan200/exa-engine#readme/commands",
   }),
   skills: Schema.optional(ConfigSkillsV1.Info).annotate({ description: "Additional skill folder paths" }),
   references: Schema.optional(ConfigReference.Info).annotate({
@@ -106,7 +106,7 @@ export const Info = Schema.Struct({
       }),
       [Schema.Record(Schema.String, ConfigAgentV1.Info)],
     ),
-  ).annotate({ description: "Agent configuration, see https://exasol.com/exa/docs/agents" }),
+  ).annotate({ description: "Agent configuration, see https://github.com/Sheetaldharshan200/exa-engine#readme/agents" }),
   provider: Schema.optional(Schema.Record(Schema.String, ConfigProviderV1.Info)).annotate({
     description: "Custom provider configurations and model overrides",
   }),

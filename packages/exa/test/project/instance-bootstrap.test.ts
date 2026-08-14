@@ -52,7 +52,6 @@ const bootstrapFixture = Effect.gen(function* () {
     Bun.write(
       path.join(dir, "exa.json"),
       JSON.stringify({
-        $schema: "https://exasol.com/exa/config.json",
         plugin: [pathToFileURL(pluginFile).href],
       }),
     ),

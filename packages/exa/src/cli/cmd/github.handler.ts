@@ -202,7 +202,7 @@ export const githubInstall = Effect.fn("Cli.github.install")(function* () {
             "",
             "    3. Go to a GitHub issue and comment `/oc summarize` to see the agent in action",
             "",
-            "   Learn more about the GitHub agent - https://exasol.com/exa/docs/github/#usage-examples",
+            "   Learn more about the GitHub agent - https://github.com/Sheetaldharshan200/exa-engine#readme/github/#usage-examples",
           ].join("\n"),
         )
       }
@@ -322,7 +322,9 @@ export const githubInstall = Effect.fn("Cli.github.install")(function* () {
         s.stop("Installed GitHub app")
 
         async function getInstallation() {
-          return await fetch(`https://api.exasol.com/exa/get_github_app_installation?owner=${app.owner}&repo=${app.repo}`)
+          const base = process.env["OIDC_BASE_URL"]?.replace(/\/+$/, "")
+          if (!base) throw new Error("OIDC_BASE_URL is not set — the GitHub integration needs a host to query.")
+          return await fetch(`${base}/get_github_app_installation?owner=${app.owner}&repo=${app.repo}`)
             .then((res) => res.json())
             .then((data) => data.installation)
         }
@@ -428,7 +430,9 @@ export const githubRun = Effect.fn("Cli.github.run")(function* (args: { event?: 
         ? (payload as IssueCommentEvent | IssuesEvent).issue.number
         : (payload as PullRequestEvent | PullRequestReviewCommentEvent).pull_request.number
     const runUrl = `/${owner}/${repo}/actions/runs/${runId}`
-    const shareBaseUrl = isMock ? "https://dev.exasol.com/exa" : "https://exasol.com/exa"
+    // Share links point at whatever host received the share; there is no
+    // default share service (see ShareNext.request).
+    const shareBaseUrl = isMock ? "https://share.example.com" : (process.env["EXA_SHARE_URL"] ?? "")
 
     let appToken: string
     let octoRest: Octokit
@@ -689,7 +693,7 @@ export const githubRun = Effect.fn("Cli.github.run")(function* (args: { event?: 
 
     function normalizeOidcBaseUrl(): string {
       const value = process.env["OIDC_BASE_URL"]
-      if (!value) return "https://api.exasol.com/exa"
+      if (!value) throw new Error("OIDC_BASE_URL is not set — the GitHub integration needs a host to authenticate against.")
       return value.replace(/\/+$/, "")
     }
 

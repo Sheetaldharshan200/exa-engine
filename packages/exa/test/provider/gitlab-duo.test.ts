@@ -19,8 +19,7 @@ export {}
 //       await Bun.write(
 //         path.join(dir, "exa.json"),
 //         JSON.stringify({
-//           $schema: "https://exasol.com/exa/config.json",
-//         }),
+////         }),
 //       )
 //     },
 //   })
@@ -43,8 +42,7 @@ export {}
 //       await Bun.write(
 //         path.join(dir, "exa.json"),
 //         JSON.stringify({
-//           $schema: "https://exasol.com/exa/config.json",
-//           provider: {
+////           provider: {
 //             gitlab: {
 //               options: {
 //                 instanceUrl: "https://gitlab.example.com",
@@ -75,8 +73,7 @@ export {}
 //       await Bun.write(
 //         path.join(dir, "exa.json"),
 //         JSON.stringify({
-//           $schema: "https://exasol.com/exa/config.json",
-//         }),
+////         }),
 //       )
 //     },
 //   })
@@ -112,8 +109,7 @@ export {}
 //       await Bun.write(
 //         path.join(dir, "exa.json"),
 //         JSON.stringify({
-//           $schema: "https://exasol.com/exa/config.json",
-//         }),
+////         }),
 //       )
 //     },
 //   })
@@ -148,8 +144,7 @@ export {}
 //       await Bun.write(
 //         path.join(dir, "exa.json"),
 //         JSON.stringify({
-//           $schema: "https://exasol.com/exa/config.json",
-//           provider: {
+////           provider: {
 //             gitlab: {
 //               options: {
 //                 instanceUrl: "https://gitlab.company.internal",
@@ -180,8 +175,7 @@ export {}
 //       await Bun.write(
 //         path.join(dir, "exa.json"),
 //         JSON.stringify({
-//           $schema: "https://exasol.com/exa/config.json",
-//           provider: {
+////           provider: {
 //             gitlab: {
 //               options: {
 //                 apiKey: "config-token",
@@ -210,8 +204,7 @@ export {}
 //       await Bun.write(
 //         path.join(dir, "exa.json"),
 //         JSON.stringify({
-//           $schema: "https://exasol.com/exa/config.json",
-//         }),
+////         }),
 //       )
 //     },
 //   })
@@ -236,8 +229,7 @@ export {}
 //       await Bun.write(
 //         path.join(dir, "exa.json"),
 //         JSON.stringify({
-//           $schema: "https://exasol.com/exa/config.json",
-//           provider: {
+////           provider: {
 //             gitlab: {
 //               options: {
 //                 featureFlags: {
@@ -271,8 +263,7 @@ export {}
 //       await Bun.write(
 //         path.join(dir, "exa.json"),
 //         JSON.stringify({
-//           $schema: "https://exasol.com/exa/config.json",
-//         }),
+////         }),
 //       )
 //     },
 //   })
@@ -297,7 +288,7 @@ export {}
 //   test("duo-workflow-* model routes through workflowChat", async () => {
 //     await using tmp = await tmpdir({
 //       init: async (dir) => {
-//         await Bun.write(path.join(dir, "exa.json"), JSON.stringify({ $schema: "https://exasol.com/exa/config.json" }))
+//         await Bun.write(path.join(dir, "exa.json"), JSON.stringify({ }))
 //       },
 //     })
 //     await withTestInstance({
@@ -345,7 +336,7 @@ export {}
 //   test("duo-chat-* model routes through agenticChat (not workflow)", async () => {
 //     await using tmp = await tmpdir({
 //       init: async (dir) => {
-//         await Bun.write(path.join(dir, "exa.json"), JSON.stringify({ $schema: "https://exasol.com/exa/config.json" }))
+//         await Bun.write(path.join(dir, "exa.json"), JSON.stringify({ }))
 //       },
 //     })
 //     await withTestInstance({
@@ -368,7 +359,7 @@ export {}
 //   test("model.options merged with provider.options in getLanguage", async () => {
 //     await using tmp = await tmpdir({
 //       init: async (dir) => {
-//         await Bun.write(path.join(dir, "exa.json"), JSON.stringify({ $schema: "https://exasol.com/exa/config.json" }))
+//         await Bun.write(path.join(dir, "exa.json"), JSON.stringify({ }))
 //       },
 //     })
 //     await withTestInstance({
@@ -392,7 +383,7 @@ export {}
 //   test("static duo-chat models always present regardless of discovery", async () => {
 //     await using tmp = await tmpdir({
 //       init: async (dir) => {
-//         await Bun.write(path.join(dir, "exa.json"), JSON.stringify({ $schema: "https://exasol.com/exa/config.json" }))
+//         await Bun.write(path.join(dir, "exa.json"), JSON.stringify({ }))
 //       },
 //     })
 //     await withTestInstance({

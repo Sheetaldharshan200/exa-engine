@@ -39,7 +39,7 @@ describe("NvidiaPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.provider.get(ProviderV2.ID.make("nvidia")))?.request.headers).toEqual({
         Existing: "value",
-        "HTTP-Referer": "https://exasol.com/exa/",
+        "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
         "X-Title": "exa",
         "X-BILLING-INVOKE-ORIGIN": "Exa",
       })
@@ -62,7 +62,7 @@ describe("NvidiaPlugin", () => {
       yield* addPlugin()
 
       expect((yield* catalog.provider.get(ProviderV2.ID.make("nvidia")))?.request.headers).toEqual({
-        "HTTP-Referer": "https://exasol.com/exa/",
+        "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
         "X-Title": "exa",
         "X-BILLING-INVOKE-ORIGIN": "Exa",
       })
@@ -88,7 +88,7 @@ describe("NvidiaPlugin", () => {
       yield* addPlugin()
 
       expect((yield* catalog.provider.get(ProviderV2.ID.make("nvidia")))?.request.headers).toEqual({
-        "HTTP-Referer": "https://exasol.com/exa/",
+        "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
         "X-Title": "exa",
         "X-BILLING-INVOKE-ORIGIN": "CustomOrigin",
       })

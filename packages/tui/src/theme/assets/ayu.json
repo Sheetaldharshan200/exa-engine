@@ -1,5 +1,4 @@
 {
-  "$schema": "https://exasol.com/exa/theme.json",
   "defs": {
     "darkBg": "#0B0E14",
     "darkBgAlt": "#0D1017",

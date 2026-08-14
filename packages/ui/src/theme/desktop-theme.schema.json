@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://exasol.com/exa/desktop-theme.json",
+  "$id": "https://github.com/Sheetaldharshan200/exa-engine/desktop-theme.json",
   "title": "Exa Desktop Theme",
   "description": "A theme definition for the Exa desktop application",
   "type": "object",

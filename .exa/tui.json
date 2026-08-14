@@ -1,5 +1,4 @@
 {
-  "$schema": "https://exasol.com/exa/tui.json",
   "plugin": [
     [
       "./plugins/tui-smoke.tsx",

@@ -1280,7 +1280,7 @@ it.instance(
   Effect.gen(function* () {
     const providers = yield* list
     expect(providers[ProviderV2.ID.make("nvidia")].options.headers).toEqual({
-      "HTTP-Referer": "https://exasol.com/exa/",
+      "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
       "X-Title": "exa",
       "X-BILLING-INVOKE-ORIGIN": "Exa",
     })
@@ -1293,7 +1293,7 @@ it.instance(
   Effect.gen(function* () {
     const providers = yield* list
     expect(providers[ProviderV2.ID.make("nvidia")].options.headers).toEqual({
-      "HTTP-Referer": "https://exasol.com/exa/",
+      "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
       "X-Title": "exa",
       "X-BILLING-INVOKE-ORIGIN": "Exa",
     })

@@ -101,7 +101,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   meta = {
     description = "The open source coding agent";
-    homepage = "https://exasol.com/exa";
+    homepage = "https://github.com/Sheetaldharshan200/exa-engine";
     license = lib.licenses.mit;
     mainProgram = "exa";
     inherit (node_modules.meta) platforms;

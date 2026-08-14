@@ -458,7 +458,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://exasol.com/exa/",
+            "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
             "X-Title": "exa",
             "X-Source": "exa",
           },
@@ -469,7 +469,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://exasol.com/exa/",
+            "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
             "X-Title": "exa",
           },
         },
@@ -479,7 +479,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: provider.source === "config",
         options: {
           headers: {
-            "HTTP-Referer": "https://exasol.com/exa/",
+            "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
             "X-Title": "exa",
             "X-BILLING-INVOKE-ORIGIN": "Exa",
           },
@@ -490,7 +490,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "http-referer": "https://exasol.com/exa/",
+            "http-referer": "https://github.com/Sheetaldharshan200/exa-engine/",
             "x-title": "exa",
           },
         },
@@ -596,7 +596,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://exasol.com/exa/",
+            "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
             "X-Title": "exa",
           },
         },
@@ -854,7 +854,7 @@ function custom(dep: CustomDep): Record<string, CustomLoader> {
         autoload: false,
         options: {
           headers: {
-            "HTTP-Referer": "https://exasol.com/exa/",
+            "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
             "X-Title": "exa",
           },
         },

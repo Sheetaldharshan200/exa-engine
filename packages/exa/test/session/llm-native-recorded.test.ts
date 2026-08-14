@@ -28,7 +28,7 @@ import { LayerNodePlatform } from "@exa/core/effect/app-node-platform"
 
 const FIXTURES_DIR = path.join(import.meta.dir, "../fixtures/recordings")
 
-const zenURL = (connection: string) => `https://console.exasol.com/proxy/connections/${connection}/v1`
+const zenURL = (connection: string) => `https://console.example.com/proxy/connections/${connection}/v1`
 
 const replayOpenAIOAuth = {
   type: "oauth",
@@ -291,7 +291,7 @@ const writeConfig = (directory: string, scenario: RecordedScenario, model: Model
   Effect.promise(() =>
     Bun.write(
       path.join(directory, "exa.json"),
-      JSON.stringify({ $schema: "https://exasol.com/exa/config.json", ...scenario.config(model) }),
+      JSON.stringify({ ...scenario.config(model) }),
     ),
   )
 

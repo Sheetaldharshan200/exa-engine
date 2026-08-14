@@ -14,7 +14,7 @@
 macOS and Linux:
 
 ```sh
-curl -fsSL https://exasol.com/exa/install | sh
+curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.sh | sh
 ```
 
 Windows: download the archive for your platform from the

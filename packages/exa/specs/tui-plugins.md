@@ -18,7 +18,6 @@ Example:
 
 ```json
 {
-  "$schema": "https://exasol.com/exa/tui.json",
   "theme": "smoke-theme",
   "leader_timeout": 2000,
   "keybinds": {

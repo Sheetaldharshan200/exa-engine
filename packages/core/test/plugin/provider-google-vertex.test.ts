@@ -95,7 +95,7 @@ describe("GoogleVertexPlugin", () => {
           provider.api = {
             type: "aisdk",
             package: "@ai-sdk/openai-compatible",
-            url: "https://exasol.com/exa/zen/v1",
+            url: "https://github.com/Sheetaldharshan200/exa-engine/zen/v1",
           }
         }),
       )

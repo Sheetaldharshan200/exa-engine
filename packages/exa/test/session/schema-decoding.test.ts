@@ -240,7 +240,7 @@ describe("SessionStatus.Info", () => {
         title: "Free limit reached",
         message: "Subscribe to Exa Go.",
         label: "subscribe",
-        link: "https://exasol.com/exa",
+        link: "https://github.com/Sheetaldharshan200/exa-engine",
       },
       next: 500,
     }

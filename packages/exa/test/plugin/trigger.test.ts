@@ -41,7 +41,6 @@ function withProject<A, E, R>(source: string, self: Effect.Effect<A, E, R>) {
             path.join(test.directory, "exa.json"),
             JSON.stringify(
               {
-                $schema: "https://exasol.com/exa/config.json",
                 plugin: [pathToFileURL(file).href],
               },
               null,

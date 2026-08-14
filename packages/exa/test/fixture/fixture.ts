@@ -96,7 +96,6 @@ export async function tmpdir<T>(options?: TmpDirOptions<T>) {
     await Bun.write(
       path.join(dirpath, "exa.json"),
       JSON.stringify({
-        $schema: "https://exasol.com/exa/config.json",
         ...options.config,
       }),
     )
@@ -154,7 +153,7 @@ export function tmpdirScoped<E = never, R = never>(options?: {
       yield* Effect.promise(() =>
         fs.writeFile(
           path.join(dir, "exa.json"),
-          JSON.stringify({ $schema: "https://exasol.com/exa/config.json", ...resolved }),
+          JSON.stringify({ ...resolved }),
         ),
       )
     }

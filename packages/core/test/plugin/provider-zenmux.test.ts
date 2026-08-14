@@ -41,7 +41,7 @@ describe("ZenmuxPlugin", () => {
       })
       yield* addPlugin()
       const result = required(yield* catalog.provider.get(ProviderV2.ID.make("zenmux")))
-      expect(result.request.headers).toEqual({ "HTTP-Referer": "https://exasol.com/exa/", "X-Title": "exa" })
+      expect(result.request.headers).toEqual({ "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/", "X-Title": "exa" })
       expect(Object.keys(result.request.headers).sort()).toEqual(["HTTP-Referer", "X-Title"])
     }),
   )
@@ -63,7 +63,7 @@ describe("ZenmuxPlugin", () => {
 
       expect(required(yield* catalog.provider.get(ProviderV2.ID.make("zenmux"))).request.headers).toEqual({
         Existing: "value",
-        "HTTP-Referer": "https://exasol.com/exa/",
+        "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
         "X-Title": "exa",
       })
     }),

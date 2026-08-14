@@ -20,8 +20,8 @@ Options:
         --no-modify-path    Don't modify shell config files (.zshrc, .bashrc, etc.)
 
 Examples:
-    curl -fsSL https://exasol.com/exa/install | bash
-    curl -fsSL https://exasol.com/exa/install | bash -s -- --version 1.0.180
+    curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.sh | bash
+    curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.sh | bash -s -- --version 1.0.180
     ./install --binary /path/to/exa
 EOF
 }
@@ -455,6 +455,6 @@ echo -e ""
 echo -e "cd <project>  ${MUTED}# Open directory${NC}"
 echo -e "exa      ${MUTED}# Run command${NC}"
 echo -e ""
-echo -e "${MUTED}For more information visit ${NC}https://exasol.com/exa/docs"
+echo -e "${MUTED}For more information visit ${NC}https://github.com/Sheetaldharshan200/exa-engine#readme"
 echo -e ""
 echo -e ""

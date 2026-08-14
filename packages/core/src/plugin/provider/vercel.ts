@@ -10,7 +10,7 @@ export const VercelPlugin = define({
           if (item.provider.api.type !== "aisdk") continue
           if (item.provider.api.package !== "@ai-sdk/vercel") continue
           evt.provider.update(item.provider.id, (provider) => {
-            provider.request.headers["http-referer"] = "https://exasol.com/exa/"
+            provider.request.headers["http-referer"] = "https://github.com/Sheetaldharshan200/exa-engine/"
             provider.request.headers["x-title"] = "exa"
           })
         }

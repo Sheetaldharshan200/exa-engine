@@ -13,7 +13,9 @@ import { ConfigProviderV1 } from "../../v1/config/provider"
 import { ConfigProviderOptionsV1 } from "../../v1/config/provider-options"
 import { ConfigV1 } from "../../v1/config/config"
 
-const defaultServer = "https://console.exasol.com"
+// No default: this provider talks to a console the operator hosts, named
+// via EXA_CONSOLE_URL (or the provider's own `server` option).
+const defaultServer = process.env["EXA_CONSOLE_URL"] ?? ""
 const clientID = "exa-cli"
 const methodID = Integration.MethodID.make("device")
 const RemoteResponse = Schema.Struct({ config: ConfigV1.Info })

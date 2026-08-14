@@ -11,7 +11,7 @@ export const OpenRouterPlugin = define({
           if (item.provider.api.type !== "aisdk") continue
           if (item.provider.api.package !== "@openrouter/ai-sdk-provider") continue
           evt.provider.update(item.provider.id, (provider) => {
-            provider.request.headers["HTTP-Referer"] = "https://exasol.com/exa/"
+            provider.request.headers["HTTP-Referer"] = "https://github.com/Sheetaldharshan200/exa-engine/"
             provider.request.headers["X-Title"] = "exa"
           })
           for (const modelID of [ModelV2.ID.make("gpt-5-chat-latest"), ModelV2.ID.make("openai/gpt-5-chat")]) {

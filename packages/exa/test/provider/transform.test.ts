@@ -2743,7 +2743,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
       providerID: "exa",
       api: {
         id: "exa-test",
-        url: "https://api.exasol.com/exa",
+        url: "https://api.example.com",
         npm: "@ai-sdk/openai-compatible",
       },
     }
@@ -2777,7 +2777,7 @@ describe("ProviderTransform.message - strip openai metadata when store=false", (
       providerID: "exa",
       api: {
         id: "exa-test",
-        url: "https://api.exasol.com/exa",
+        url: "https://api.example.com",
         npm: "@ai-sdk/openai-compatible",
       },
     }

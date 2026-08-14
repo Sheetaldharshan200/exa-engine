@@ -11,7 +11,7 @@ export const KiloPlugin = define({
           if (item.provider.api.package !== "@ai-sdk/openai-compatible") continue
           if (item.provider.api.url !== "https://api.kilo.ai/api/gateway") continue
           evt.provider.update(item.provider.id, (provider) => {
-            provider.request.headers["HTTP-Referer"] = "https://exasol.com/exa/"
+            provider.request.headers["HTTP-Referer"] = "https://github.com/Sheetaldharshan200/exa-engine/"
             provider.request.headers["X-Title"] = "exa"
           })
         }

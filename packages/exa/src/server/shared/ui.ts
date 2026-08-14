@@ -6,7 +6,12 @@ import { ProxyUtil } from "../proxy-util"
 
 let embeddedUIPromise: Promise<Record<string, string> | null> | undefined
 
-export const UI_UPSTREAM = new URL("https://app.exasol.com/exa")
+/** Optional host serving the web UI. There is no default: the UI is served
+ *  from the embedded bundle, and proxying to an outside host only happens
+ *  when the operator names one via EXA_WEB_UI_UPSTREAM. */
+export const UI_UPSTREAM = process.env["EXA_WEB_UI_UPSTREAM"]
+  ? new URL(process.env["EXA_WEB_UI_UPSTREAM"])
+  : undefined
 
 export const csp = (hash = "") =>
   `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'${hash ? ` 'sha256-${hash}'` : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; media-src 'self' data:; connect-src * data: blob:`
@@ -38,6 +43,7 @@ function proxyResponseHeaders(headers: Record<string, string>) {
 }
 
 export function upstreamURL(path: string) {
+  if (!UI_UPSTREAM) throw new Error("No web UI upstream configured (set EXA_WEB_UI_UPSTREAM).")
   return new URL(path, UI_UPSTREAM).toString()
 }
 
@@ -85,9 +91,14 @@ export function serveUIEffect(
 
     if (embeddedWebUI) return yield* serveEmbeddedUIEffect(path, services.fs, embeddedWebUI)
 
+    // No embedded bundle and no configured upstream: say so instead of
+    // reaching out to a host the operator never chose.
+    if (!UI_UPSTREAM)
+      return HttpServerResponse.text("Web UI is not available in this build.", { status: 404 })
+
     const response = yield* services.client.execute(
       HttpClientRequest.make(request.method)(upstreamURL(path), {
-        headers: ProxyUtil.headers(request.headers, { host: UI_UPSTREAM.host }),
+        headers: ProxyUtil.headers(request.headers, { host: UI_UPSTREAM!.host }),
         body: requestBody(request),
       }),
     )

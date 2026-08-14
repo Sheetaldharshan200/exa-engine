@@ -46,7 +46,7 @@ describe("LLMGatewayPlugin", () => {
       yield* addPlugin()
       expect((yield* catalog.provider.get(ProviderV2.ID.make("llmgateway")))?.request.headers).toEqual({
         Existing: "value",
-        "HTTP-Referer": "https://exasol.com/exa/",
+        "HTTP-Referer": "https://github.com/Sheetaldharshan200/exa-engine/",
         "X-Title": "exa",
         "X-Source": "exa",
       })

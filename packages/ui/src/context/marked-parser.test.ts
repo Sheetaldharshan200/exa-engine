@@ -4,8 +4,8 @@ import { createMarkdownParser } from "./marked-parser"
 const parser = createMarkdownParser((code, language) => `<pre data-language="${language}">${code}</pre>`)
 
 test("renders links with application attributes", async () => {
-  expect(await parser.parse("[Exa](https://exasol.com/exa)")).toBe(
-    '<p><a href="https://exasol.com/exa" class="external-link" target="_blank" rel="noopener noreferrer">Exa</a></p>\n',
+  expect(await parser.parse("[Exa](https://github.com/Sheetaldharshan200/exa-engine)")).toBe(
+    '<p><a href="https://github.com/Sheetaldharshan200/exa-engine" class="external-link" target="_blank" rel="noopener noreferrer">Exa</a></p>\n',
   )
 })
 
