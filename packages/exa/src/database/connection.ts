@@ -137,12 +137,33 @@ export async function loadPassword(id: string): Promise<string | undefined> {
     .catch(() => undefined)
 }
 
-/** The connection the agent should use: the only one, or the newest. */
+/**
+ * The connection the agent should use: the newest one whose credential is
+ * available here.
+ *
+ * A registry entry can exist WITHOUT a shared credential — Exasol Studio
+ * publishes metadata for remote databases but keeps their secrets in its
+ * vault. Those entries are visible (so `exa connect --list` shows them) but
+ * are not usable without a password, so they must not shadow a database that
+ * is usable.
+ */
 export async function activeConnection(): Promise<(ConnectionEntry & { password: string }) | undefined> {
   const all = await listConnections()
-  if (all.length === 0) return undefined
-  const chosen = all.length === 1 ? all[0] : [...all].sort((a, b) => (a.createdAt ?? "").localeCompare(b.createdAt ?? "")).at(-1)!
-  const password = await loadPassword(chosen.id)
-  if (password === undefined) return undefined
-  return { ...chosen, password }
+  const newestFirst = [...all].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""))
+  for (const entry of newestFirst) {
+    const password = await loadPassword(entry.id)
+    if (password !== undefined && password !== "") return { ...entry, password }
+  }
+  return undefined
+}
+
+/** Registry entries with no credential on this machine, for clear messaging. */
+export async function connectionsMissingCredentials(): Promise<ConnectionEntry[]> {
+  const all = await listConnections()
+  const missing: ConnectionEntry[] = []
+  for (const entry of all) {
+    const password = await loadPassword(entry.id)
+    if (password === undefined || password === "") missing.push(entry)
+  }
+  return missing
 }

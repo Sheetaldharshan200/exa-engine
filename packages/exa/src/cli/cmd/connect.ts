@@ -3,7 +3,13 @@ import * as prompts from "@clack/prompts"
 import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
 import { parseDsn } from "../../database/registry"
-import { forgetConnection, listConnections, probe, saveConnection } from "../../database/connection"
+import {
+  connectionsMissingCredentials,
+  forgetConnection,
+  listConnections,
+  probe,
+  saveConnection,
+} from "../../database/connection"
 import { choiceFromValue, prepareSetup } from "../../database/setup"
 import { installPersonal } from "../../database/install"
 
@@ -34,9 +40,13 @@ export const ConnectCommand = effectCmd({
         UI.println("no databases connected — run `exa connect` to add one")
         return
       }
+      const missing = new Set((yield* Effect.promise(() => connectionsMissingCredentials())).map((c) => c.id))
       for (const c of all) {
         const tag = c.managed ? " (managed)" : ""
-        UI.println(`  ${c.id}  ${c.user}@${c.host}:${c.port}${c.schema ? "/" + c.schema : ""}${tag}`)
+        // An entry can be listed without a usable secret: Studio publishes
+        // remote databases but keeps their credentials in its vault.
+        const note = missing.has(c.id) ? "  — password needed here (`exa connect exasol://…`)" : ""
+        UI.println(`  ${c.id}  ${c.user}@${c.host}:${c.port}${c.schema ? "/" + c.schema : ""}${tag}${note}`)
       }
       return
     }
@@ -55,10 +65,15 @@ export const ConnectCommand = effectCmd({
     // the agent has no database, not a prompt to sit through on every run.
     if (!target) {
       const existing = yield* Effect.promise(() => listConnections())
-      if (existing.length > 0 && !args.add) {
-        for (const c of existing) {
+      const missing = new Set((yield* Effect.promise(() => connectionsMissingCredentials())).map((c) => c.id))
+      const usable = existing.filter((c) => !missing.has(c.id))
+      if (usable.length > 0 && !args.add) {
+        for (const c of usable) {
           const via = c.source === "studio" ? " (from Exasol Studio)" : ""
           UI.println(`connected: ${c.name}${via}`)
+        }
+        for (const c of existing.filter((c) => missing.has(c.id))) {
+          UI.println(`known but needs a password here: ${c.name}`)
         }
         UI.println("")
         UI.println("add another with `exa connect --add`, or `exa connect exasol://user@host:port`")
