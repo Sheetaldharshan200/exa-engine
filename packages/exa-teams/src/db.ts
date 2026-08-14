@@ -1,5 +1,5 @@
 import { createRequire } from "node:module"
-import { rmSync } from "node:fs"
+import { closeSync, openSync, readSync, renameSync, rmSync } from "node:fs"
 import path from "node:path"
 import { applyMigrations } from "./schema"
 
@@ -107,21 +107,71 @@ function open(path: string): Database {
   return db
 }
 
+/** SQLite's file magic: every real database starts with these 16 bytes. */
+const SQLITE_MAGIC = "SQLite format 3\0"
+
 /**
- * Create and initialize a SQLite database at the given path.
- * Applies all pending migrations and enables WAL mode.
+ * Quarantine a database file that is present but is NOT SQLite. Relying on the
+ * open call to fail is not enough: bun's SQLite accepts such a file, serves
+ * queries from memory for the life of the process, and never persists them —
+ * so state silently disappears between runs and nothing ever throws (verified
+ * 2026-08-14: a 47-byte text file stayed 47 bytes while queries "succeeded").
+ * Checking the magic first makes the outcome deterministic across runtimes.
+ */
+function quarantineIfNotSqlite(file: string): void {
+  let header: Buffer
+  try {
+    const handle = openSync(file, "r")
+    try {
+      header = Buffer.alloc(SQLITE_MAGIC.length)
+      const read = readSync(handle, header, 0, header.length, 0)
+      if (read === 0) return // empty file — SQLite initializes it normally
+      if (read < header.length) header = header.subarray(0, read)
+    } finally {
+      closeSync(handle)
+    }
+  } catch {
+    return // missing or unreadable — let the open path handle it
+  }
+  if (header.toString("binary") === SQLITE_MAGIC.slice(0, header.length)) return
+  // Keep the evidence next to it; the orchestration state itself is disposable.
+  try {
+    renameSync(file, `${file}.corrupt`)
+  } catch {
+    try {
+      rmSync(file, { force: true })
+    } catch {
+      /* best effort */
+    }
+  }
+  for (const suffix of ["-wal", "-shm"]) {
+    try {
+      rmSync(file + suffix, { force: true })
+    } catch {
+      /* best effort */
+    }
+  }
+}
+
+/**
+ * Create and initialize the orchestration state database.
  *
- * Self-healing: WAL leaves `-wal`/`-shm` sidecars next to the database, and a
- * sidecar that outlives its database (the file deleted by hand, a wiped app
- * data dir, an interrupted write) makes SQLite fail every open with
- * "disk I/O error". Because a failing plugin load is only logged at debug
- * level, that silently removes the ENTIRE orchestration layer — every team
- * tool disappears with no user-visible reason (observed 2026-08-14). So a
- * failed open retries once after clearing the sidecars, then once more with
- * the database itself removed: team/task history is disposable state, an
- * unusable orchestration layer is not.
+ * Two independent failure modes are handled, because a failing plugin load is
+ * only logged at debug level — a broken state file silently removes the ENTIRE
+ * orchestration layer, every team tool vanishing with no user-visible reason:
+ *
+ *  1. A file that is present but NOT SQLite is quarantined up front (see
+ *     quarantineIfNotSqlite) — bun's SQLite would otherwise accept it and
+ *     lose every write on exit.
+ *  2. WAL `-wal`/`-shm` sidecars that outlive their database (a hand-deleted
+ *     file, a wiped data dir, an interrupted write) make every open fail with
+ *     "disk I/O error" — observed for real on 2026-08-14. A failed open
+ *     retries after clearing the sidecars, then once more with the database
+ *     removed: team/task history is disposable, an unusable orchestration
+ *     layer is not.
  */
 export function createDb(path: string): Database {
+  quarantineIfNotSqlite(path)
   try {
     instance = open(path)
     return instance
