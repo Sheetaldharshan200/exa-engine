@@ -34,7 +34,7 @@ git remote add upstream https://github.com/anomalyco/opencode  # once
 git fetch upstream --tags
 git checkout -b exa-rebase vX.Y.Z          # the new upstream tag
 git cherry-pick <patch commits from exa-main>
-# resolve, verify: bun install && bun ./packages/opencode/script/build.ts --single
+# resolve, verify: bun install && bun ./packages/exa/script/build.ts --single
 git branch -f exa-main exa-rebase && git push fork exa-main --force-with-lease
 git tag vX.Y.Z-exa.1 && git push fork vX.Y.Z-exa.1   # CI releases
 ```

@@ -1,4 +1,5 @@
 import path from "path"
+import { existsSync } from "fs"
 import fs from "fs/promises"
 import { xdgData, xdgCache, xdgConfig, xdgState } from "xdg-basedir"
 import os from "os"
@@ -7,16 +8,27 @@ import { Flock } from "./util/flock"
 import { Flag } from "./flag/flag"
 import { makeGlobalNode } from "./effect/app-node"
 
-const app = "opencode"
-const data = path.join(xdgData!, app)
-const cache = path.join(xdgCache!, app)
-const config = path.join(xdgConfig!, app)
-const state = path.join(xdgState!, app)
-const tmp = path.join(os.tmpdir(), app)
+const app = "exa"
+const legacyApp = "opencode"
+
+// Keep using an existing legacy directory when one is already populated, so an
+// install that predates the exa rename keeps its sessions, auth and config.
+function appDir(root: string) {
+  const next = path.join(root, app)
+  if (existsSync(next)) return next
+  const legacy = path.join(root, legacyApp)
+  return existsSync(legacy) ? legacy : next
+}
+
+const data = appDir(xdgData!)
+const cache = appDir(xdgCache!)
+const config = appDir(xdgConfig!)
+const state = appDir(xdgState!)
+const tmp = appDir(os.tmpdir())
 
 const paths = {
   get home() {
-    return process.env.OPENCODE_TEST_HOME ?? os.homedir()
+    return process.env.EXA_TEST_HOME ?? process.env.OPENCODE_TEST_HOME ?? os.homedir()
   },
   data,
   bin: path.join(cache, "bin"),
@@ -42,7 +54,7 @@ await Promise.all([
   fs.mkdir(Path.repos, { recursive: true }),
 ])
 
-export class Service extends Context.Service<Service, Interface>()("@opencode/Global") {}
+export class Service extends Context.Service<Service, Interface>()("@exa/Global") {}
 
 export interface Interface {
   readonly home: string
@@ -61,7 +73,7 @@ export function make(input: Partial<Interface> = {}): Interface {
     home: Path.home,
     data: Path.data,
     cache: Path.cache,
-    config: Flag.OPENCODE_CONFIG_DIR ?? Path.config,
+    config: Flag.EXA_CONFIG_DIR ?? Path.config,
     state: Path.state,
     tmp: Path.tmp,
     bin: Path.bin,

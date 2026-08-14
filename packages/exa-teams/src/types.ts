@@ -28,7 +28,7 @@ export interface PermissionRule {
 
 /**
  * Minimal interface for the OpenCode v2 SDK client methods we actually use.
- * Uses flat params matching the v2 SDK (imported from @opencode-ai/sdk/v2).
+ * Uses flat params matching the v2 SDK (imported from @exa/sdk/v2).
  * Makes mocking trivial in tests.
  */
 export interface PluginClient {

@@ -2,9 +2,9 @@ import fs from "fs/promises"
 import path from "path"
 import { describe, expect, test } from "bun:test"
 import { Effect, Option } from "effect"
-import { AppNodeBuilder } from "@opencode-ai/core/effect/app-node-builder"
-import { Global } from "@opencode-ai/core/global"
-import { Npm } from "@opencode-ai/core/npm"
+import { AppNodeBuilder } from "@exa/core/effect/app-node-builder"
+import { Global } from "@exa/core/global"
+import { Npm } from "@exa/core/npm"
 import { tmpdir } from "./fixture/tmpdir"
 
 const win = process.platform === "win32"
@@ -23,8 +23,8 @@ const npmLayer = (cache: string) =>
 
 describe("Npm.sanitize", () => {
   test("keeps normal scoped package specs unchanged", () => {
-    expect(Npm.sanitize("@opencode/acme")).toBe("@opencode/acme")
-    expect(Npm.sanitize("@opencode/acme@1.0.0")).toBe("@opencode/acme@1.0.0")
+    expect(Npm.sanitize("@exa/acme")).toBe("@exa/acme")
+    expect(Npm.sanitize("@exa/acme@1.0.0")).toBe("@exa/acme@1.0.0")
     expect(Npm.sanitize("prettier")).toBe("prettier")
   })
 

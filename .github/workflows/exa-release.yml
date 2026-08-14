@@ -45,28 +45,16 @@ jobs:
           OPENCODE_RELEASE: "1"
         run: |
           export OPENCODE_VERSION="${GITHUB_REF_NAME#v}"
-          bun ./packages/opencode/script/build.ts
+          bun ./packages/exa/script/build.ts
 
-      - name: Repackage as exa-branded assets
+      - name: Verify published assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          cd packages/opencode/dist
-          for d in opencode-*/; do
-            key="${d%/}"
-            newkey="exa-${key#opencode-}"
-            [ -f "$key/bin/opencode" ] && mv "$key/bin/opencode" "$key/bin/exa"
-            [ -f "$key/bin/opencode.exe" ] && mv "$key/bin/opencode.exe" "$key/bin/exa.exe"
-            case "$key" in
-              *linux*) tar -czf "$newkey.tar.gz" -C "$key/bin" . ;;
-              *) (cd "$key/bin" && zip -qr "../../$newkey.zip" .) ;;
-            esac
-            echo "packaged $newkey"
-          done
-          gh release upload "${GITHUB_REF_NAME}" ./exa-*.tar.gz ./exa-*.zip --clobber --repo "${GITHUB_REPOSITORY}"
-          # Drop the upstream-named archives build.ts uploaded — the exa-*
-          # set above is the release's public download surface.
-          for a in $(gh release view "${GITHUB_REF_NAME}" --json assets --jq '.assets[].name' --repo "${GITHUB_REPOSITORY}" | grep '^opencode-' || true); do
-            gh release delete-asset "${GITHUB_REF_NAME}" "$a" --yes --repo "${GITHUB_REPOSITORY}"
-          done
+          # build.ts now emits exa-<os>-<arch> archives containing bin/exa
+          # directly (package renamed opencode -> exa), so no repackaging is
+          # needed; just assert the release really carries exa-* assets.
+          names=$(gh release view "${GITHUB_REF_NAME}" --json assets --jq '.assets[].name' --repo "${GITHUB_REPOSITORY}")
+          echo "$names"
+          echo "$names" | grep -q '^exa-darwin-arm64\.zip$' || { echo "::error::exa-* assets missing"; exit 1; }

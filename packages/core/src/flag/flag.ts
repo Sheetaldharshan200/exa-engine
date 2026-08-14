@@ -1,78 +1,92 @@
 import { Config } from "effect"
 
+/** Read an env var under the EXA_ name, falling back to the legacy OPENCODE_
+ *  name so existing installs, scripts and the Studio app keep working. */
+export function envVar(suffix: string) {
+  return process.env["EXA_" + suffix] ?? process.env["OPENCODE_" + suffix]
+}
+
 export function truthy(key: string) {
   const value = process.env[key]?.toLowerCase()
   return value === "true" || value === "1"
 }
 
-const copy = process.env["OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT"]
-const fff = process.env["OPENCODE_DISABLE_FFF"]
+/** truthy() over the EXA_/OPENCODE_ pair. */
+export function truthyVar(suffix: string) {
+  const value = envVar(suffix)?.toLowerCase()
+  return value === "true" || value === "1"
+}
 
-function enabledByExperimental(key: string) {
-  return process.env[key] === undefined ? truthy("OPENCODE_EXPERIMENTAL") : truthy(key)
+const copy = envVar("EXPERIMENTAL_DISABLE_COPY_ON_SELECT")
+const fff = envVar("DISABLE_FFF")
+
+function enabledByExperimental(suffix: string) {
+  return envVar(suffix) === undefined ? truthyVar("EXPERIMENTAL") : truthyVar(suffix)
 }
 
 export const Flag = {
   OTEL_EXPORTER_OTLP_ENDPOINT: process.env["OTEL_EXPORTER_OTLP_ENDPOINT"],
   OTEL_EXPORTER_OTLP_HEADERS: process.env["OTEL_EXPORTER_OTLP_HEADERS"],
 
-  OPENCODE_AUTO_HEAP_SNAPSHOT: truthy("OPENCODE_AUTO_HEAP_SNAPSHOT"),
-  OPENCODE_GIT_BASH_PATH: process.env["OPENCODE_GIT_BASH_PATH"],
-  OPENCODE_CONFIG: process.env["OPENCODE_CONFIG"],
-  OPENCODE_CONFIG_CONTENT: process.env["OPENCODE_CONFIG_CONTENT"],
-  OPENCODE_DISABLE_AUTOUPDATE: truthy("OPENCODE_DISABLE_AUTOUPDATE"),
-  OPENCODE_ALWAYS_NOTIFY_UPDATE: truthy("OPENCODE_ALWAYS_NOTIFY_UPDATE"),
-  OPENCODE_DISABLE_PRUNE: truthy("OPENCODE_DISABLE_PRUNE"),
-  OPENCODE_DISABLE_TERMINAL_TITLE: truthy("OPENCODE_DISABLE_TERMINAL_TITLE"),
-  OPENCODE_SHOW_TTFD: truthy("OPENCODE_SHOW_TTFD"),
-  OPENCODE_DISABLE_AUTOCOMPACT: truthy("OPENCODE_DISABLE_AUTOCOMPACT"),
-  OPENCODE_DISABLE_MODELS_FETCH: truthy("OPENCODE_DISABLE_MODELS_FETCH"),
-  OPENCODE_DISABLE_MOUSE: truthy("OPENCODE_DISABLE_MOUSE"),
-  OPENCODE_FAKE_VCS: process.env["OPENCODE_FAKE_VCS"],
-  OPENCODE_SERVER_PASSWORD: process.env["OPENCODE_SERVER_PASSWORD"],
-  OPENCODE_SERVER_USERNAME: process.env["OPENCODE_SERVER_USERNAME"],
-  OPENCODE_DISABLE_FFF: fff === undefined ? process.platform === "win32" : truthy("OPENCODE_DISABLE_FFF"),
+  EXA_AUTO_HEAP_SNAPSHOT: truthyVar("AUTO_HEAP_SNAPSHOT"),
+  EXA_GIT_BASH_PATH: envVar("GIT_BASH_PATH"),
+  EXA_CONFIG: envVar("CONFIG"),
+  EXA_CONFIG_CONTENT: envVar("CONFIG_CONTENT"),
+  EXA_DISABLE_AUTOUPDATE: truthyVar("DISABLE_AUTOUPDATE"),
+  EXA_ALWAYS_NOTIFY_UPDATE: truthyVar("ALWAYS_NOTIFY_UPDATE"),
+  EXA_DISABLE_PRUNE: truthyVar("DISABLE_PRUNE"),
+  EXA_DISABLE_TERMINAL_TITLE: truthyVar("DISABLE_TERMINAL_TITLE"),
+  EXA_SHOW_TTFD: truthyVar("SHOW_TTFD"),
+  EXA_DISABLE_AUTOCOMPACT: truthyVar("DISABLE_AUTOCOMPACT"),
+  EXA_DISABLE_MODELS_FETCH: truthyVar("DISABLE_MODELS_FETCH"),
+  EXA_DISABLE_MOUSE: truthyVar("DISABLE_MOUSE"),
+  EXA_FAKE_VCS: envVar("FAKE_VCS"),
+  EXA_SERVER_PASSWORD: envVar("SERVER_PASSWORD"),
+  EXA_SERVER_USERNAME: envVar("SERVER_USERNAME"),
+  EXA_DISABLE_FFF: fff === undefined ? process.platform === "win32" : truthyVar("DISABLE_FFF"),
 
   // Experimental
-  OPENCODE_EXPERIMENTAL_FILEWATCHER: Config.boolean("OPENCODE_EXPERIMENTAL_FILEWATCHER").pipe(
+  EXA_EXPERIMENTAL_FILEWATCHER: Config.boolean("EXA_EXPERIMENTAL_FILEWATCHER").pipe(
+    Config.orElse(() => Config.boolean("OPENCODE_EXPERIMENTAL_FILEWATCHER")),
     Config.withDefault(false),
   ),
-  OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER: Config.boolean("OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER").pipe(
+  EXA_EXPERIMENTAL_DISABLE_FILEWATCHER: Config.boolean("EXA_EXPERIMENTAL_DISABLE_FILEWATCHER").pipe(
+    Config.orElse(() => Config.boolean("OPENCODE_EXPERIMENTAL_DISABLE_FILEWATCHER")),
     Config.withDefault(false),
   ),
-  OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT:
-    copy === undefined ? process.platform === "win32" : truthy("OPENCODE_EXPERIMENTAL_DISABLE_COPY_ON_SELECT"),
-  OPENCODE_MODELS_URL: process.env["OPENCODE_MODELS_URL"],
-  OPENCODE_MODELS_PATH: process.env["OPENCODE_MODELS_PATH"],
-  OPENCODE_DB: process.env["OPENCODE_DB"],
+  EXA_EXPERIMENTAL_DISABLE_COPY_ON_SELECT:
+    copy === undefined ? process.platform === "win32" : truthyVar("EXPERIMENTAL_DISABLE_COPY_ON_SELECT"),
+  EXA_MODELS_URL: envVar("MODELS_URL"),
+  EXA_MODELS_PATH: envVar("MODELS_PATH"),
+  EXA_DB: envVar("DB"),
 
-  OPENCODE_WORKSPACE_ID: process.env["OPENCODE_WORKSPACE_ID"],
-  OPENCODE_EXPERIMENTAL_WORKSPACES: enabledByExperimental("OPENCODE_EXPERIMENTAL_WORKSPACES"),
+  EXA_WORKSPACE_ID: envVar("WORKSPACE_ID"),
+  EXA_EXPERIMENTAL_WORKSPACES: enabledByExperimental("EXPERIMENTAL_WORKSPACES"),
 
   // Evaluated at access time (not module load) because tests, the CLI, and
   // external tooling set these env vars at runtime.
-  get OPENCODE_DISABLE_PROJECT_CONFIG() {
-    return truthy("OPENCODE_DISABLE_PROJECT_CONFIG")
+  get EXA_DISABLE_PROJECT_CONFIG() {
+    return truthyVar("DISABLE_PROJECT_CONFIG")
   },
-  get OPENCODE_EXPERIMENTAL_REFERENCES() {
-    return enabledByExperimental("OPENCODE_EXPERIMENTAL_REFERENCES")
+  get EXA_EXPERIMENTAL_REFERENCES() {
+    return enabledByExperimental("EXPERIMENTAL_REFERENCES")
   },
-  get OPENCODE_TUI_CONFIG() {
-    return process.env["OPENCODE_TUI_CONFIG"]
+  get EXA_TUI_CONFIG() {
+    return envVar("TUI_CONFIG")
   },
-  get OPENCODE_CONFIG_DIR() {
-    return process.env["OPENCODE_CONFIG_DIR"]
+  get EXA_CONFIG_DIR() {
+    return envVar("CONFIG_DIR")
   },
-  get OPENCODE_PURE() {
-    return truthy("OPENCODE_PURE")
+  get EXA_PURE() {
+    return truthyVar("PURE")
   },
-  get OPENCODE_PERMISSION() {
-    return process.env["OPENCODE_PERMISSION"]
+  get EXA_PERMISSION() {
+    return envVar("PERMISSION")
   },
-  get OPENCODE_PLUGIN_META_FILE() {
-    return process.env["OPENCODE_PLUGIN_META_FILE"]
+  get EXA_PLUGIN_META_FILE() {
+    return envVar("PLUGIN_META_FILE")
   },
-  get OPENCODE_CLIENT() {
-    return process.env["OPENCODE_CLIENT"] ?? "cli"
+  get EXA_CLIENT() {
+    return envVar("CLIENT") ?? "cli"
   },
 }

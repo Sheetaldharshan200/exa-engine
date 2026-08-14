@@ -9,8 +9,8 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@opencode-ai/plugin": "workspace:*",
-    "@opencode-ai/sdk": "workspace:*"
+    "@exa/plugin": "workspace:*",
+    "@exa/sdk": "workspace:*"
   },
   "devDependencies": {
     "typescript": "catalog:"
