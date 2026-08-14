@@ -2,6 +2,7 @@
 
 import { $ } from "bun"
 import path from "path"
+import { existsSync } from "fs"
 import { fileURLToPath } from "url"
 import { createSolidTransformPlugin } from "@opentui/solid/bun-plugin"
 
@@ -21,7 +22,10 @@ const baselineFlag = process.argv.includes("--baseline")
 const skipInstall = process.argv.includes("--skip-install")
 const sourcemapsFlag = process.argv.includes("--sourcemaps")
 const plugin = createSolidTransformPlugin()
-const skipEmbedWebUi = process.argv.includes("--skip-embed-web-ui")
+// The web UI package is optional: skip embedding when it is not present
+// (this build ships the CLI/engine only).
+const webUiDir = path.join(import.meta.dirname, "../../app")
+const skipEmbedWebUi = process.argv.includes("--skip-embed-web-ui") || !existsSync(webUiDir)
 
 const createEmbeddedWebUIBundle = async () => {
   console.log(`Building Web UI to embed in the binary`)
