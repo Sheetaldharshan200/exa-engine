@@ -781,6 +781,72 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         category: "Exa",
       },
       {
+        name: "app.upgrade",
+        title: "Check for updates and upgrade",
+        slashName: "upgrade",
+        run: async () => {
+          dialog.clear()
+          const choice = await DialogConfirm.show(
+            dialog,
+            "Update exa",
+            "Check for a newer release and install it now?",
+            "skip",
+          )
+          if (choice !== true) return
+          toast.show({ variant: "info", message: "Updating…", duration: 30_000 })
+          // The server resolves "latest" when no target is given.
+          const result = await sdk.client.global.upgrade({}).catch(() => undefined)
+          if (!result || result.error || !result.data?.success) {
+            toast.show({
+              variant: "error",
+              title: "Update Failed",
+              message: "Could not update — try `exa upgrade` for the full output.",
+              duration: 10_000,
+            })
+            return
+          }
+          await DialogAlert.show(
+            dialog,
+            "Update Complete",
+            `Successfully updated to exa v${result.data.version}. Please restart the application.`,
+          )
+        },
+        category: "System",
+      },
+      {
+        name: "app.stats",
+        title: "Token usage and cost",
+        slashName: "stats",
+        run: () => {
+          // Totals across every session the client has synced, plus the
+          // current one — the same numbers the composer footer draws from.
+          const sessions = Object.keys(sync.data.message ?? {})
+          let tokens = 0
+          let cost = 0
+          let assistantMessages = 0
+          for (const id of sessions) {
+            for (const msg of sync.data.message[id] ?? []) {
+              if (msg.role !== "assistant") continue
+              const t = (msg as { tokens?: { input: number; output: number; reasoning: number; cache: { read: number; write: number } } }).tokens
+              if (!t) continue
+              assistantMessages++
+              tokens += t.input + t.output + t.reasoning + t.cache.read + t.cache.write
+            }
+            cost += sync.session.get(id)?.cost ?? 0
+          }
+          const lines = [
+            `sessions        ${sessions.length}`,
+            `replies         ${assistantMessages}`,
+            `tokens          ${tokens.toLocaleString("en-US")}`,
+            `cost            ${cost > 0 ? `$${cost.toFixed(4)}` : "$0"}`,
+            "",
+            "`exa stats` gives the full per-model and per-tool breakdown.",
+          ]
+          void DialogAlert.show(dialog, "Usage", lines.join("\n"))
+        },
+        category: "System",
+      },
+      {
         name: "exa.backup",
         title: "Back up sessions now",
         slashName: "backup",
