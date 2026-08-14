@@ -53,6 +53,35 @@ export const Info = Schema.Struct({
     description:
       "Enable or disable snapshot tracking. When false, filesystem snapshots are not recorded and undoing or reverting will not undo/redo file changes. Defaults to true.",
   }),
+  backup: Schema.optional(
+    Schema.Struct({
+      enabled: Schema.optional(Schema.Boolean).annotate({
+        description: "Automatically write a local backup after a session changes. Defaults to true.",
+      }),
+      directory: Schema.optional(Schema.String).annotate({
+        description:
+          "Where backup bundles are written. Defaults to <data dir>/backup. Point this at a synced folder (Dropbox, OneDrive, a NAS mount) to get off-machine copies for free.",
+      }),
+      retain: Schema.optional(Schema.Finite).annotate({
+        description: "How many backup bundles to keep; older ones are pruned. Defaults to 10.",
+      }),
+      debounceSeconds: Schema.optional(Schema.Finite).annotate({
+        description: "Quiet period after the last session change before a backup is written. Defaults to 60.",
+      }),
+      includeCredentials: Schema.optional(Schema.Boolean).annotate({
+        description:
+          "Include stored provider credentials (auth.json) in bundles. Defaults to false — backups are safe to sync to third-party storage.",
+      }),
+      sync: Schema.optional(
+        Schema.Struct({
+          command: Schema.optional(Schema.mutable(Schema.Array(Schema.String))).annotate({
+            description:
+              'Command run after each backup, with the bundle path appended. Examples: ["aws","s3","cp"] for S3, ["rclone","copy"] for anything rclone supports, or your own script.',
+          }),
+        }),
+      ).annotate({ description: "Optional off-machine sync for backup bundles." }),
+    }),
+  ).annotate({ description: "Local backup of sessions, with optional sync to storage you control." }),
   plugin: Schema.optional(Schema.mutable(Schema.Array(ConfigPluginV1.Spec))),
   share: Schema.optional(Schema.Literals(["manual", "auto", "disabled"])).annotate({
     description:

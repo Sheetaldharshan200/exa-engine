@@ -19,3 +19,9 @@ jobs:
 
       - name: Run typecheck
         run: bun typecheck
+
+      - name: Config schema is up to date
+        run: |
+          bun run --cwd packages/exa schema
+          git diff --exit-code schema/config.json || {
+            echo "::error::schema/config.json is stale — run 'bun run --cwd packages/exa schema' and commit"; exit 1; }

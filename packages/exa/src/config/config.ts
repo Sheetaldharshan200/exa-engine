@@ -136,6 +136,9 @@ export class Service extends Context.Service<Service, Interface>()("@exa/Config"
 
 export const use = serviceUse(Service)
 
+/** Published JSON Schema for exa.json — drives editor autocomplete. */
+export const SCHEMA_URL = "https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/schema/config.json"
+
 function globalConfigFile() {
   const candidates = ["exa.jsonc", "exa.json", "config.json"].map((file) =>
     path.join(Global.Path.config, file),
@@ -240,13 +243,14 @@ const layer = Layer.effect(
 
     const loadGlobal = Effect.fnUntraced(function* (env?: Record<string, string>) {
       let result: Info = {}
-      // Seed an empty global config file, but avoid writing when the user
-      // explicitly routes config through env-provided paths or content.
+      // Seed the global config with the schema hint (editor autocomplete),
+      // but avoid writing when the user explicitly routes config through
+      // env-provided paths or content.
       if (!Flag.EXA_CONFIG && !Flag.EXA_CONFIG_DIR && !Flag.EXA_CONFIG_CONTENT) {
         const file = globalConfigFile()
         if (!existsSync(file)) {
           yield* fs
-            .writeWithDirs(file, JSON.stringify({}, null, 2))
+            .writeWithDirs(file, JSON.stringify({ $schema: SCHEMA_URL }, null, 2))
             .pipe(Effect.catch(() => Effect.void))
         }
       }

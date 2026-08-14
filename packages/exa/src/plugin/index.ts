@@ -15,6 +15,7 @@ import { NamedError } from "@exa/core/util/error"
 import { CopilotAuthPlugin } from "./github-copilot/copilot"
 // exa: data-team orchestration (fork-only package, vendored ensemble)
 import ExaTeamsPlugin from "@exa/teams"
+import { BackupAutosavePlugin } from "./backup-autosave"
 import { ModalPlugin } from "./modal/modal"
 import { CloudflareAIGatewayAuthPlugin, CloudflareWorkersAuthPlugin } from "./cloudflare"
 import { AzureAuthPlugin } from "./azure"
@@ -72,6 +73,7 @@ function internalPlugins(flags: RuntimeFlags.Info): PluginInstance[] {
       }),
     CopilotAuthPlugin,
     ExaTeamsPlugin,
+    BackupAutosavePlugin,
     ModalPlugin,
     CloudflareWorkersAuthPlugin,
     CloudflareAIGatewayAuthPlugin,

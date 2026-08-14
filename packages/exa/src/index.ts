@@ -9,6 +9,7 @@ import { UpgradeCommand } from "./cli/cmd/upgrade"
 import { UninstallCommand } from "./cli/cmd/uninstall"
 import { ModelsCommand } from "./cli/cmd/models"
 import { SandboxCommand, OpsCommand, PersonaCommand, ToolsCommand } from "./cli/cmd/exa"
+import { BackupCommand } from "./cli/cmd/backup"
 import { UI } from "./cli/ui"
 import { InstallationVersion } from "@exa/core/installation/version"
 import { FormatError } from "./cli/error"
@@ -98,6 +99,7 @@ const cli = yargs(args)
   .command(OpsCommand)
   .command(PersonaCommand)
   .command(ToolsCommand)
+  .command(BackupCommand)
   .command(StatsCommand)
   .command(ExportCommand)
   .command(ImportCommand)
