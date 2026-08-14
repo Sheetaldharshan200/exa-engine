@@ -45,6 +45,7 @@ import { DialogMcp } from "./component/dialog-mcp"
 import { DialogStatus } from "./component/dialog-status"
 import { DialogDebug } from "./component/dialog-debug"
 import { DialogThemeList } from "./component/dialog-theme-list"
+import { DialogExaSandbox, DialogExaOps, DialogExaPersona } from "./component/dialog-exa"
 import { DialogHelp } from "./ui/dialog-help"
 import { DialogAgent } from "./component/dialog-agent"
 import { DialogSessionList } from "./component/dialog-session-list"
@@ -760,6 +761,34 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
             },
           ]
         : []),
+      // exa: in-session controls matching the Exasol Studio chat panel.
+      {
+        name: "exa.sandbox",
+        title: "Internet access (sandbox)",
+        slashName: "sandbox",
+        run: () => {
+          dialog.replace(() => <DialogExaSandbox />)
+        },
+        category: "Exa",
+      },
+      {
+        name: "exa.ops",
+        title: "SQL operations the agent may run",
+        slashName: "ops",
+        run: () => {
+          dialog.replace(() => <DialogExaOps />)
+        },
+        category: "Exa",
+      },
+      {
+        name: "exa.persona",
+        title: "Persona answers are written for",
+        slashName: "persona",
+        run: () => {
+          dialog.replace(() => <DialogExaPersona />)
+        },
+        category: "Exa",
+      },
       {
         name: "opencode.status",
         title: "View status",
