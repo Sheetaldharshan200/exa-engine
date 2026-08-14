@@ -48,12 +48,14 @@ const VERSION = await (async () => {
 })()
 
 const bot = ["actions-user", "exa", "exa-agent[bot]"]
-const teamPath = path.resolve(import.meta.dir, "../../../.github/TEAM_MEMBERS")
+// Optional maintainer list for changelog attribution; absent by default.
+const teamPath = path.resolve(import.meta.dir, "../../../.github/MAINTAINERS")
 const team = [
   ...(await Bun.file(teamPath)
     .text()
     .then((x) => x.split(/\r?\n/).map((x) => x.trim()))
-    .then((x) => x.filter((x) => x && !x.startsWith("#")))),
+    .then((x) => x.filter((x) => x && !x.startsWith("#")))
+    .catch(() => [] as string[])),
   ...bot,
 ]
 
