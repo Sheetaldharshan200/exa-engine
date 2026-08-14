@@ -4,6 +4,7 @@ import { Ripgrep } from "@exa/core/ripgrep"
 import { PlanExitTool } from "./plan"
 import { Session } from "@/session/session"
 import { QuestionTool } from "./question"
+import { ExasolSchemasTool, ExasolTablesTool, ExasolDescribeTool, ExasolQueryTool } from "./exasol"
 import { ShellTool } from "./shell"
 import { EditTool } from "./edit"
 import { GlobTool } from "./glob"
@@ -97,6 +98,12 @@ const layer = Layer.effect(
     const task = yield* TaskTool
     const read = yield* ReadTool
     const question = yield* QuestionTool
+    // Native Exasol access: the agent queries the connected database with
+    // nothing installed beyond exa itself.
+    const exasolSchemas = yield* ExasolSchemasTool
+    const exasolTables = yield* ExasolTablesTool
+    const exasolDescribe = yield* ExasolDescribeTool
+    const exasolQuery = yield* ExasolQueryTool
     const todo = yield* TodoWriteTool
     const lsptool = yield* LspTool
     const plan = yield* PlanExitTool
@@ -218,6 +225,10 @@ const layer = Layer.effect(
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
           plan: Tool.init(plan),
+          exasol_schemas: Tool.init(exasolSchemas),
+          exasol_tables: Tool.init(exasolTables),
+          exasol_describe: Tool.init(exasolDescribe),
+          exasol_query: Tool.init(exasolQuery),
           ...(codeModeTool ? { execute: Tool.init(codeModeTool) } : {}),
         })
 
@@ -238,6 +249,10 @@ const layer = Layer.effect(
             tool.search,
             tool.skill,
             tool.patch,
+            tool.exasol_schemas,
+            tool.exasol_tables,
+            tool.exasol_describe,
+            tool.exasol_query,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
             ...(flags.experimentalPlanMode && flags.client === "cli" ? [tool.plan] : []),

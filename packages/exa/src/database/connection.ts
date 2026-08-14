@@ -1,0 +1,148 @@
+/**
+ * Connecting to Exasol.
+ *
+ * The driver is bundled (pure JS over Exasol's WebSocket API), so a database
+ * connection needs no Python, no MCP server and no extra install — which is
+ * the difference between "install exa" giving you a working data agent and
+ * giving you a chat box.
+ *
+ * Connection metadata is kept in the registry shared with Exasol Studio;
+ * passwords are written beside it, one file per connection, 0600.
+ */
+import path from "path"
+import { ExasolDriver } from "@exasol/exasol-driver-ts"
+import {
+  connectionId,
+  credentialFile,
+  parseRegistry,
+  registryFile,
+  upsert,
+  remove as removeEntry,
+  type ConnectionEntry,
+  type Registry,
+} from "./registry"
+
+export type ConnectionTarget = {
+  host: string
+  port: number
+  user: string
+  password: string
+  schema?: string
+}
+
+/**
+ * Local Exasol deployments (Personal, the starter kit, containers) present
+ * self-signed certificates, so certificate validation is relaxed for
+ * loopback only — a remote host still gets full verification.
+ */
+function socketFactory(host: string) {
+  const local = host === "127.0.0.1" || host === "localhost" || host === "::1"
+  return (url: string) =>
+    new WebSocket(url, local ? ({ tls: { rejectUnauthorized: false } } as never) : undefined) as never
+}
+
+export function createDriver(target: ConnectionTarget) {
+  return new ExasolDriver(socketFactory(target.host) as never, {
+    host: target.host,
+    port: target.port,
+    user: target.user,
+    password: target.password,
+    encryption: true,
+  })
+}
+
+export type ProbeResult = { ok: true; version: string; schemas: string[] } | { ok: false; error: string }
+
+/** Connect, confirm the credentials work, and report what is there. */
+export async function probe(target: ConnectionTarget): Promise<ProbeResult> {
+  const driver = createDriver(target)
+  try {
+    await driver.connect()
+    const version = await driver
+      .query("SELECT PARAM_VALUE AS V FROM SYS.EXA_METADATA WHERE PARAM_NAME = 'databaseProductVersion'")
+      .then((r) => String((r.getRows()[0] as { V?: unknown })?.V ?? "unknown"))
+      .catch(() => "unknown")
+    const schemas = await driver
+      .query("SELECT SCHEMA_NAME AS S FROM SYS.EXA_ALL_SCHEMAS ORDER BY 1")
+      .then((r) => r.getRows().map((row) => String((row as { S?: unknown }).S ?? "")))
+      .catch(() => [] as string[])
+    return { ok: true, version, schemas: schemas.filter(Boolean) }
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) }
+  } finally {
+    await driver.close().catch(() => undefined)
+  }
+}
+
+// ── the shared registry ────────────────────────────────────────────────────
+
+async function readRegistry(): Promise<Registry> {
+  const fs = await import("node:fs/promises")
+  const text = await fs.readFile(registryFile(), "utf8").catch(() => undefined)
+  return parseRegistry(text)
+}
+
+/** Read-merge-write: Studio writes this file too, so never overwrite blindly. */
+async function writeRegistry(mutate: (current: Registry) => Registry): Promise<void> {
+  const fs = await import("node:fs/promises")
+  const file = registryFile()
+  await fs.mkdir(path.dirname(file), { recursive: true })
+  const next = mutate(await readRegistry())
+  await fs.writeFile(file, JSON.stringify(next, null, 2) + "\n")
+}
+
+export async function listConnections(): Promise<ConnectionEntry[]> {
+  return (await readRegistry()).connections
+}
+
+export async function saveConnection(
+  target: ConnectionTarget,
+  options: { name?: string; managed?: boolean; source?: ConnectionEntry["source"] } = {},
+): Promise<ConnectionEntry> {
+  const fs = await import("node:fs/promises")
+  const id = connectionId(target.host, target.port, target.user)
+  const entry: ConnectionEntry = {
+    id,
+    name: options.name?.trim() || `${target.user}@${target.host}:${target.port}`,
+    host: target.host,
+    port: target.port,
+    user: target.user,
+    schema: target.schema,
+    managed: options.managed,
+    source: options.source ?? "cli",
+    createdAt: new Date().toISOString(),
+  }
+  await writeRegistry((current) => upsert(current, entry))
+
+  const secret = credentialFile(id)
+  await fs.mkdir(path.dirname(secret), { recursive: true })
+  // Written 0600 and never placed in the registry itself, so the shared file
+  // stays safe to read, copy or inspect.
+  await fs.writeFile(secret, target.password, { mode: 0o600 })
+  await fs.chmod(secret, 0o600).catch(() => undefined)
+  return entry
+}
+
+export async function forgetConnection(id: string): Promise<void> {
+  const fs = await import("node:fs/promises")
+  await writeRegistry((current) => removeEntry(current, id))
+  await fs.rm(credentialFile(id), { force: true })
+}
+
+export async function loadPassword(id: string): Promise<string | undefined> {
+  const fs = await import("node:fs/promises")
+  return fs
+    .readFile(credentialFile(id), "utf8")
+    .then((t) => t.trim())
+    .catch(() => undefined)
+}
+
+/** The connection the agent should use: the only one, or the newest. */
+export async function activeConnection(): Promise<(ConnectionEntry & { password: string }) | undefined> {
+  const all = await listConnections()
+  if (all.length === 0) return undefined
+  const chosen = all.length === 1 ? all[0] : [...all].sort((a, b) => (a.createdAt ?? "").localeCompare(b.createdAt ?? "")).at(-1)!
+  const password = await loadPassword(chosen.id)
+  if (password === undefined) return undefined
+  return { ...chosen, password }
+}
