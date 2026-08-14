@@ -1,10 +1,10 @@
-# Exa — Exasol Studio's engine fork of opencode
+# Exa — Exasol Studio's engine fork of exa
 
-This repository is a fork of [anomalyco/opencode](https://github.com/anomalyco/opencode)
+This repository is a fork of [anomalyco/exa](https://github.com/anomalyco/exa)
 (MIT license — see `LICENSE`, which is preserved unchanged). It powers the
 **Exa** agent inside [Exasol Studio](https://github.com/Sheetaldharshan200/Exasol-studio),
 which installs the engine from THIS repo's GitHub Releases as a managed
-component. All credit for the engine belongs to the opencode project; this
+component. All credit for the engine belongs to the exa project; this
 fork only carries a minimal branding patch series on top.
 
 ## Branching & release model
@@ -14,9 +14,9 @@ fork only carries a minimal branding patch series on top.
   Pushing a tag triggers `.github/workflows/exa-release.yml`, which builds
   every platform binary on one runner (the upstream build script
   cross-compiles via bun) and uploads assets with the SAME names upstream
-  uses (`opencode-darwin-arm64.zip`, `opencode-linux-x64.tar.gz`, …), so
+  uses (`exa-darwin-arm64.zip`, `exa-linux-x64.tar.gz`, …), so
   Studio's installer needs only the repo + tag switched.
-- Binary and asset names intentionally stay `opencode` — Studio's installer,
+- Binary and asset names intentionally stay `exa` — Studio's installer,
   supervisor, and CLI shim depend on them; renaming buys nothing.
 
 ## Patch series (keep it MINIMAL — every patch must survive a rebase)
@@ -30,7 +30,7 @@ fork only carries a minimal branding patch series on top.
 ## Syncing with upstream
 
 ```sh
-git remote add upstream https://github.com/anomalyco/opencode  # once
+git remote add upstream https://github.com/anomalyco/exa  # once
 git fetch upstream --tags
 git checkout -b exa-rebase vX.Y.Z          # the new upstream tag
 git cherry-pick <patch commits from exa-main>

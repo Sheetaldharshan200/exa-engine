@@ -95,7 +95,7 @@ function openDatabase(filename: string): Database {
  */
 export function getDbPath(env: Record<string, string | undefined> = process.env): string {
   const home = env.HOME ?? env.USERPROFILE ?? "~"
-  return path.join(home, ".config", "opencode", "ensemble.db")
+  return path.join(home, ".config", "exa", "ensemble.db")
 }
 
 /** Open + migrate the database at `path` (WAL, foreign keys on). */

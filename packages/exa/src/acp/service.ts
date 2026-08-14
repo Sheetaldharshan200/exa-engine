@@ -46,7 +46,7 @@ import { ModelV2 } from "@exa/core/model"
 import { Provider } from "@/provider/provider"
 import type { Command } from "@/command"
 
-export const AuthMethodID = "opencode-login"
+export const AuthMethodID = "exa-login"
 
 export type Error = ACPError.Error
 type ServiceConnection = Pick<AgentSideConnection, "sessionUpdate"> &
@@ -94,17 +94,17 @@ export function make(input: {
   const initialize = Effect.fn("ACP.initialize")(function* (params: InitializeRequest) {
     const started = performance.now()
     const authMethod: AuthMethod = {
-      description: "Run `opencode auth login` in the terminal",
-      name: "Login with opencode",
+      description: "Run `exa auth login` in the terminal",
+      name: "Login with exa",
       id: AuthMethodID,
     }
 
     if (params.clientCapabilities?._meta?.["terminal-auth"] === true) {
       authMethod._meta = {
         "terminal-auth": {
-          command: "opencode",
+          command: "exa",
           args: ["auth", "login"],
-          label: "OpenCode Login",
+          label: "Exa Login",
         },
       }
     }
@@ -130,7 +130,7 @@ export function make(input: {
       },
       authMethods: [authMethod],
       agentInfo: {
-        name: "OpenCode",
+        name: "Exa",
         version: InstallationVersion,
       },
     }
@@ -790,11 +790,11 @@ function defaultModelFromConfig(
   if (configured && providers[configured.providerID]?.models[configured.modelID]) return configured
 
   // First-session ACP startup must not scan historical sessions just to infer
-  // a default. Configured model, opencode provider, then sorted best model keep
+  // a default. Configured model, exa provider, then sorted best model keep
   // the protocol response deterministic without extra session/message reads.
-  const opencodeProvider = providers[ProviderV2.ID.make("opencode")]
-  const opencodeModel = opencodeProvider ? Provider.sort(Object.values(opencodeProvider.models))[0] : undefined
-  if (opencodeProvider && opencodeModel) return { providerID: opencodeProvider.id, modelID: opencodeModel.id }
+  const exaProvider = providers[ProviderV2.ID.make("exa")]
+  const exaModel = exaProvider ? Provider.sort(Object.values(exaProvider.models))[0] : undefined
+  if (exaProvider && exaModel) return { providerID: exaProvider.id, modelID: exaModel.id }
 
   const best = Provider.sort(Object.values(providers).flatMap((provider) => Object.values(provider.models)))[0]
   if (best) return { providerID: best.providerID, modelID: best.id }
@@ -874,7 +874,7 @@ const promptResponse = Effect.fn("ACP.promptResponse")(function* (
 
 function promptErrorMessage(error: AssistantError) {
   if ("message" in error.data && typeof error.data.message === "string") return error.data.message
-  return "OpenCode prompt failed"
+  return "Exa prompt failed"
 }
 
 function sendUsageUpdate(
@@ -1067,7 +1067,7 @@ function fromUnknownError(error: unknown, service?: string): Error {
   if (isAuthRequired(error)) {
     return new ACPError.AuthRequiredError({ providerId: findProviderID(error) })
   }
-  return new ACPError.ServiceFailureError({ safeMessage: "OpenCode service failure", service })
+  return new ACPError.ServiceFailureError({ safeMessage: "Exa service failure", service })
 }
 
 function isACPError(error: unknown): error is Error {

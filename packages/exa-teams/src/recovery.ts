@@ -175,7 +175,7 @@ export function rehydrateRegistry(db: Database, registry: MemberRegistry): numbe
 /**
  * Clean up orphaned ensemble/preserved/* branches that belong to archived teams
  * with no active members. Scoped carefully to avoid interfering with other
- * running OpenCode sessions that may have active teams.
+ * running Exa sessions that may have active teams.
  */
 export async function recoverOrphanedBranches(db: Database, cwd: string): Promise<{ removed: number }> {
   let removed = 0

@@ -145,7 +145,7 @@ function staleEnsembleBranchNames(resource: PurgeMemberResource): string[] {
   return [
     `ensemble-${resource.team_id}-${resource.member_name}`,
     `ensemble-${resource.team_name}-${resource.member_name}`,
-    `opencode/ensemble-${resource.team_name}-${resource.member_name}`,
+    `exa/ensemble-${resource.team_name}-${resource.member_name}`,
   ]
 }
 

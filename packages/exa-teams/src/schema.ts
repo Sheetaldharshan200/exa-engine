@@ -196,7 +196,7 @@ export function applyMigrations(db: Database): void {
   const { user_version: current } = db.query("PRAGMA user_version").get() as { user_version: number }
 
   if (current > MIGRATIONS.length) {
-    throw new Error(`Database schema version ${current} is newer than this plugin supports (${MIGRATIONS.length}). Upgrade opencode-ensemble before continuing.`)
+    throw new Error(`Database schema version ${current} is newer than this plugin supports (${MIGRATIONS.length}). Upgrade exa-ensemble before continuing.`)
   }
 
   for (let i = current; i < MIGRATIONS.length; i++) {

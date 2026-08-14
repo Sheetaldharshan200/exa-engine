@@ -1,14 +1,14 @@
 import type { PermissionV1 } from "@exa/core/v1/permission"
 import { FSUtil } from "@exa/core/fs-util"
-// CLI entry point for `opencode run` and `opencode --mini`.
+// CLI entry point for `exa run` and `exa --mini`.
 //
 // Handles three modes:
 //   1. Non-interactive (default): sends a single prompt, streams events to
 //      stdout, and exits when the session goes idle.
-//   2. Interactive local (`opencode --mini`): boots the split-footer direct mode
+//   2. Interactive local (`exa --mini`): boots the split-footer direct mode
 //      with an in-process server (no external HTTP).
-//   3. Interactive attach (`opencode --mini --attach`): connects to a running
-//      opencode server and runs interactive mode against it.
+//   3. Interactive attach (`exa --mini --attach`): connects to a running
+//      exa server and runs interactive mode against it.
 //
 // Also supports `--command` for slash-command execution, `--format json` for
 // raw event streaming, `--continue` / `--session` for session resumption,
@@ -194,12 +194,12 @@ export const RunCommand = effectCmd({
       .option("password", {
         alias: ["p"],
         type: "string",
-        describe: "basic auth password (defaults to OPENCODE_SERVER_PASSWORD)",
+        describe: "basic auth password (defaults to EXA_SERVER_PASSWORD)",
       })
       .option("username", {
         alias: ["u"],
         type: "string",
-        describe: "basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'opencode')",
+        describe: "basic auth username (defaults to EXA_SERVER_USERNAME or 'exa')",
       })
       .option("dir", {
         type: "string",
@@ -949,7 +949,7 @@ export const RunCommand = effectCmd({
         return Server.Default().app.fetch(new Request(request, { headers }))
       }) as typeof globalThis.fetch
       const sdk = createOpencodeClient({
-        baseUrl: "http://opencode.internal",
+        baseUrl: "http://exa.internal",
         fetch: fetchFn,
         directory,
       })
@@ -977,7 +977,7 @@ type MiniCommandInput = {
 export async function runMini(input: MiniCommandInput) {
   if (!RunCommand.handler) throw new Error("Mini command handler is unavailable")
   await RunCommand.handler({
-    $0: "opencode",
+    $0: "exa",
     _: ["mini"],
     message: input.prompt ? [input.prompt] : [],
     command: undefined,

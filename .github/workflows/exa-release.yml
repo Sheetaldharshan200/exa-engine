@@ -42,9 +42,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           # v1.18.12-exa.1 -> 1.18.12-exa.1 (build script prefixes the v)
-          OPENCODE_RELEASE: "1"
+          EXA_RELEASE: "1"
         run: |
-          export OPENCODE_VERSION="${GITHUB_REF_NAME#v}"
+          export EXA_VERSION="${GITHUB_REF_NAME#v}"
           bun ./packages/exa/script/build.ts
 
       - name: Verify published assets
@@ -53,7 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           # build.ts now emits exa-<os>-<arch> archives containing bin/exa
-          # directly (package renamed opencode -> exa), so no repackaging is
+          # directly (package renamed exa -> exa), so no repackaging is
           # needed; just assert the release really carries exa-* assets.
           names=$(gh release view "${GITHUB_REF_NAME}" --json assets --jq '.assets[].name' --repo "${GITHUB_REPOSITORY}")
           echo "$names"

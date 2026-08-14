@@ -12,10 +12,10 @@
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
-    "@opencode-ai/client": "workspace:*",
     "@exa/core": "workspace:*",
     "@exa/server": "workspace:*",
-    "effect": "catalog:"
+    "effect": "catalog:",
+    "@exa/client": "workspace:*"
   },
   "devDependencies": {
     "@tsconfig/bun": "catalog:",

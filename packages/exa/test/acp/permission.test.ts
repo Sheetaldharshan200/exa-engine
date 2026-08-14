@@ -148,7 +148,7 @@ function textFromUpdates(updates: SessionUpdateParams[], sessionId: string) {
 }
 
 async function tempFile(name: string, content: string) {
-  const dir = await mkdtemp(path.join(tmpdir(), "opencode-acp-permission-"))
+  const dir = await mkdtemp(path.join(tmpdir(), "exa-acp-permission-"))
   cleanupDirs.push(dir)
   const file = path.join(dir, name)
   await Bun.write(file, content)

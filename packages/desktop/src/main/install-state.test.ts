@@ -10,10 +10,10 @@ describe("hasExistingAppState", () => {
     expect(hasExistingAppState([file("Local State"), directory("Crashpad")])).toBe(false)
   })
 
-  test("recognizes state written by an earlier OpenCode launch", () => {
-    expect(hasExistingAppState([file("opencode.settings")])).toBe(true)
-    expect(hasExistingAppState([file("opencode.global.dat")])).toBe(true)
+  test("recognizes state written by an earlier Exa launch", () => {
+    expect(hasExistingAppState([file("exa.settings")])).toBe(true)
+    expect(hasExistingAppState([file("exa.global.dat")])).toBe(true)
     expect(hasExistingAppState([file("window-state-abc.json")])).toBe(true)
-    expect(hasExistingAppState([directory("opencode")])).toBe(true)
+    expect(hasExistingAppState([directory("exa")])).toBe(true)
   })
 })

@@ -1,7 +1,7 @@
-export * as OpenCode from "./opencode"
+export * as Exa from "./exa"
 export * as Tool from "./tool"
 
-export { ClientError } from "@opencode-ai/client/effect"
+export { ClientError } from "@exa/client/effect"
 export {
   AbsolutePath,
   Agent,
@@ -13,5 +13,5 @@ export {
   Session,
   SessionInput,
   SessionMessage,
-} from "@opencode-ai/client/effect"
-export type { OpenCodeEvent } from "@opencode-ai/client/effect"
+} from "@exa/client/effect"
+export type { ExaEvent } from "@exa/client/effect"

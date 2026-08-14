@@ -30,7 +30,7 @@ const tools: readonly ToolFixture[] = [
   {
     icon: "✱",
     label:
-      'Grep "OPENCODE.*DB|database|sqlite|drizzle|dev.*db|data.*dir|xdg|APPDATA" in packages/exa/src (151 matches)',
+      'Grep "EXA.*DB|database|sqlite|drizzle|dev.*db|data.*dir|xdg|APPDATA" in packages/exa/src (151 matches)',
   },
   {
     icon: "✱",
@@ -48,7 +48,7 @@ const tools: readonly ToolFixture[] = [
   {
     icon: "✱",
     label:
-      'Grep "export const OPENCODE_DB|OPENCODE_DB|OPENCODE_DEV|Global\\.Path\\.data|data =" in packages/exa/src (115 matches)',
+      'Grep "export const EXA_DB|EXA_DB|EXA_DEV|Global\\.Path\\.data|data =" in packages/exa/src (115 matches)',
   },
 ] as const
 

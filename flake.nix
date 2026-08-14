@@ -1,5 +1,5 @@
 {
-  description = "OpenCode development flake";
+  description = "Exa development flake";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -39,11 +39,11 @@
             };
           in
           rec {
-            opencode = final.callPackage ./nix/opencode.nix {
+            exa = final.callPackage ./nix/exa.nix {
               inherit node_modules;
             };
-            opencode-desktop = final.callPackage ./nix/desktop.nix {
-              inherit opencode;
+            exa-desktop = final.callPackage ./nix/desktop.nix {
+              inherit exa;
             };
           };
       };
@@ -56,12 +56,12 @@
           };
         in
         rec {
-          default = opencode;
-          opencode = pkgs.callPackage ./nix/opencode.nix {
+          default = exa;
+          exa = pkgs.callPackage ./nix/exa.nix {
             inherit node_modules;
           };
-          opencode-desktop = pkgs.callPackage ./nix/desktop.nix {
-            inherit opencode;
+          exa-desktop = pkgs.callPackage ./nix/desktop.nix {
+            inherit exa;
           };
           # Updater derivation with fakeHash - build fails and reveals correct hash
           node_modules_updater = node_modules.override {

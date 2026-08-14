@@ -1,14 +1,14 @@
 import { expect, test, type Page } from "@playwright/test"
 import { base64Encode } from "@exa/core/util/encode"
-import { mockOpenCodeServer } from "../utils/mock-server"
+import { mockExaServer } from "../utils/mock-server"
 import { expectAppVisible } from "../utils/waits"
 
-const directory = "C:/OpenCode/PromptThinkingLevelRegression"
+const directory = "C:/Exa/PromptThinkingLevelRegression"
 const projectID = "proj_prompt_thinking_level_regression"
 const sessionID = "ses_prompt_thinking_level_regression"
 
 test("shows the V2 thinking level control while relevant", async ({ page }) => {
-  await mockOpenCodeServer(page, {
+  await mockExaServer(page, {
     directory,
     project: {
       id: projectID,
@@ -21,8 +21,8 @@ test("shows the V2 thinking level control while relevant", async ({ page }) => {
     provider: {
       all: [
         {
-          id: "opencode",
-          name: "OpenCode",
+          id: "exa",
+          name: "Exa",
           models: {
             "thinking-model": {
               id: "thinking-model",
@@ -33,8 +33,8 @@ test("shows the V2 thinking level control while relevant", async ({ page }) => {
           },
         },
       ],
-      connected: ["opencode"],
-      default: { providerID: "opencode", modelID: "thinking-model" },
+      connected: ["exa"],
+      default: { providerID: "exa", modelID: "thinking-model" },
     },
     sessions: [
       {

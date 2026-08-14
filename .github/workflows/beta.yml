@@ -24,14 +24,14 @@ jobs:
         id: setup-git-committer
         uses: ./.github/actions/setup-git-committer
         with:
-          opencode-app-id: ${{ vars.OPENCODE_APP_ID }}
-          opencode-app-secret: ${{ secrets.OPENCODE_APP_SECRET }}
+          exa-app-id: ${{ vars.EXA_APP_ID }}
+          exa-app-secret: ${{ secrets.EXA_APP_SECRET }}
 
-      - name: Install OpenCode
-        run: bun i -g opencode-ai
+      - name: Install Exa
+        run: bun i -g exa-ai
 
       - name: Sync beta branch
         env:
           GH_TOKEN: ${{ steps.setup-git-committer.outputs.token }}
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY }}
         run: bun script/beta.ts

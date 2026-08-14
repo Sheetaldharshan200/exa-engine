@@ -39,8 +39,8 @@ const appLayer = AppNodeBuilder.build(
 const it = testEffect(Layer.mergeAll(appLayer, httpApiLayer))
 
 const original = {
-  OPENCODE_SERVER_PASSWORD: Flag.EXA_SERVER_PASSWORD,
-  OPENCODE_SERVER_USERNAME: Flag.EXA_SERVER_USERNAME,
+  EXA_SERVER_PASSWORD: Flag.EXA_SERVER_PASSWORD,
+  EXA_SERVER_USERNAME: Flag.EXA_SERVER_USERNAME,
 }
 
 type ServerPath = "default" | "raw"
@@ -285,7 +285,7 @@ function writeStandardFiles(dir: string) {
 function writeProjectSkill(dir: string) {
   return FSUtil.Service.use((fs) =>
     fs.writeWithDirs(
-      path.join(dir, ".opencode", "skills", "project-rest-skill", "SKILL.md"),
+      path.join(dir, ".exa", "skills", "project-rest-skill", "SKILL.md"),
       `---
 name: project-rest-skill
 description: A project skill visible to REST API prompts.
@@ -328,8 +328,8 @@ function seedMessage(directory: string, sessionID: string) {
 }
 
 afterEach(async () => {
-  Flag.EXA_SERVER_PASSWORD = original.OPENCODE_SERVER_PASSWORD
-  Flag.EXA_SERVER_USERNAME = original.OPENCODE_SERVER_USERNAME
+  Flag.EXA_SERVER_PASSWORD = original.EXA_SERVER_PASSWORD
+  Flag.EXA_SERVER_USERNAME = original.EXA_SERVER_USERNAME
   await disposeAllInstances()
   await resetDatabase()
 })
@@ -402,8 +402,8 @@ describe("HttpApi SDK", () => {
         expect(url.searchParams.get("workspace")).toBe(workspaceID)
         expect(url.searchParams.get("location[directory]")).toBe(directory)
         expect(url.searchParams.get("location[workspace]")).toBe(workspaceID)
-        expect(request!.headers.has("x-opencode-directory")).toBe(false)
-        expect(request!.headers.has("x-opencode-workspace")).toBe(false)
+        expect(request!.headers.has("x-exa-directory")).toBe(false)
+        expect(request!.headers.has("x-exa-workspace")).toBe(false)
       }),
     ),
   )
@@ -497,12 +497,12 @@ describe("HttpApi SDK", () => {
         const missing = yield* capture(() => missingSdk.file.read({ path: "hello.txt" }))
         const badSdk = yield* client("raw", directory, {
           password: "secret",
-          headers: { authorization: authorization("opencode", "wrong") },
+          headers: { authorization: authorization("exa", "wrong") },
         })
         const bad = yield* capture(() => badSdk.file.read({ path: "hello.txt" }))
         const goodSdk = yield* client("raw", directory, {
           password: "secret",
-          headers: { authorization: authorization("opencode", "secret") },
+          headers: { authorization: authorization("exa", "secret") },
         })
         const good = yield* capture(() => goodSdk.file.read({ path: "hello.txt" }))
 

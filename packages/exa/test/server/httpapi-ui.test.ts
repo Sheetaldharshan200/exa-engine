@@ -23,18 +23,18 @@ import { testEffect } from "../lib/effect"
 const testStateLayer = Layer.effectDiscard(
   Effect.gen(function* () {
     const original = {
-      OPENCODE_SERVER_PASSWORD: Flag.EXA_SERVER_PASSWORD,
-      OPENCODE_SERVER_USERNAME: Flag.EXA_SERVER_USERNAME,
-      envPassword: process.env.OPENCODE_SERVER_PASSWORD,
-      envUsername: process.env.OPENCODE_SERVER_USERNAME,
+      EXA_SERVER_PASSWORD: Flag.EXA_SERVER_PASSWORD,
+      EXA_SERVER_USERNAME: Flag.EXA_SERVER_USERNAME,
+      envPassword: process.env.EXA_SERVER_PASSWORD,
+      envUsername: process.env.EXA_SERVER_USERNAME,
     }
 
     yield* Effect.addFinalizer(() =>
       Effect.sync(() => {
-        Flag.EXA_SERVER_PASSWORD = original.OPENCODE_SERVER_PASSWORD
-        Flag.EXA_SERVER_USERNAME = original.OPENCODE_SERVER_USERNAME
-        restoreEnv("OPENCODE_SERVER_PASSWORD", original.envPassword)
-        restoreEnv("OPENCODE_SERVER_USERNAME", original.envUsername)
+        Flag.EXA_SERVER_PASSWORD = original.EXA_SERVER_PASSWORD
+        Flag.EXA_SERVER_USERNAME = original.EXA_SERVER_USERNAME
+        restoreEnv("EXA_SERVER_PASSWORD", original.envPassword)
+        restoreEnv("EXA_SERVER_USERNAME", original.envUsername)
       }),
     )
   }),
@@ -46,7 +46,7 @@ const it = testEffect(Layer.mergeAll(testStateLayer, fsUtilLayer, RuntimeFlags.l
 function authConfigLayer(input?: { password?: string; username?: string }) {
   return ServerAuth.Config.configLayer({
     password: input?.password === undefined ? Option.none() : Option.some(input.password),
-    username: input?.username ?? "opencode",
+    username: input?.username ?? "exa",
   })
 }
 
@@ -64,8 +64,8 @@ function app(input?: { password?: string; username?: string }) {
       Layer.provide(
         ConfigProvider.layer(
           ConfigProvider.fromUnknown({
-            OPENCODE_SERVER_PASSWORD: input?.password,
-            OPENCODE_SERVER_USERNAME: input?.username,
+            EXA_SERVER_PASSWORD: input?.password,
+            EXA_SERVER_USERNAME: input?.username,
           }),
         ),
       ),
@@ -191,7 +191,7 @@ describe("HttpApi UI fallback", () => {
       const response = yield* uiApp({
         disableEmbeddedWebUi: true,
         client: httpClient(
-          new Response("<html>opencode</html>", { headers: { "content-type": "text/html" } }),
+          new Response("<html>exa</html>", { headers: { "content-type": "text/html" } }),
           (request) => {
             proxiedUrl = request.url
           },
@@ -200,7 +200,7 @@ describe("HttpApi UI fallback", () => {
 
       expect(response.status).toBe(200)
       expect(response.headers.get("content-type")).toContain("text/html")
-      expect(yield* responseText(response)).toBe("<html>opencode</html>")
+      expect(yield* responseText(response)).toBe("<html>exa</html>")
       expect(proxiedUrl).toBe("https://app.opencode.ai/")
     }),
   )
@@ -278,7 +278,7 @@ describe("HttpApi UI fallback", () => {
                 Effect.succeed(
                   HttpClientResponse.fromWeb(
                     request,
-                    new Response("<html>opencode</html>", {
+                    new Response("<html>exa</html>", {
                       headers: {
                         "transfer-encoding": "chunked",
                         "content-type": "text/html",
@@ -295,7 +295,7 @@ describe("HttpApi UI fallback", () => {
 
       expect(response.status).toBe(200)
       expect(response.headers.get("transfer-encoding")).toBeNull()
-      expect(yield* responseText(response)).toBe("<html>opencode</html>")
+      expect(yield* responseText(response)).toBe("<html>exa</html>")
     }),
   )
 
@@ -370,7 +370,7 @@ describe("HttpApi UI fallback", () => {
     Effect.gen(function* () {
       const response = yield* uiApp({
         password: "secret",
-        username: "opencode",
+        username: "exa",
         disableEmbeddedWebUi: true,
       }).request("/")
 
@@ -383,13 +383,13 @@ describe("HttpApi UI fallback", () => {
     Effect.gen(function* () {
       const response = yield* uiApp({
         password: "secret",
-        username: "opencode",
+        username: "exa",
         disableEmbeddedWebUi: true,
-        client: httpClient(new Response("<html>opencode</html>", { headers: { "content-type": "text/html" } })),
-      }).request(`/?auth_token=${btoa("opencode:secret")}`)
+        client: httpClient(new Response("<html>exa</html>", { headers: { "content-type": "text/html" } })),
+      }).request(`/?auth_token=${btoa("exa:secret")}`)
 
       expect(response.status).toBe(200)
-      expect(yield* responseText(response)).toBe("<html>opencode</html>")
+      expect(yield* responseText(response)).toBe("<html>exa</html>")
     }),
   )
 
@@ -397,10 +397,10 @@ describe("HttpApi UI fallback", () => {
     Effect.gen(function* () {
       const response = yield* uiApp({
         password: "secret",
-        username: "opencode",
+        username: "exa",
         disableEmbeddedWebUi: true,
       }).request("/", {
-        headers: { authorization: `Basic ${btoa("opencode:secret")}` },
+        headers: { authorization: `Basic ${btoa("exa:secret")}` },
       })
 
       expect(response.status).toBe(200)
@@ -411,10 +411,10 @@ describe("HttpApi UI fallback", () => {
     Effect.gen(function* () {
       const response = yield* uiApp({
         password: "sec:ret",
-        username: "opencode",
+        username: "exa",
         disableEmbeddedWebUi: true,
       }).request("/", {
-        headers: { authorization: `Basic ${btoa("opencode:sec:ret")}` },
+        headers: { authorization: `Basic ${btoa("exa:sec:ret")}` },
       })
 
       expect(response.status).toBe(200)
@@ -431,7 +431,7 @@ describe("HttpApi UI fallback", () => {
       for (const path of ["/site.webmanifest", "/web-app-manifest-192x192.png", "/web-app-manifest-512x512.png"]) {
         const response = yield* uiApp({
           password: "secret",
-          username: "opencode",
+          username: "exa",
           disableEmbeddedWebUi: true,
           client: httpClient(new Response("ok")),
         }).request(path)
@@ -442,7 +442,7 @@ describe("HttpApi UI fallback", () => {
 
   it.live("allows web UI preflight without auth", () =>
     Effect.gen(function* () {
-      const response = yield* app({ password: "secret", username: "opencode" }).request("/", {
+      const response = yield* app({ password: "secret", username: "exa" }).request("/", {
         method: "OPTIONS",
         headers: {
           origin: "http://localhost:3000",

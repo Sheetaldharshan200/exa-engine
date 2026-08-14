@@ -20,7 +20,7 @@ import { ProviderV2 } from "@exa/core/provider"
 import { ModelV2 } from "@exa/core/model"
 import { EventV2 } from "@exa/core/event"
 
-const disabled = process.env["OPENCODE_DISABLE_SHARE"] === "true" || process.env["OPENCODE_DISABLE_SHARE"] === "1"
+const disabled = process.env["EXA_DISABLE_SHARE"] === "true" || process.env["EXA_DISABLE_SHARE"] === "1"
 
 export type Api = {
   create: string

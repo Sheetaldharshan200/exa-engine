@@ -1,4 +1,4 @@
-import type { OpenCodeEventEncoded } from "@exa/protocol/groups/event"
+import type { ExaEventEncoded } from "@exa/protocol/groups/event"
 
 export type JsonValue =
   | null
@@ -2538,7 +2538,7 @@ export type SkillsListOutput = {
   }>
 }
 
-export type EventsSubscribeOutput = OpenCodeEventEncoded
+export type EventsSubscribeOutput = ExaEventEncoded
 
 export type PtysListInput = {
   readonly location?: {

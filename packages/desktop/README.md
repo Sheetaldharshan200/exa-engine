@@ -1,6 +1,6 @@
-# OpenCode Desktop
+# Exa Desktop
 
-The OpenCode Desktop app, built with Electron.
+The Exa Desktop app, built with Electron.
 
 ## Development
 

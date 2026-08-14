@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Exa
+Exec=/opt/Exa/ai.exa.desktop %U
+Terminal=false
+Type=Application
+Icon=ai.exa.desktop
+StartupWMClass=ai.exa.desktop
+NoDisplay=true
+Comment=Open source AI coding agent
+Categories=Development;

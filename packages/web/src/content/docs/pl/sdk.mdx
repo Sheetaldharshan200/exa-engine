@@ -1,13 +1,13 @@
 ---
 title: SDK
-description: Typowany klient JS dla serwera OpenCode.
+description: Typowany klient JS dla serwera Exa.
 ---
 
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-Pakiet SDK JS/TS OpenCode zapewnia klienta z bezpiecznym typowaniem (type-safe) do interakcji z serwerem.
-Użyj go do budowania integracji i programowej kontroli OpenCode.
+Pakiet SDK JS/TS Exa zapewnia klienta z bezpiecznym typowaniem (type-safe) do interakcji z serwerem.
+Użyj go do budowania integracji i programowej kontroli Exa.
 
 [Dowiedz się więcej](/docs/server) o działaniu serwera. Przykłady znajdziesz w [projektach](/docs/ecosystem#projects) stworzonych przez społeczność.
 
@@ -25,7 +25,7 @@ npm install @exa/sdk
 
 ## Tworzenie klienta
 
-Utwórz instancję OpenCode:
+Utwórz instancję Exa:
 
 ```javascript
 import { createOpencode } from "@exa/sdk"
@@ -49,12 +49,12 @@ Spowoduje to uruchomienie zarówno serwera, jak i klienta.
 
 ## Konfiguracja
 
-Można przekazać obiekt konfiguracyjny, aby dostosować zachowanie. Instancja nadal pobiera `opencode.json`, ale możesz zastąpić lub dodać konfigurację bezpośrednio:
+Można przekazać obiekt konfiguracyjny, aby dostosować zachowanie. Instancja nadal pobiera `exa.json`, ale możesz zastąpić lub dodać konfigurację bezpośrednio:
 
 ```javascript
 import { createOpencode } from "@exa/sdk"
 
-const opencode = await createOpencode({
+const exa = await createOpencode({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -62,14 +62,14 @@ const opencode = await createOpencode({
   },
 })
 
-console.log(`Server running at ${opencode.server.url}`)
+console.log(`Server running at ${exa.server.url}`)
 
-opencode.server.close()
+exa.server.close()
 ```
 
 ## Tylko klient
 
-Jeśli masz już działającą instancję OpenCode, możesz utworzyć instancję klienta, aby się z nią połączyć:
+Jeśli masz już działającą instancję Exa, możesz utworzyć instancję klienta, aby się z nią połączyć:
 
 ```javascript
 import { createOpencodeClient } from "@exa/sdk"
@@ -376,7 +376,7 @@ await client.session.prompt({
 ```javascript
 // Search and read files
 const textResults = await client.find.text({
-  query: { pattern: "function.*opencode" },
+  query: { pattern: "function.*exa" },
 })
 
 const files = await client.find.files({

@@ -1,12 +1,12 @@
 # Session LLM Runtime Boundaries
 
-`../llm.ts` is the opencode session LLM service. It owns opencode concerns: auth, config, model/provider resolution, plugins, permissions, telemetry headers, and runtime selection. It is the only file in this area that should know about the full session request shape.
+`../llm.ts` is the exa session LLM service. It owns exa concerns: auth, config, model/provider resolution, plugins, permissions, telemetry headers, and runtime selection. It is the only file in this area that should know about the full session request shape.
 
 This folder contains adapters behind that service boundary:
 
 - `ai-sdk.ts` converts AI SDK `fullStream` parts into `@exa/llm` `LLMEvent`s. This is the default runtime path.
-- `native-request.ts` converts opencode's normalized session input into a native `@exa/llm` `LLMRequest`. It does not execute requests.
-- `native-runtime.ts` is the opt-in native runtime adapter. It decides whether a selected model is supported, builds the native request, bridges opencode tools into native executable tools, and delegates transport to `LLMClient` / `RequestExecutor`.
+- `native-request.ts` converts exa's normalized session input into a native `@exa/llm` `LLMRequest`. It does not execute requests.
+- `native-runtime.ts` is the opt-in native runtime adapter. It decides whether a selected model is supported, builds the native request, bridges exa tools into native executable tools, and delegates transport to `LLMClient` / `RequestExecutor`.
 
 ## File Structure
 
@@ -16,7 +16,7 @@ src/session/
   llm/
     AGENTS.md               boundary notes for the adapter layer
     ai-sdk.ts               AI SDK fullStream -> @exa/llm LLMEvent adapter
-    native-request.ts       opencode/AI SDK-shaped input -> @exa/llm LLMRequest
+    native-request.ts       exa/AI SDK-shaped input -> @exa/llm LLMRequest
     native-runtime.ts       native runtime gate, tool bridge, and LLMClient handoff
 ```
 
@@ -80,11 +80,11 @@ Both runtimes converge on the same `LLMEvent` stream consumed by the session pro
         ╰─────────────────╯             ╰─────────────────────────────╯
 ```
 
-`native-runtime.ts` evaluates the gate and either bridges into `@exa/llm` or returns control so `llm.ts` can take the AI SDK path. Tool execution stays opencode-owned in both branches; only request lowering and transport differ.
+`native-runtime.ts` evaluates the gate and either bridges into `@exa/llm` or returns control so `llm.ts` can take the AI SDK path. Tool execution stays exa-owned in both branches; only request lowering and transport differ.
 
 Safety boundary:
 
 - AI SDK remains the default.
-- `OPENCODE_EXPERIMENTAL_NATIVE_LLM=true` or the umbrella `OPENCODE_EXPERIMENTAL=true` opts in. Native is not a global replacement.
-- Native execution currently supports OpenAI, opencode-managed OpenAI-compatible, and Anthropic API-key paths backed by `@ai-sdk/openai`, `@ai-sdk/openai-compatible`, or `@ai-sdk/anthropic` catalog entries.
+- `EXA_EXPERIMENTAL_NATIVE_LLM=true` or the umbrella `EXA_EXPERIMENTAL=true` opts in. Native is not a global replacement.
+- Native execution currently supports OpenAI, exa-managed OpenAI-compatible, and Anthropic API-key paths backed by `@ai-sdk/openai`, `@ai-sdk/openai-compatible`, or `@ai-sdk/anthropic` catalog entries.
 - Unsupported providers, OpenAI OAuth, and missing API-key cases fall back to AI SDK.

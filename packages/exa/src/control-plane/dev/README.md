@@ -1,16 +1,16 @@
-This is a plugin to simulate a remote environment locally. Add this to `.opencode/opencode.jsonc`:
+This is a plugin to simulate a remote environment locally. Add this to `.exa/exa.jsonc`:
 
 ```json
   "plugin": ["../packages/exa/src/control-plane/dev/debug-workspace-plugin.ts"],
 ```
 
-In a separate terminal, run a separate OpenCode server. This will act like a remote server and the local instance will proxy all requests to it:
+In a separate terminal, run a separate Exa server. This will act like a remote server and the local instance will proxy all requests to it:
 
 ```
 ./packages/exa/script/run-workspace-server
 ```
 
-With the plugin install, you can now run OpenCode and create a `debug` workspace type. This will create a "remote" workspace which talks to the second workspace server started above.
+With the plugin install, you can now run Exa and create a `debug` workspace type. This will create a "remote" workspace which talks to the second workspace server started above.
 
 How this works:
 

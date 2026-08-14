@@ -5,7 +5,7 @@ import { NonNegativeInt } from "@exa/core/schema"
 import { Global } from "@exa/core/global"
 import { FSUtil } from "@exa/core/fs-util"
 
-export const OAUTH_DUMMY_KEY = "opencode-oauth-dummy-key"
+export const OAUTH_DUMMY_KEY = "exa-oauth-dummy-key"
 
 const file = path.join(Global.Path.data, "auth.json")
 
@@ -56,9 +56,9 @@ const layer = Layer.effect(
     const decode = Schema.decodeUnknownOption(Info)
 
     const all = Effect.fn("Auth.all")(function* () {
-      if (process.env.OPENCODE_AUTH_CONTENT) {
+      if (process.env.EXA_AUTH_CONTENT) {
         try {
-          return JSON.parse(process.env.OPENCODE_AUTH_CONTENT)
+          return JSON.parse(process.env.EXA_AUTH_CONTENT)
         } catch (err) {}
       }
 

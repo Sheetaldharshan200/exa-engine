@@ -1,6 +1,6 @@
 import type { Message, Part, Session } from "@exa/sdk/v2/client"
 
-// Matches the exact `{ info, messages: [{ info, parts }] }` structure produced by `opencode export` CLI
+// Matches the exact `{ info, messages: [{ info, parts }] }` structure produced by `exa export` CLI
 export type SessionExportData = {
   info: Session
   messages: {

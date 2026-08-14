@@ -1,13 +1,13 @@
 ---
 title: SDK
-description: Type-safe JS klijent za opencode server.
+description: Type-safe JS klijent za exa server.
 ---
 
 import config from "../../../../config.mjs"
 export const typesUrl = `${config.github}/blob/dev/packages/sdk/js/src/gen/types.gen.ts`
 
-opencode JS/TS SDK pruza type-safe klijent za interakciju sa serverom.
-Koristite ga za izradu integracija i programsko upravljanje opencode-om.
+exa JS/TS SDK pruza type-safe klijent za interakciju sa serverom.
+Koristite ga za izradu integracija i programsko upravljanje exa-om.
 
 [Saznajte vise](/docs/server) kako server radi. Za primjere pogledajte [projects](/docs/ecosystem#projects) koje je napravila zajednica.
 
@@ -25,7 +25,7 @@ npm install @exa/sdk
 
 ## Kreiranje klijenta
 
-Kreirajte instancu opencode:
+Kreirajte instancu exa:
 
 ```javascript
 import { createOpencode } from "@exa/sdk"
@@ -49,12 +49,12 @@ Ovo pokrece i server i klijent
 
 ## Konfiguracija
 
-Mozete proslijediti konfiguracijski objekat za prilagodavanje ponasanja. Instanca i dalje ucitava `opencode.json`, ali konfiguraciju mozete nadjacati ili dodati inline:
+Mozete proslijediti konfiguracijski objekat za prilagodavanje ponasanja. Instanca i dalje ucitava `exa.json`, ali konfiguraciju mozete nadjacati ili dodati inline:
 
 ```javascript
 import { createOpencode } from "@exa/sdk"
 
-const opencode = await createOpencode({
+const exa = await createOpencode({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -62,14 +62,14 @@ const opencode = await createOpencode({
   },
 })
 
-console.log(`Server running at ${opencode.server.url}`)
+console.log(`Server running at ${exa.server.url}`)
 
-opencode.server.close()
+exa.server.close()
 ```
 
 ## Samo klijent
 
-Ako vec imate pokrenutu opencode instancu, mozete napraviti klijentsku instancu i povezati se na nju:
+Ako vec imate pokrenutu exa instancu, mozete napraviti klijentsku instancu i povezati se na nju:
 
 ```javascript
 import { createOpencodeClient } from "@exa/sdk"
@@ -376,7 +376,7 @@ await client.session.prompt({
 ```javascript
 // Search and read files
 const textResults = await client.find.text({
-  query: { pattern: "function.*opencode" },
+  query: { pattern: "function.*exa" },
 })
 
 const files = await client.find.files({

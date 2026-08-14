@@ -236,9 +236,9 @@ describe("SessionStatus.Info", () => {
       message: "transient",
       action: {
         reason: "free_tier_limit",
-        provider: "opencode",
+        provider: "exa",
         title: "Free limit reached",
-        message: "Subscribe to OpenCode Go.",
+        message: "Subscribe to Exa Go.",
         label: "subscribe",
         link: "https://opencode.ai/go",
       },

@@ -10,7 +10,7 @@ import { UI } from "../ui"
  * operation-class grants — the same controls the Exasol Studio chat panel
  * exposes, so CLI and app behave identically.
  *
- * Both edit the global opencode.json (respecting OPENCODE_CONFIG_DIR, which
+ * Both edit the global exa.json (respecting EXA_CONFIG_DIR, which
  * the app pins to its managed config). Agent permissions and prompts are
  * boot-time state, so changes apply to the NEXT engine start.
  */

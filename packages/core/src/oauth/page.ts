@@ -6,7 +6,7 @@
 // offline and drop into any transport (`res.end(...)`, Effect `response.end`,
 // etc.).
 //
-// The visual language mirrors the OpenCode app: the design tokens are a curated
+// The visual language mirrors the Exa app: the design tokens are a curated
 // subset of the OC-2 semantic tokens in `packages/ui/src/styles/theme.css`, and
 // the wordmark is the same geometry as `packages/ui/src/components/logo.tsx`.
 // Keep this file in sync with those sources when the brand changes.

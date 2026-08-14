@@ -41,12 +41,12 @@ const DEFAULT_RATE_LIMIT_INTERVAL_MS = 1000
 const DEFAULT_WATCHDOG_CHECK_MS = 60 * 1000 // 60 seconds
 
 /**
- * opencode-ensemble plugin entry point.
+ * exa-ensemble plugin entry point.
  * Enables agent teams: multiple agents running in parallel with
  * peer-to-peer communication, shared task management, and coordinated execution.
  */
 const plugin: Plugin = async (input) => {
-  // Initialize SQLite database in the global OpenCode config directory.
+  // Initialize SQLite database in the global Exa config directory.
   const dbPath = getDbPath()
   mkdirSync(path.dirname(dbPath), { recursive: true })
   const db = createDb(dbPath)

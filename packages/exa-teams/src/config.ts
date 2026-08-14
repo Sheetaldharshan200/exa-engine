@@ -21,7 +21,7 @@ export interface EnsembleConfig {
   peerMessageLimit?: number
   /** Time window for peer message rate limiting in ms (default: 300000 = 5 min) */
   peerMessageWindowMs?: number
-  /** Default model for all agents (e.g. "opencode/zen-sonnet-4-6") */
+  /** Default model for all agents (e.g. "exa/zen-sonnet-4-6") */
   defaultModel?: string
   /** Pool of models for rotation/random assignment */
   modelPool?: string[]
@@ -93,18 +93,18 @@ function readConfigFile(filePath: string): Partial<EnsembleConfig> {
  */
 export function loadConfig(projectDir: string): Required<EnsembleConfig> {
   const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? ""
-  const globalPath = path.join(homeDir, ".config", "opencode", "ensemble.json")
-  const projectPath = path.join(projectDir, ".opencode", "ensemble.json")
+  const globalPath = path.join(homeDir, ".config", "exa", "ensemble.json")
+  const projectPath = path.join(projectDir, ".exa", "ensemble.json")
 
   const global = readConfigFile(globalPath)
   const project = readConfigFile(projectPath)
   const merged = { ...DEFAULT_CONFIG, ...global, ...project }
 
   // Env vars override everything
-  const timeout = process.env.OPENCODE_ENSEMBLE_TIMEOUT
+  const timeout = process.env.EXA_ENSEMBLE_TIMEOUT
   if (timeout !== undefined) merged.timeoutMs = timeout === "0" ? 0 : (parseInt(timeout, 10) || merged.timeoutMs)
 
-  const rateLimit = process.env.OPENCODE_ENSEMBLE_RATE_LIMIT
+  const rateLimit = process.env.EXA_ENSEMBLE_RATE_LIMIT
   if (rateLimit !== undefined) merged.rateLimitCapacity = rateLimit === "0" ? 0 : (parseInt(rateLimit, 10) || merged.rateLimitCapacity)
 
   const stall = process.env.STALL_THRESHOLD_MS

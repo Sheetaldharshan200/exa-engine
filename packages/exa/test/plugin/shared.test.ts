@@ -31,56 +31,56 @@ describe("parsePluginSpecifier", () => {
   })
 
   test("parses package with git+https url", () => {
-    expect(parsePluginSpecifier("acme@git+https://github.com/opencode/acme.git")).toEqual({
+    expect(parsePluginSpecifier("acme@git+https://github.com/exa/acme.git")).toEqual({
       pkg: "acme",
-      version: "git+https://github.com/opencode/acme.git",
+      version: "git+https://github.com/exa/acme.git",
     })
   })
 
   test("parses scoped package with git+https url", () => {
-    expect(parsePluginSpecifier("@exa/acme@git+https://github.com/opencode/acme.git")).toEqual({
+    expect(parsePluginSpecifier("@exa/acme@git+https://github.com/exa/acme.git")).toEqual({
       pkg: "@exa/acme",
-      version: "git+https://github.com/opencode/acme.git",
+      version: "git+https://github.com/exa/acme.git",
     })
   })
 
   test("parses package with git+ssh url containing another @", () => {
-    expect(parsePluginSpecifier("acme@git+ssh://git@github.com/opencode/acme.git")).toEqual({
+    expect(parsePluginSpecifier("acme@git+ssh://git@github.com/exa/acme.git")).toEqual({
       pkg: "acme",
-      version: "git+ssh://git@github.com/opencode/acme.git",
+      version: "git+ssh://git@github.com/exa/acme.git",
     })
   })
 
   test("parses scoped package with git+ssh url containing another @", () => {
-    expect(parsePluginSpecifier("@exa/acme@git+ssh://git@github.com/opencode/acme.git")).toEqual({
+    expect(parsePluginSpecifier("@exa/acme@git+ssh://git@github.com/exa/acme.git")).toEqual({
       pkg: "@exa/acme",
-      version: "git+ssh://git@github.com/opencode/acme.git",
+      version: "git+ssh://git@github.com/exa/acme.git",
     })
   })
 
   test("parses unaliased git+ssh url", () => {
-    expect(parsePluginSpecifier("git+ssh://git@github.com/opencode/acme.git")).toEqual({
-      pkg: "git+ssh://git@github.com/opencode/acme.git",
+    expect(parsePluginSpecifier("git+ssh://git@github.com/exa/acme.git")).toEqual({
+      pkg: "git+ssh://git@github.com/exa/acme.git",
       version: "",
     })
   })
 
   test("parses npm alias using the alias name", () => {
-    expect(parsePluginSpecifier("acme@npm:@opencode/acme@1.0.0")).toEqual({
+    expect(parsePluginSpecifier("acme@npm:@exa/acme@1.0.0")).toEqual({
       pkg: "acme",
-      version: "npm:@opencode/acme@1.0.0",
+      version: "npm:@exa/acme@1.0.0",
     })
   })
 
   test("parses bare npm protocol specifier using the target package", () => {
-    expect(parsePluginSpecifier("npm:@opencode/acme@1.0.0")).toEqual({
+    expect(parsePluginSpecifier("npm:@exa/acme@1.0.0")).toEqual({
       pkg: "@exa/acme",
       version: "1.0.0",
     })
   })
 
   test("parses unversioned npm protocol specifier", () => {
-    expect(parsePluginSpecifier("npm:@opencode/acme")).toEqual({
+    expect(parsePluginSpecifier("npm:@exa/acme")).toEqual({
       pkg: "@exa/acme",
       version: "latest",
     })

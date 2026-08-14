@@ -20,7 +20,7 @@ const InterleavedField = Schema.Union([
   Schema.String,
 ])
 
-const USER_AGENT = `opencode/${InstallationChannel}/${InstallationVersion}/${Flag.EXA_CLIENT}`
+const USER_AGENT = `exa/${InstallationChannel}/${InstallationVersion}/${Flag.EXA_CLIENT}`
 
 const CostTier = Schema.Struct({
   input: Schema.Finite,
@@ -133,7 +133,7 @@ export type Provider = Schema.Schema.Type<typeof Provider>
 
 export const Event = ModelsDev.Event
 
-declare const OPENCODE_MODELS_DEV: Record<string, Provider> | undefined
+declare const EXA_MODELS_DEV: Record<string, Provider> | undefined
 
 export interface Interface {
   readonly get: () => Effect.Effect<Record<string, Provider>>
@@ -196,7 +196,7 @@ const layer = Layer.effect(
     )
 
     const loadSnapshot = Effect.sync(() =>
-      typeof OPENCODE_MODELS_DEV === "undefined" ? undefined : OPENCODE_MODELS_DEV,
+      typeof EXA_MODELS_DEV === "undefined" ? undefined : EXA_MODELS_DEV,
     )
 
     const fetchAndWrite = Effect.fn("ModelsDev.fetchAndWrite")(function* () {
@@ -220,7 +220,7 @@ const layer = Layer.effect(
       const snapshot = yield* loadSnapshot
       if (snapshot) return snapshot
       if (Flag.EXA_DISABLE_MODELS_FETCH) return {}
-      // Flock is cross-process: concurrent opencode CLIs can race on this cache file.
+      // Flock is cross-process: concurrent exa CLIs can race on this cache file.
       const text = yield* Effect.scoped(
         Effect.gen(function* () {
           yield* Flock.effect(lockKey)

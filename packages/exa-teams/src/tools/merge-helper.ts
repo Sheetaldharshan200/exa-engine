@@ -58,7 +58,7 @@ export function teamResourceSegment(teamName: string, teamId: string): string {
   return `${resourcePart(teamName)}#${shortTeamId(teamId)}`
 }
 
-/** Build an OpenCode worktree name for a team member. */
+/** Build an Exa worktree name for a team member. */
 export function teamWorktreeName(projectName: string, teamName: string, teamId: string, memberName: string): string {
   return `ensemble-${teamResourceSlug(projectName, teamName, teamId)}-${memberName}`
 }

@@ -80,7 +80,7 @@ function authHeaders() {
   return {
     "Content-Type": "application/x-www-form-urlencoded",
     Accept: "application/json",
-    "User-Agent": `opencode/${InstallationVersion}`,
+    "User-Agent": `exa/${InstallationVersion}`,
   }
 }
 
@@ -380,7 +380,7 @@ export async function SnowflakeCortexAuthPlugin(_input: PluginInput): Promise<Ho
                 }
               }
               headers.set("authorization", `Bearer ${currentOauth.access}`)
-              headers.set("User-Agent", `opencode/${InstallationVersion}`)
+              headers.set("User-Agent", `exa/${InstallationVersion}`)
 
               let body = init?.body
               if (body && typeof body === "string") {
@@ -475,7 +475,7 @@ export async function SnowflakeCortexAuthPlugin(_input: PluginInput): Promise<Ho
             return {
               url,
               instructions:
-                "Complete Snowflake sign-in in your browser. OpenCode will capture the OAuth callback and store the bearer token automatically.",
+                "Complete Snowflake sign-in in your browser. Exa will capture the OAuth callback and store the bearer token automatically.",
               method: "auto" as const,
               async callback() {
                 try {

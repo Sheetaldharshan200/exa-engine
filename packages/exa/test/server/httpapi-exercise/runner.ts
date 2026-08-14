@@ -126,7 +126,7 @@ function withContext<A, E>(
         const base: ScenarioContext = {
           directory: context.dir?.path,
           headers: (extra) => ({
-            ...(context.dir?.path ? { "x-opencode-directory": context.dir.path } : {}),
+            ...(context.dir?.path ? { "x-exa-directory": context.dir.path } : {}),
             ...extra,
           }),
           file: (name, content) =>
@@ -153,7 +153,7 @@ function withContext<A, E>(
                 time: { created: Date.now() },
                 agent: "build",
                 model: {
-                  providerID: ProviderV2.ID.opencode,
+                  providerID: ProviderV2.ID.exa,
                   modelID: ModelV2.ID.make("test"),
                 },
               }
@@ -258,8 +258,8 @@ function fakeLlmConfig(url: string): Partial<ConfigV1.Info> {
 
 const resetState = Effect.promise(async () => {
   const modules = await runtime()
-  Flag.EXA_SERVER_PASSWORD = original.OPENCODE_SERVER_PASSWORD
-  Flag.EXA_SERVER_USERNAME = original.OPENCODE_SERVER_USERNAME
+  Flag.EXA_SERVER_PASSWORD = original.EXA_SERVER_PASSWORD
+  Flag.EXA_SERVER_USERNAME = original.EXA_SERVER_USERNAME
   await disposeApps()
   await modules.disposeAllInstances()
   await modules.resetDatabase()

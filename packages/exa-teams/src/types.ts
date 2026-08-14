@@ -11,7 +11,7 @@ export interface ToolDeps {
   registry: MemberRegistry
   tracker: DescendantTracker
   purgeApprovals: PendingPurgeApprovals
-  /** The OpenCode SDK client — used for session.create, promptAsync, abort, etc. */
+  /** The Exa SDK client — used for session.create, promptAsync, abort, etc. */
   client: PluginClient
   /** The project root directory — used for reading AGENTS.md and other project files. */
   directory: string
@@ -27,7 +27,7 @@ export interface PermissionRule {
 }
 
 /**
- * Minimal interface for the OpenCode v2 SDK client methods we actually use.
+ * Minimal interface for the Exa v2 SDK client methods we actually use.
  * Uses flat params matching the v2 SDK (imported from @exa/sdk/v2).
  * Makes mocking trivial in tests.
  */
@@ -84,8 +84,8 @@ export interface PluginClient {
  *   2. SQLite fallback (canonical source)
  *
  * The SQLite fallback is critical when multiple Plugin instances run in the
- * same process (e.g. opencode Desktop's local sidecar plus a connected
- * `opencode serve` sharing the same DB). Each instance has its own
+ * same process (e.g. exa Desktop's local sidecar plus a connected
+ * `exa serve` sharing the same DB). Each instance has its own
  * MemberRegistry; without a SQLite fallback, a tool call dispatched to
  * a Plugin instance whose registry never saw the spawn fails with
  * "This session is not in a team."

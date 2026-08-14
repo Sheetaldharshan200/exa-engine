@@ -17,7 +17,7 @@ import { lazy } from "../util/lazy"
 import { Ignore } from "./ignore"
 import { Protected } from "./protected"
 
-declare const OPENCODE_LIBC: string | undefined
+declare const EXA_LIBC: string | undefined
 
 const SUBSCRIBE_TIMEOUT_MS = 10_000
 
@@ -25,7 +25,7 @@ export const Event = FileSystemWatcher.Event
 
 const watcher = lazy((): typeof import("@parcel/watcher") | undefined => {
   try {
-    const libc = typeof OPENCODE_LIBC === "undefined" ? undefined : OPENCODE_LIBC
+    const libc = typeof EXA_LIBC === "undefined" ? undefined : EXA_LIBC
     const binding = require(
       `@parcel/watcher-${process.platform}-${process.arch}${process.platform === "linux" ? `-${libc || "glibc"}` : ""}`,
     )

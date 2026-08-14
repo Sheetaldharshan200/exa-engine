@@ -1,7 +1,7 @@
 import type { GlobalEvent } from "@exa/sdk/v2"
 import type { EventSource } from "@exa/tui/context/sdk"
 
-export const worktree = "/tmp/opencode"
+export const worktree = "/tmp/exa"
 export const directory = `${worktree}/packages/exa`
 
 export function json(data: unknown, init?: ResponseInit) {

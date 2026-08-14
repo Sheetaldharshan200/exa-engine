@@ -4,13 +4,13 @@ import { Flag } from "@exa/core/flag/flag"
 import { ServerAuth } from "../../src/server/auth"
 
 const original = {
-  OPENCODE_SERVER_PASSWORD: Flag.EXA_SERVER_PASSWORD,
-  OPENCODE_SERVER_USERNAME: Flag.EXA_SERVER_USERNAME,
+  EXA_SERVER_PASSWORD: Flag.EXA_SERVER_PASSWORD,
+  EXA_SERVER_USERNAME: Flag.EXA_SERVER_USERNAME,
 }
 
 afterEach(() => {
-  Flag.EXA_SERVER_PASSWORD = original.OPENCODE_SERVER_PASSWORD
-  Flag.EXA_SERVER_USERNAME = original.OPENCODE_SERVER_USERNAME
+  Flag.EXA_SERVER_PASSWORD = original.EXA_SERVER_PASSWORD
+  Flag.EXA_SERVER_USERNAME = original.EXA_SERVER_USERNAME
 })
 
 describe("ServerAuth", () => {
@@ -22,12 +22,12 @@ describe("ServerAuth", () => {
     expect(ServerAuth.headers()).toBeUndefined()
   })
 
-  test("defaults to the opencode username", () => {
+  test("defaults to the exa username", () => {
     Flag.EXA_SERVER_PASSWORD = "secret"
     Flag.EXA_SERVER_USERNAME = undefined
 
     expect(ServerAuth.headers()).toEqual({
-      Authorization: `Basic ${Buffer.from("opencode:secret").toString("base64")}`,
+      Authorization: `Basic ${Buffer.from("exa:secret").toString("base64")}`,
     })
   })
 
@@ -54,6 +54,6 @@ describe("ServerAuth", () => {
 
     expect(ServerAuth.required(config)).toBe(true)
     expect(ServerAuth.authorized({ username: "alice", password: Redacted.make("secret") }, config)).toBe(true)
-    expect(ServerAuth.authorized({ username: "opencode", password: Redacted.make("secret") }, config)).toBe(false)
+    expect(ServerAuth.authorized({ username: "exa", password: Redacted.make("secret") }, config)).toBe(false)
   })
 })

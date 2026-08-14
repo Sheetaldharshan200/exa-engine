@@ -73,7 +73,7 @@ import { createPluginRuntime, PluginRuntimeProvider, usePluginRuntime, type TuiP
 import { CommandPaletteDialog } from "./component/command-palette"
 import {
   COMMAND_PALETTE_COMMAND,
-  OPENCODE_BASE_MODE,
+  EXA_BASE_MODE,
   OpencodeKeymapProvider,
   registerOpencodeKeymap,
   useBindings,
@@ -119,8 +119,8 @@ const appBindingCommands = [
   "variant.list",
   "provider.connect",
   "console.org.switch",
-  "opencode.status",
-  "opencode.debug",
+  "exa.status",
+  "exa.debug",
   "theme.switch",
   "theme.switch_mode",
   "theme.mode.lock",
@@ -275,8 +275,8 @@ export const run = Effect.fn("Tui.run")(function* (input: TuiInput) {
                     >
                       <TuiStartupProvider
                         value={{
-                          initialRoute: process.env.OPENCODE_ROUTE ? JSON.parse(process.env.OPENCODE_ROUTE) : undefined,
-                          skipInitialLoading: Boolean(process.env.OPENCODE_FAST_BOOT),
+                          initialRoute: process.env.EXA_ROUTE ? JSON.parse(process.env.EXA_ROUTE) : undefined,
+                          skipInitialLoading: Boolean(process.env.EXA_FAST_BOOT),
                         }}
                       >
                         <ClipboardProvider>
@@ -790,7 +790,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         category: "Exa",
       },
       {
-        name: "opencode.status",
+        name: "exa.status",
         title: "View status",
         slashName: "status",
         run: () => {
@@ -799,7 +799,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
         category: "System",
       },
       {
-        name: "opencode.debug",
+        name: "exa.debug",
         title: "View debug info",
         slashName: "debug",
         run: () => {
@@ -993,7 +993,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
   }))
 
   useBindings(() => ({
-    mode: OPENCODE_BASE_MODE,
+    mode: EXA_BASE_MODE,
     bindings: tuiConfig.keybinds.gather("app", appBindingCommands),
   }))
 
@@ -1002,7 +1002,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
   }))
 
   useBindings(() => ({
-    mode: OPENCODE_BASE_MODE,
+    mode: EXA_BASE_MODE,
     enabled: () => {
       const current = promptRef.current
       if (!current?.focused) return true

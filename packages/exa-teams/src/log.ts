@@ -6,7 +6,7 @@ export function initLog(client: unknown): void {
   _client = client as typeof _client
 }
 
-/** Log a message via the SDK's app.log API so it appears in OpenCode's structured logs. */
+/** Log a message via the SDK's app.log API so it appears in Exa's structured logs. */
 export function log(msg: string): void {
   if (!_client) return
   _client.app.log({ service: "ensemble", level: "info", message: msg }).catch(() => {})

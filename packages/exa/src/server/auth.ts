@@ -15,8 +15,8 @@ export type DecodedCredentials = {
 }
 
 export class Config extends ConfigService.Service<Config>()("@exa/ServerAuthConfig", {
-  password: EffectConfig.string("OPENCODE_SERVER_PASSWORD").pipe(EffectConfig.option),
-  username: EffectConfig.string("OPENCODE_SERVER_USERNAME").pipe(EffectConfig.withDefault("opencode")),
+  password: EffectConfig.string("EXA_SERVER_PASSWORD").pipe(EffectConfig.option),
+  username: EffectConfig.string("EXA_SERVER_USERNAME").pipe(EffectConfig.withDefault("exa")),
 }) {}
 
 export type Info = Context.Service.Shape<typeof Config>
@@ -37,7 +37,7 @@ export function header(credentials?: Credentials) {
   const password = credentials?.password ?? Flag.EXA_SERVER_PASSWORD
   if (!password) return undefined
 
-  const username = credentials?.username ?? Flag.EXA_SERVER_USERNAME ?? "opencode"
+  const username = credentials?.username ?? Flag.EXA_SERVER_USERNAME ?? "exa"
   return `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`
 }
 

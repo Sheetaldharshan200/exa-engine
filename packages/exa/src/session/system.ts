@@ -28,8 +28,8 @@ import { PermissionV1 } from "@exa/core/v1/permission"
 // upstream prompt file (merge-safe). Agents with custom prompts are unaffected.
 function rebrand(prompt: string) {
   return prompt
-    .replaceAll("You are OpenCode", "You are Exa, Exasol's AI engineering agent")
-    .replaceAll("OpenCode", "Exa")
+    .replaceAll("You are Exa", "You are Exa, Exasol's AI engineering agent")
+    .replaceAll("Exa", "Exa")
 }
 
 export function provider(model: Provider.Model) {

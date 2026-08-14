@@ -43,9 +43,9 @@ function getSpawnTimeout(): number {
   return Number(process.env.SPAWN_TIMEOUT_MS) || 120_000
 }
 
-/** Returns true if the directory is already inside an OpenCode worktree. */
+/** Returns true if the directory is already inside an Exa worktree. */
 function isWorktreeDirectory(dir: string): boolean {
-  return dir.includes("/opencode/worktree/")
+  return dir.includes("/exa/worktree/")
 }
 
 /** Race a promise against a timeout. Throws if the timeout fires first. Cleans up timer on resolution. */

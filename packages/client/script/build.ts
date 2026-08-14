@@ -13,8 +13,8 @@ await Effect.runPromise(
         emitPromise(contract, {
           outputTypes: {
             "events.subscribe": {
-              name: "OpenCodeEventEncoded",
-              import: 'import type { OpenCodeEventEncoded } from "@exa/protocol/groups/event"',
+              name: "ExaEventEncoded",
+              import: 'import type { ExaEventEncoded } from "@exa/protocol/groups/event"',
             },
           },
         }),
