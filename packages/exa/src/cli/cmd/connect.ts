@@ -4,6 +4,8 @@ import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
 import { parseDsn } from "../../database/registry"
 import { forgetConnection, listConnections, probe, saveConnection } from "../../database/connection"
+import { choiceFromValue, prepareSetup } from "../../database/setup"
+import { installPersonal } from "../../database/install"
 
 /**
  * `exa connect` — attach a database to the agent.
@@ -46,6 +48,39 @@ export const ConnectCommand = effectCmd({
 
     let target = args.dsn ? parseDsn(args.dsn) : undefined
     if (args.dsn && !target) return yield* fail(`Not an Exasol DSN: ${args.dsn} (expected exasol://user@host:port/schema)`)
+
+    // No DSN given: reuse what is already running here before offering to
+    // install anything, so two programs never deploy competing databases.
+    if (!target) {
+      const { found, options } = yield* Effect.promise(() => prepareSetup())
+      const picked = yield* Effect.promise(() =>
+        prompts.select({
+          message: "How do you want to connect?",
+          options: options.map((o) => ({ value: o.value, label: o.label, hint: o.hint })),
+        }),
+      )
+      if (prompts.isCancel(picked)) return
+      const choice = choiceFromValue(String(picked), found)
+
+      if (choice.kind === "skip") {
+        UI.println("skipped — run `exa connect` when you want a database")
+        return
+      }
+      if (choice.kind === "install") {
+        const entry = yield* Effect.promise(() => installPersonal((line) => UI.println(line)))
+        if (!entry) return yield* fail("Install did not complete. `exa connect` again to retry.")
+        UI.println(`connected — saved as ${entry.id} (shared with Exasol Studio)`)
+        return
+      }
+      if (choice.kind === "use") {
+        target = { host: choice.candidate.host, port: choice.candidate.port, user: "sys" }
+        const user = yield* Effect.promise(() =>
+          prompts.text({ message: "User", placeholder: "sys", defaultValue: "sys" }),
+        )
+        if (prompts.isCancel(user)) return
+        target.user = String(user)
+      }
+    }
 
     if (!target) {
       const host = yield* Effect.promise(() =>

@@ -217,3 +217,55 @@ export function DialogExaTools() {
     />
   )
 }
+
+/**
+ * /connect-db — attach a database without leaving the session.
+ *
+ * Databases already running on this machine are offered first: two programs
+ * must not each deploy their own and both call it "local".
+ */
+export function DialogExaConnectDb() {
+  const dialog = useDialog()
+  const toast = useToast()
+  const [options, setOptions] = createSignal<{ title: string; value: string }[]>([
+    { title: "Looking for databases…", value: "__wait" },
+  ])
+  onMount(async () => {
+    try {
+      const [{ prepareSetup }, { listConnections }] = await Promise.all([
+        import("../../../exa/src/database/setup"),
+        import("../../../exa/src/database/connection"),
+      ])
+      const [{ options: setup }, connected] = await Promise.all([prepareSetup(), listConnections()])
+      setOptions([
+        ...connected.map((c) => ({ title: `Connected: ${c.name}`, value: `connected:${c.id}` })),
+        ...setup.map((o) => ({ title: o.hint ? `${o.label} — ${o.hint}` : o.label, value: o.value })),
+      ])
+    } catch {
+      setOptions([{ title: "Could not look for databases", value: "skip" }])
+    }
+  })
+  return (
+    <DialogSelect
+      title="Connect a database"
+      options={options()}
+      onSelect={async (opt) => {
+        dialog.clear()
+        const value = String(opt.value)
+        if (value.startsWith("connected:")) {
+          toast.show({ message: "Already connected — the agent is using it.", variant: "info" })
+          return
+        }
+        // Everything else needs credentials or a long-running install, which
+        // belong in a terminal rather than a modal.
+        const how =
+          value === "install"
+            ? "exa connect  (choose “Install Exasol Personal locally”)"
+            : value.startsWith("use:")
+              ? `exa connect exasol://sys@127.0.0.1:${value.slice(4)}`
+              : "exa connect"
+        toast.show({ message: `Run: ${how}`, variant: "info", duration: 12_000 })
+      }}
+    />
+  )
+}

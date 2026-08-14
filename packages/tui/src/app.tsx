@@ -45,7 +45,7 @@ import { DialogMcp } from "./component/dialog-mcp"
 import { DialogStatus } from "./component/dialog-status"
 import { DialogDebug } from "./component/dialog-debug"
 import { DialogThemeList } from "./component/dialog-theme-list"
-import { DialogExaSandbox, DialogExaOps, DialogExaPersona, DialogExaTools } from "./component/dialog-exa"
+import { DialogExaSandbox, DialogExaOps, DialogExaPersona, DialogExaTools, DialogExaConnectDb } from "./component/dialog-exa"
 import { DialogHelp } from "./ui/dialog-help"
 import { DialogAgent } from "./component/dialog-agent"
 import { DialogSessionList } from "./component/dialog-session-list"
@@ -845,6 +845,15 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
           void DialogAlert.show(dialog, "Usage", lines.join("\n"))
         },
         category: "System",
+      },
+      {
+        name: "exa.connect_db",
+        title: "Connect a database",
+        slashName: "connect-db",
+        run: () => {
+          dialog.replace(() => <DialogExaConnectDb />)
+        },
+        category: "Exa",
       },
       {
         name: "exa.backup",
