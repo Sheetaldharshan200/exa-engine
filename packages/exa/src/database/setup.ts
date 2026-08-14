@@ -11,6 +11,7 @@
  */
 import { discover, type Candidate } from "./discover"
 import { listConnections } from "./connection"
+import { connectionId } from "./registry"
 
 export type SetupChoice =
   | { kind: "use"; candidate: Candidate }
@@ -67,8 +68,25 @@ export function choiceFromValue(value: string, found: Candidate[]): SetupChoice 
   return { kind: "skip" }
 }
 
+/**
+ * Discovered databases MINUS the ones already registered.
+ *
+ * A database Exasol Studio (or an earlier `exa connect`) already registered is
+ * not a choice to make — offering "use the database you are already using"
+ * is noise, and picking it would re-ask for credentials that are stored.
+ */
+export function unregistered(found: Candidate[], registeredIds: string[]): Candidate[] {
+  return found.filter((c) => {
+    // A registry entry may use any user; match on host and port, which is what
+    // identifies the database itself.
+    return !registeredIds.some((id) => id.startsWith(`${c.host.toLowerCase()}_${c.port}_`))
+  })
+}
+
 /** Everything the caller needs to render the prompt. */
 export async function prepareSetup(): Promise<{ found: Candidate[]; options: SetupOption[] }> {
-  const found = await discover()
+  const [discovered, connections] = await Promise.all([discover(), listConnections()])
+  const registered = connections.map((c) => connectionId(c.host, c.port, c.user))
+  const found = unregistered(discovered, registered)
   return { found, options: setupOptions(found) }
 }

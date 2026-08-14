@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { choiceFromValue, setupOptions } from "./setup"
+import { choiceFromValue, setupOptions, unregistered } from "./setup"
 import type { Candidate } from "./discover"
 
 const running: Candidate = { host: "127.0.0.1", port: 8563, origin: 'Exasol Personal deployment "default"' }
@@ -48,5 +48,27 @@ describe("choiceFromValue", () => {
     expect(choiceFromValue("manual", []).kind).toBe("manual")
     expect(choiceFromValue("skip", []).kind).toBe("skip")
     expect(choiceFromValue("nonsense", []).kind).toBe("skip")
+  })
+})
+
+describe("unregistered", () => {
+  // The complaint this fixes: Exasol Studio installed and registered the
+  // database, so the CLI must not offer it as a fresh choice.
+  test("hides a database that is already registered", () => {
+    expect(unregistered([running], ["127.0.0.1_8563_sys"])).toEqual([])
+  })
+
+  test("matches on the database, not the user that registered it", () => {
+    // Studio may have registered it as a different user; it is still the same
+    // database, so it must not be offered again.
+    expect(unregistered([running], ["127.0.0.1_8563_analyst"])).toEqual([])
+  })
+
+  test("still offers a running database nobody has registered", () => {
+    expect(unregistered([running, studio], ["127.0.0.1_8563_sys"])).toEqual([studio])
+  })
+
+  test("offers everything when nothing is registered", () => {
+    expect(unregistered([running, studio], [])).toEqual([running, studio])
   })
 })

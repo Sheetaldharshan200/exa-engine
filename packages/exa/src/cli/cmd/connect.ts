@@ -25,6 +25,7 @@ export const ConnectCommand = effectCmd({
       .option("password", { describe: "password (prompted when omitted)", type: "string" })
       .option("name", { describe: "label for this connection", type: "string" })
       .option("list", { describe: "show connected databases", type: "boolean" })
+      .option("add", { describe: "add another database even when one is connected", type: "boolean" })
       .option("forget", { describe: "remove a connection by id", type: "string" }),
   handler: Effect.fn("Cli.connect")(function* (args) {
     if (args.list) {
@@ -49,8 +50,24 @@ export const ConnectCommand = effectCmd({
     let target = args.dsn ? parseDsn(args.dsn) : undefined
     if (args.dsn && !target) return yield* fail(`Not an Exasol DSN: ${args.dsn} (expected exasol://user@host:port/schema)`)
 
-    // No DSN given: reuse what is already running here before offering to
-    // install anything, so two programs never deploy competing databases.
+    // No DSN given: if a database is already connected — including one Exasol
+    // Studio registered — there is nothing to ask. Setup is for the case where
+    // the agent has no database, not a prompt to sit through on every run.
+    if (!target) {
+      const existing = yield* Effect.promise(() => listConnections())
+      if (existing.length > 0 && !args.add) {
+        for (const c of existing) {
+          const via = c.source === "studio" ? " (from Exasol Studio)" : ""
+          UI.println(`connected: ${c.name}${via}`)
+        }
+        UI.println("")
+        UI.println("add another with `exa connect --add`, or `exa connect exasol://user@host:port`")
+        return
+      }
+    }
+
+    // Reuse what is already running here before offering to install anything,
+    // so two programs never deploy competing databases.
     if (!target) {
       const { found, options } = yield* Effect.promise(() => prepareSetup())
       const picked = yield* Effect.promise(() =>
