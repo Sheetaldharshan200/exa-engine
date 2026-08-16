@@ -1,66 +1,48 @@
-Create or update `AGENTS.md` for this repository.
+Profile the connected database and write `AGENTS.md` so future Exa sessions start knowing it.
 
-The goal is a compact instruction file that helps future Exa sessions avoid mistakes and ramp up quickly. Every line should answer: "Would an agent likely miss this without help?" If not, leave it out.
+Exa loads `AGENTS.md` into every session automatically. What you put there is what the agent knows before it has run a single query — so the test for every line is: "would a competent analyst get this wrong, or spend queries rediscovering it?" If not, leave it out.
 
 User-provided focus or constraints (honor these):
 $ARGUMENTS
 
 ## How to investigate
 
-Read the highest-value sources first:
-- `README*`, root manifests, workspace config, lockfiles
-- build, test, lint, formatter, typecheck, and codegen config
-- CI workflows and pre-commit / task runner config
-- existing instruction files (`AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`, `.cursorrules`, `.github/copilot-instructions.md`)
-- repo-local Exa config such as `exa.json`
+Work through the database with the tools you have. Do not guess at any of it.
 
-If architecture is still unclear after reading config and docs, inspect a small number of representative code files to find the real entrypoints, package boundaries, and execution flow. Prefer reading the files that explain how the system is wired together over random leaf files.
+1. `exasol_schemas` — what schemas exist. Ignore the system schemas (SYS, EXA_STATISTICS) unless the user asks about them.
+2. `exasol_tables` per schema — the tables and views, and which schemas are actually populated versus empty.
+3. `exasol_describe` on the tables that matter — columns, types, nullability.
+4. `exasol_query` for the facts only data answers: row counts per table, the real date range of each fact table, distinct counts for the columns you would group by, and how the keys actually join.
 
-Prefer executable sources of truth over prose. If docs conflict with config or scripts, trust the executable source and only keep what you can verify.
+Prefer measuring over assuming. A column named `IS_ACTIVE` may hold three values; a table named `ORDERS_2024` may hold last week's rows. Check.
 
-## What to extract
+Go wide before deep. Cover every populated schema at least at table level before profiling any one table exhaustively. On a large database, profile the biggest and most-joined tables and say plainly which ones you did not cover.
 
-Look for the highest-signal facts for an agent working in this repo:
-- exact developer commands, especially non-obvious ones
-- how to run a single test, a single package, or a focused verification step
-- required command order when it matters, such as `lint -> typecheck -> test`
-- monorepo or multi-package boundaries, ownership of major directories, and the real app/library entrypoints
-- framework or toolchain quirks: generated code, migrations, codegen, build artifacts, special env loading, dev servers, infra deploy flow
-- repo-specific style or workflow conventions that differ from defaults
-- testing quirks: fixtures, integration test prerequisites, snapshot workflows, required services, flaky or expensive suites
-- important constraints from existing instruction files worth preserving
+## What to record
 
-Good `AGENTS.md` content is usually hard-earned context that took reading multiple files to infer.
+The facts that change how a query gets written:
+
+- what each schema is for, in one line, and which are empty or stale
+- the fact tables and the dimensions around them, and the columns they join on — including joins the naming does not make obvious
+- grain: what one row of each fact table represents. Getting this wrong is what produces double-counted totals.
+- the real date column to filter on when a table has several, and the range it actually covers
+- the meaning of codes and enum-like columns: status flags, type codes, currency and unit columns, and what the values mean
+- metric definitions the data implies — how revenue, margin, or an active user would have to be computed here, including which rows to exclude (test accounts, cancelled orders, internal customers)
+- data quality traps: nullable columns that are usually null, duplicate keys, rows that need deduplicating, soft-deleted records
+- naming and casing conventions, and any table or column whose name misleads
+
+Exasol specifics worth writing down when they apply: identifiers fold to uppercase unless they were created quoted, so a quoted mixed-case name must be quoted in every query. Note anything that has to be quoted.
 
 ## Questions
 
-Only ask the user questions if the repo cannot answer something important. Use the `question` tool for one short batch at most.
-
-Good questions:
-- undocumented team conventions
-- branch / PR / release expectations
-- missing setup or test prerequisites that are known but not written down
-
-Do not ask about anything the repo already makes clear.
+Only ask what the database cannot tell you — which of two plausible revenue definitions the business uses, which schema is authoritative when two hold the same thing, whether a period is fiscal or calendar. Use the `question` tool for one short batch at most, and only after profiling; most of these answer themselves once you have looked.
 
 ## Writing rules
 
-Include only high-signal, repo-specific guidance such as:
-- exact commands and shortcuts the agent would otherwise guess wrong
-- architecture notes that are not obvious from filenames
-- conventions that differ from language or framework defaults
-- setup requirements, environment quirks, and operational gotchas
-- references to existing instruction sources that matter
+Write `AGENTS.md` at `${path}`. If it already exists, improve it in place: keep what is still true, correct what the profile contradicts, and delete what you cannot verify. If it holds guidance about something other than the database, leave that alone.
 
-Exclude:
-- generic software advice
-- long tutorials or exhaustive file trees
-- obvious language conventions
-- speculative claims or anything you could not verify
-- content better stored in another file referenced via `exa.json` `instructions`
+Include only what is specific to this database. Exclude general SQL advice, exhaustive column dumps of every table, and anything you did not verify. Prefer short sections and bullets; a small database deserves a small file.
 
-When in doubt, omit.
+Every claim in the file must come from something you ran. If you inferred rather than measured, say so in the line itself — a wrong fact stated confidently is worse than no file, because every later session inherits it.
 
-Prefer short sections and bullets. If the repo is simple, keep the file simple. If the repo is large, summarize the few structural facts that actually change how an agent should work.
-
-If `AGENTS.md` already exists at `${path}`, improve it in place rather than rewriting blindly. Preserve verified useful guidance, delete fluff or stale claims, and reconcile it with the current codebase.
+Finish by telling the user what you covered, what you skipped, and any question the profile raised that they should answer.

@@ -34,6 +34,20 @@ const EXA_TOOL_GROUPS: Record<string, string[]> = {
   tasks: ["todowrite", "todoread", "task"],
 }
 
+/**
+ * Read and write access to the instructions file, and nothing else.
+ *
+ * Both spellings are needed because the path reaching the check may be
+ * absolute or relative to the project, and a pattern is matched against the
+ * whole string.
+ */
+const EXA_CONTEXT_FILE_RULES = [
+  { permission: "read", pattern: "AGENTS.md", action: "allow" },
+  { permission: "read", pattern: "**/AGENTS.md", action: "allow" },
+  { permission: "edit", pattern: "AGENTS.md", action: "allow" },
+  { permission: "edit", pattern: "**/AGENTS.md", action: "allow" },
+] as const
+
 function exaToolPermissions(options: unknown): Record<string, "allow" | "deny"> {
   const granted = (options as { tools?: unknown } | undefined)?.tools
   const on = new Set(Array.isArray(granted) ? granted.filter((g): g is string => typeof g === "string") : [])
@@ -215,6 +229,17 @@ const layer = Layer.effect(
                 webfetch: "deny",
                 websearch: "deny",
               }),
+              // AGENTS.md is the file the engine loads as instructions every
+              // session, and `/init` exists to write it. Without this the
+              // command cannot do the one thing it is for — the file tools are
+              // off by default, so the agent would gather the profile and then
+              // have nowhere to put it.
+              //
+              // Scoped to that one filename rather than granting the files
+              // group: rules are evaluated last-match-wins on BOTH the
+              // permission and the path, so every other path still falls
+              // through to the deny above.
+              EXA_CONTEXT_FILE_RULES,
               user,
             ),
             mode: "primary",

@@ -646,17 +646,18 @@ it.instance(
   },
 )
 
-it.instance("defaultAgent returns build when no default_agent config", () =>
+// exa is the first primary agent, so it is what an unconfigured session gets.
+it.instance("defaultAgent returns exa when no default_agent config", () =>
   Effect.gen(function* () {
     const agent = yield* load((svc) => svc.defaultAgent())
-    expect(agent).toBe("build")
+    expect(agent).toBe("exa")
   }),
 )
 
-it.instance("defaultInfo returns resolved build agent when no default_agent config", () =>
+it.instance("defaultInfo returns resolved exa agent when no default_agent config", () =>
   Effect.gen(function* () {
     const agent = yield* load((svc) => svc.defaultInfo())
-    expect(agent.name).toBe("build")
+    expect(agent.name).toBe("exa")
     expect(agent.mode).toBe("primary")
   }),
 )
@@ -725,16 +726,16 @@ it.instance(
 )
 
 it.instance(
-  "defaultAgent returns plan when build is disabled and default_agent not set",
+  "defaultAgent falls through to the next primary agent when earlier ones are disabled",
   () =>
     Effect.gen(function* () {
       const agent = yield* load((svc) => svc.defaultAgent())
-      // build is disabled, so it should return plan (next primary agent)
       expect(agent).toBe("plan")
     }),
   {
     config: {
       agent: {
+        exa: { disable: true },
         build: { disable: true },
       },
     },
@@ -747,9 +748,42 @@ it.instance(
   {
     config: {
       agent: {
+        exa: { disable: true },
         build: { disable: true },
         plan: { disable: true },
       },
     },
   },
+)
+
+// `/init` profiles the database into AGENTS.md, the file the engine loads as
+// instructions every session. The file tools are off by default for exa, so
+// without this scoped grant the command has nowhere to write its result.
+it.instance("exa agent may write AGENTS.md and nothing else", () =>
+  Effect.gen(function* () {
+    const exa = yield* load((svc) => svc.get("exa"))
+    expect(exa).toBeDefined()
+    // The files group stays off: no blanket read or edit.
+    expect(evalPerm(exa, "edit")).toBe("deny")
+    expect(evalPerm(exa, "read")).toBe("deny")
+    // Except the instructions file, by either spelling of its path.
+    for (const file of ["AGENTS.md", "/work/project/AGENTS.md"]) {
+      expect(Permission.evaluate("edit", file, exa!.permission).action).toBe("allow")
+      expect(Permission.evaluate("read", file, exa!.permission).action).toBe("allow")
+    }
+    // A neighbouring file is still denied — the grant is one filename, not a
+    // foothold into the project.
+    expect(Permission.evaluate("edit", "/work/project/src/index.ts", exa!.permission).action).toBe("deny")
+  }),
+)
+
+// The database tools are the whole point of the agent; a regression that
+// denied them would make every data question fail.
+it.instance("exa agent can always reach the database", () =>
+  Effect.gen(function* () {
+    const exa = yield* load((svc) => svc.get("exa"))
+    for (const tool of ["exasol_query", "exasol_schemas", "exasol_tables", "exasol_describe"]) {
+      expect(evalPerm(exa, tool)).not.toBe("deny")
+    }
+  }),
 )
