@@ -11,9 +11,9 @@
  */
 import path from "path"
 import { ExasolDriver } from "@exasol/exasol-driver-ts"
+import { deleteSecret, readSecret, writeSecret } from "./secrets"
 import {
   connectionId,
-  credentialFile,
   parseRegistry,
   registryFile,
   upsert,
@@ -114,27 +114,19 @@ export async function saveConnection(
   }
   await writeRegistry((current) => upsert(current, entry))
 
-  const secret = credentialFile(id)
-  await fs.mkdir(path.dirname(secret), { recursive: true })
-  // Written 0600 and never placed in the registry itself, so the shared file
-  // stays safe to read, copy or inspect.
-  await fs.writeFile(secret, target.password, { mode: 0o600 })
-  await fs.chmod(secret, 0o600).catch(() => undefined)
+  // The registry never holds secrets: the password goes to the OS credential
+  // store (or the 0600 file when the machine has none).
+  await writeSecret(id, target.password)
   return entry
 }
 
 export async function forgetConnection(id: string): Promise<void> {
-  const fs = await import("node:fs/promises")
   await writeRegistry((current) => removeEntry(current, id))
-  await fs.rm(credentialFile(id), { force: true })
+  await deleteSecret(id)
 }
 
 export async function loadPassword(id: string): Promise<string | undefined> {
-  const fs = await import("node:fs/promises")
-  return fs
-    .readFile(credentialFile(id), "utf8")
-    .then((t) => t.trim())
-    .catch(() => undefined)
+  return readSecret(id)
 }
 
 /**
