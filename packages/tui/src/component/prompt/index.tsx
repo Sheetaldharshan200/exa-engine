@@ -1498,6 +1498,12 @@ export function Prompt(props: PromptProps) {
             height={1}
             border={["bottom"]}
             borderColor={theme.backgroundElement}
+            // The row draws "▀": its TOP half is the composer's colour and its
+            // bottom half is this cell's background. Without one set, that
+            // lower half falls through to the raw terminal background, which
+            // shows up as a black bar under the input rather than the soft
+            // edge intended.
+            backgroundColor={theme.background}
             customBorderChars={
               theme.backgroundElement.a !== 0
                 ? {
