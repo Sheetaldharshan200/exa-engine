@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test"
-import { choiceFromValue, setupOptions, unregistered } from "./setup"
+import { mkdtempSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import nodePath from "node:path"
+import { choiceFromValue, setupOptions, shouldOfferSetup, unregistered } from "./setup"
 import type { Candidate } from "./discover"
 
 const running: Candidate = { host: "127.0.0.1", port: 8563, origin: 'Exasol Personal deployment "default"' }
@@ -70,5 +73,48 @@ describe("unregistered", () => {
 
   test("offers everything when nothing is registered", () => {
     expect(unregistered([running, studio], [])).toEqual([running, studio])
+  })
+})
+
+describe("shouldOfferSetup", () => {
+  function withConnections(count: number) {
+    const dir = mkdtempSync(nodePath.join(tmpdir(), "exa-setup-"))
+    const file = nodePath.join(dir, "connections.json")
+    writeFileSync(
+      file,
+      JSON.stringify({
+        version: 1,
+        connections: Array.from({ length: count }, (_, i) => ({
+          id: `c${i}`,
+          name: `c${i}`,
+          host: "127.0.0.1",
+          port: 8563,
+          user: "sys",
+        })),
+      }),
+    )
+    process.env.EXASOL_CONNECTIONS_FILE = file
+  }
+
+  test("asks on a fresh interactive run with no database", async () => {
+    withConnections(0)
+    expect(await shouldOfferSetup({ interactive: true, declined: false })).toBe(true)
+  })
+
+  // A prompt in a pipe or CI job hangs the run forever, which is worse than
+  // never asking at all.
+  test("never asks when there is no terminal", async () => {
+    withConnections(0)
+    expect(await shouldOfferSetup({ interactive: false, declined: false })).toBe(false)
+  })
+
+  test("never asks twice after the user declined", async () => {
+    withConnections(0)
+    expect(await shouldOfferSetup({ interactive: true, declined: true })).toBe(false)
+  })
+
+  test("never asks when a database is already connected", async () => {
+    withConnections(1)
+    expect(await shouldOfferSetup({ interactive: true, declined: false })).toBe(false)
   })
 })

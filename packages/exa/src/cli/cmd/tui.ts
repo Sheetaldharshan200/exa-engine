@@ -69,6 +69,73 @@ export function resolveThreadDirectory(project?: string, envPWD = process.env.PW
   return Filesystem.resolve(cwd)
 }
 
+/**
+ * The one-time database prompt. Its answer — including "skip" — is recorded in
+ * the config directory, so the next run goes straight to the prompt.
+ */
+async function offerDatabaseSetup(input: { interactive: boolean; hasPrompt: boolean }) {
+  if (!input.interactive || input.hasPrompt) return
+  try {
+    const { Global } = await import("@exa/core/global")
+    const fs = await import("node:fs/promises")
+    const marker = path.join(Global.Path.config, "setup-declined")
+    const declined = await fs
+      .stat(marker)
+      .then(() => true)
+      .catch(() => false)
+    const { shouldOfferSetup, prepareSetup, choiceFromValue } = await import("../../database/setup")
+    if (!(await shouldOfferSetup({ interactive: input.interactive, declined }))) return
+
+    const prompts = await import("@clack/prompts")
+    const { found, options } = await prepareSetup()
+    const picked = await prompts.select({
+      message: "No database is connected. How do you want to work?",
+      options: options.map((o) => ({ value: o.value, label: o.label, hint: o.hint })),
+    })
+    if (prompts.isCancel(picked)) return
+    const choice = choiceFromValue(String(picked), found)
+    if (choice.kind === "skip") {
+      await fs.mkdir(Global.Path.config, { recursive: true }).catch(() => undefined)
+      await fs.writeFile(marker, new Date().toISOString()).catch(() => undefined)
+      UI.println("skipped — run `exa connect` whenever you want a database")
+      return
+    }
+    if (choice.kind === "use") {
+      // Finish it here: asking for a password is all that is left, and
+      // bouncing the user to another command for that is needless friction.
+      const { probe, saveConnection } = await import("../../database/connection")
+      const user = await prompts.text({ message: "User", placeholder: "sys", defaultValue: "sys" })
+      if (prompts.isCancel(user)) return
+      const password = await prompts.password({ message: `Password for ${String(user)}` })
+      if (prompts.isCancel(password)) return
+      const target = {
+        host: choice.candidate.host,
+        port: choice.candidate.port,
+        user: String(user),
+        password: String(password),
+      }
+      const result = await probe(target)
+      if (!result.ok) {
+        UI.println(`could not connect: ${result.error}`)
+        UI.println("run `exa connect` to try again")
+        return
+      }
+      await saveConnection(target, { source: "cli" })
+      UI.println(`connected — Exasol ${result.version}`)
+      UI.println(`schemas: ${result.schemas.slice(0, 6).join(", ")}${result.schemas.length > 6 ? "…" : ""}`)
+      return
+    }
+
+    // Installing a database is long-running and interactive; the dedicated
+    // command owns that, and starting it under the TUI would fight for the
+    // terminal.
+    UI.println("")
+    UI.println("run `exa connect` to install a database, then start exa again")
+  } catch {
+    // Setup is a convenience: never block starting the agent.
+  }
+}
+
 export const TuiThreadCommand = cmd({
   command: "$0 [project]",
   describe: "start the exa by Exasol tui",
@@ -142,6 +209,14 @@ export const TuiThreadCommand = cmd({
         hidden: true,
       }),
   handler: async (args) => {
+    // First run with no database: offer setup once, before the TUI takes over
+    // the terminal. Never for piped input, a one-shot prompt, or a user who
+    // already declined — a tool that re-asks every launch gets uninstalled.
+    await offerDatabaseSetup({
+      interactive: Boolean(process.stdin.isTTY && process.stdout.isTTY),
+      hasPrompt: Boolean(args.prompt),
+    })
+
     if (args.replay === true) {
       UI.error("--replay is not supported; replay is enabled by default")
       process.exitCode = 1
