@@ -18,6 +18,10 @@ import type { ConnectionEntry } from "./registry"
 
 const INSTALL_SCRIPT = "https://www.exasol.com/install/"
 
+/** How long to keep trying the freshly deployed database: ~30s in total. */
+const CONNECT_ATTEMPTS = 10
+const CONNECT_RETRY_MS = 3_000
+
 type Log = (line: string) => void
 
 async function run(cmd: string[], log: Log): Promise<number> {
@@ -85,16 +89,22 @@ export async function installPersonal(log: Log): Promise<ConnectionEntry | undef
   log("")
   const credentials = await readDeployment(deploymentDir())
   if (credentials) {
-    const entry = await connectLocal(
-      credentials.host,
-      credentials.port,
-      credentials.user,
-      credentials.password,
-      log,
-    )
-    if (entry) return entry
-    // Deployed but not reachable yet — the port can lag the launcher's exit.
-    log("the database is deployed but did not accept a connection yet")
+    // The database can still be opening its port when the launcher exits, so
+    // a single attempt would send a perfectly good install down the manual
+    // path purely on timing.
+    for (let attempt = 1; attempt <= CONNECT_ATTEMPTS; attempt++) {
+      const result = await probe(credentials)
+      if (result.ok) {
+        log(`connected — Exasol ${result.version}`)
+        return saveConnection(credentials, { managed: true, source: "cli" })
+      }
+      if (attempt === CONNECT_ATTEMPTS) {
+        log(`the database is deployed but did not accept a connection: ${result.error}`)
+        break
+      }
+      if (attempt === 1) log("waiting for the database to accept connections…")
+      await new Promise((resolve) => setTimeout(resolve, CONNECT_RETRY_MS))
+    }
   }
 
   // Reading the deployment can legitimately fail: a launcher version that
