@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test"
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import nodePath from "node:path"
-import { credentialsFor, listDeployments, parseDeployment, readDeployment } from "./launcher"
+import { credentialsFor, listDeployments, parseDeployment, readDeployment, studioDeploymentDir } from "./launcher"
 
 // A real deployment.json from `exasol install local`, trimmed to the keys read.
 const DEPLOYMENT = {
@@ -79,6 +79,23 @@ describe("readDeployment", () => {
   test("survives a half-written file", async () => {
     const dir = deployment({ "deployment.json": "{ not json", "secrets.json": "{}" })
     expect(await readDeployment(dir)).toBeUndefined()
+  })
+})
+
+describe("studioDeploymentDir", () => {
+  // Must match local_runtime.rs: app_data_dir() + "personal-local" +
+  // "deployment", where app_data_dir is Tauri's per-identifier directory.
+  test("points at Studio's app data on each platform", () => {
+    expect(studioDeploymentDir("darwin", "/Users/u")).toBe(
+      "/Users/u/Library/Application Support/com.exasol.studio/personal-local/deployment",
+    )
+    expect(studioDeploymentDir("linux", "/home/u")).toContain("com.exasol.studio/personal-local/deployment")
+  })
+
+  // Reading Studio's deployment is what lets a database installed there be
+  // used from the CLI before Studio has published it to the shared registry.
+  test("is a different directory from the launcher's", () => {
+    expect(studioDeploymentDir("darwin", "/Users/u")).not.toContain(".exasol/personal/deployments")
   })
 })
 

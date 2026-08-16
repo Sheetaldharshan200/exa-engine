@@ -42,6 +42,31 @@ export function deploymentDir(name = "default"): string {
 }
 
 /**
+ * Studio's own deployment, which lives in its app data rather than the shared
+ * launcher directory (`local_runtime.rs::runtime_dir` + "deployment").
+ *
+ * Read so that a database Studio installed is usable from the CLI straight
+ * away. Normally Studio publishes it to the shared registry and the credential
+ * store, and that is the path this relies on — but not before Studio has run
+ * at least once, and a user who installs through Studio and then opens the CLI
+ * should not be asked for a password that already exists on the disk.
+ *
+ * Read-only, same user, same machine. The CLI never starts, stops, or deletes
+ * that deployment; Studio owns its lifecycle, exactly as Studio never operates
+ * on the shared one.
+ */
+export function studioDeploymentDir(platform: string = process.platform, home: string = os.homedir()): string {
+  const id = "com.exasol.studio"
+  const base =
+    platform === "darwin"
+      ? path.join(home, "Library", "Application Support", id)
+      : platform === "win32"
+        ? path.join(process.env["APPDATA"] || path.join(home, "AppData", "Roaming"), id)
+        : path.join(process.env["XDG_DATA_HOME"] || path.join(home, ".local", "share"), id)
+  return path.join(base, "personal-local", "deployment")
+}
+
+/**
  * Pull a connection out of the two files' contents.
  *
  * Pure, so the contract with the launcher's format is testable without a
@@ -88,7 +113,12 @@ export async function readDeployment(dir: string): Promise<LauncherConnection | 
   return parseDeployment(deployment, secrets)
 }
 
-/** Every deployment the launcher has on this machine, by directory name. */
+/**
+ * Every deployment on this machine: the launcher's, then Studio's.
+ *
+ * Launcher deployments come first so that when both programs happen to have
+ * one on the same port, the one this CLI installed wins.
+ */
 export async function listDeployments(): Promise<{ name: string; connection: LauncherConnection }[]> {
   const fs = await import("node:fs/promises")
   const names = await fs.readdir(deploymentsDir()).catch(() => [] as string[])
@@ -97,6 +127,8 @@ export async function listDeployments(): Promise<{ name: string; connection: Lau
     const connection = await readDeployment(path.join(deploymentsDir(), name))
     if (connection) out.push({ name, connection })
   }
+  const studio = await readDeployment(studioDeploymentDir())
+  if (studio) out.push({ name: "exasol-studio", connection: studio })
   return out
 }
 
