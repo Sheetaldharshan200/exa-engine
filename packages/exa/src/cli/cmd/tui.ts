@@ -104,6 +104,22 @@ async function offerDatabaseSetup(input: { interactive: boolean; hasPrompt: bool
       // Finish it here: asking for a password is all that is left, and
       // bouncing the user to another command for that is needless friction.
       const { probe, saveConnection } = await import("../../database/connection")
+
+      // Better still, ask for nothing: a database the launcher deployed comes
+      // with credentials it already stored.
+      const { credentialsFor } = await import("../../database/launcher")
+      const known = await credentialsFor(choice.candidate.host, choice.candidate.port)
+      if (known) {
+        const result = await probe(known)
+        if (result.ok) {
+          await saveConnection(known, { managed: true, source: "cli" })
+          UI.println(`connected — Exasol ${result.version}`)
+          UI.println(`schemas: ${result.schemas.slice(0, 6).join(", ")}${result.schemas.length > 6 ? "…" : ""}`)
+          return
+        }
+        UI.println("the stored credentials did not work — enter them manually")
+      }
+
       const user = await prompts.text({ message: "User", placeholder: "sys", defaultValue: "sys" })
       if (prompts.isCancel(user)) return
       const password = await prompts.password({ message: `Password for ${String(user)}` })

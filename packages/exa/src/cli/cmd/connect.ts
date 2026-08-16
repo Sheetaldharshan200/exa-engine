@@ -11,7 +11,8 @@ import {
   saveConnection,
 } from "../../database/connection"
 import { choiceFromValue, prepareSetup } from "../../database/setup"
-import { installPersonal } from "../../database/install"
+import { connectLocal, installPersonal } from "../../database/install"
+import { credentialsFor } from "../../database/launcher"
 
 /**
  * `exa connect` — attach a database to the agent.
@@ -105,6 +106,21 @@ export const ConnectCommand = effectCmd({
         return
       }
       if (choice.kind === "use") {
+        // When the launcher deployed this database it also generated and
+        // stored the credentials, so there is nothing to ask for.
+        const known = yield* Effect.promise(() =>
+          credentialsFor(choice.candidate.host, choice.candidate.port),
+        )
+        if (known) {
+          const entry = yield* Effect.promise(() =>
+            connectLocal(known.host, known.port, known.user, known.password, (line) => UI.println(line)),
+          )
+          if (entry) {
+            UI.println(`saved as ${entry.id} (shared with Exasol Studio)`)
+            return
+          }
+          UI.println("the stored credentials did not work — enter them manually")
+        }
         target = { host: choice.candidate.host, port: choice.candidate.port, user: "sys" }
         const user = yield* Effect.promise(() =>
           prompts.text({ message: "User", placeholder: "sys", defaultValue: "sys" }),

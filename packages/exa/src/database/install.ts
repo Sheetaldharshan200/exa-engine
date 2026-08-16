@@ -13,6 +13,7 @@
 import path from "path"
 import os from "os"
 import { probe, saveConnection } from "./connection"
+import { deploymentDir, readDeployment } from "./launcher"
 import type { ConnectionEntry } from "./registry"
 
 const INSTALL_SCRIPT = "https://www.exasol.com/install/"
@@ -79,12 +80,29 @@ export async function installPersonal(log: Log): Promise<ConnectionEntry | undef
     return undefined
   }
 
-  // The launcher prints credentials during deployment and stores them in its
-  // own state; ask the user rather than guess, since a wrong guess produces a
-  // confusing "connected but empty" experience.
+  // The launcher generated a password and wrote it into the deployment, so
+  // read it rather than making the user copy it back out of the scrollback.
   log("")
-  log("database deployed. Connect it with the credentials the launcher printed above:")
+  const credentials = await readDeployment(deploymentDir())
+  if (credentials) {
+    const entry = await connectLocal(
+      credentials.host,
+      credentials.port,
+      credentials.user,
+      credentials.password,
+      log,
+    )
+    if (entry) return entry
+    // Deployed but not reachable yet — the port can lag the launcher's exit.
+    log("the database is deployed but did not accept a connection yet")
+  }
+
+  // Reading the deployment can legitimately fail: a launcher version that
+  // writes a different layout, or a deploy that half-finished. Say what to run
+  // rather than leaving the user with a database and no way in.
+  log("database deployed. Connect it with:")
   log("  exa connect exasol://sys@127.0.0.1:8563")
+  log(`(the password is in ${path.join(deploymentDir(), "secrets.json")})`)
   return undefined
 }
 
