@@ -59,6 +59,57 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   ])
 }
 
+/** Tools every teammate can talk to the team with. */
+const TEAM_TOOLS = [
+  "team_message",
+  "team_broadcast",
+  "team_tasks_list",
+  "team_tasks_add",
+  "team_tasks_complete",
+  "team_claim",
+] as const
+
+/** The database tools. A teammate with none of these cannot do data work. */
+const DATA_TOOLS = ["exasol_query", "exasol_schemas", "exasol_tables", "exasol_describe"] as const
+
+/**
+ * The permission rules a spawned teammate's session carries.
+ *
+ * These are the hard gate: they go to session.create and the server enforces
+ * them. They are merged AFTER the agent role's own rules and the last matching
+ * rule wins (session/tools.ts), so anything allowed here overrides a role that
+ * denies it by wildcard.
+ *
+ * That last part is why the data tools are listed. A role like `explore` is a
+ * code agent — a small allowlist over `"*": "deny"` — so a teammate spawned as
+ * one had no database access at all and came back reporting it could not run
+ * the query, which reads as a finished task with a missing answer. Granting the
+ * data tools here adds no authority over the data itself: exasol_query
+ * classifies every statement and still refuses anything outside the SQL
+ * operation classes the user granted.
+ */
+export function spawnPermissions(input: { worktreeDir: string | null; isReadOnly: boolean }): PermissionRule[] {
+  const permission: PermissionRule[] = []
+
+  if (input.worktreeDir) {
+    permission.push({ permission: "edit", pattern: `${input.worktreeDir}/**`, action: "allow" })
+    if (!input.isReadOnly) permission.push({ permission: "bash", pattern: "*", action: "allow" })
+  }
+
+  if (input.isReadOnly) {
+    permission.push(
+      { permission: "edit", pattern: "*", action: "deny" },
+      { permission: "bash", pattern: "*", action: "deny" },
+    )
+  }
+
+  permission.push(
+    ...TEAM_TOOLS.map((t) => ({ permission: t, pattern: "*", action: "allow" as const })),
+    ...DATA_TOOLS.map((t) => ({ permission: t, pattern: "*", action: "allow" as const })),
+  )
+  return permission
+}
+
 /**
  * Execute the team_spawn tool. Creates a child session and starts a teammate.
  * By default, each teammate gets their own git worktree for file isolation.
@@ -153,31 +204,7 @@ export async function executeTeamSpawn(
     }
   }
 
-  // Permission rules on session.create are the hard gate (server-enforced).
-  // For read-only agents, deny write tools and explicitly allow team tools.
-  // For all agents with worktrees, allowlist the worktree path for edit/bash.
-  const TEAM_TOOLS = ["team_message", "team_broadcast", "team_tasks_list", "team_tasks_add", "team_tasks_complete", "team_claim"] as const
-  const permission: PermissionRule[] = []
-
-  if (worktreeDir) {
-    permission.push(
-      { permission: "edit", pattern: `${worktreeDir}/**`, action: "allow" },
-    )
-    if (!isReadOnly) {
-      permission.push({ permission: "bash", pattern: "*", action: "allow" })
-    }
-  }
-
-  if (isReadOnly) {
-    permission.push(
-      { permission: "edit", pattern: "*", action: "deny" },
-      { permission: "bash", pattern: "*", action: "deny" },
-    )
-  }
-
-  permission.push(
-    ...TEAM_TOOLS.map(t => ({ permission: t, pattern: "*", action: "allow" as const })),
-  )
+  const permission = spawnPermissions({ worktreeDir, isReadOnly })
 
   // Create child session — bind to workspace if available (server-enforced CWD isolation).
   // Falls back to no workspace binding if workspace.create failed.

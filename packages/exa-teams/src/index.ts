@@ -397,10 +397,19 @@ const plugin: Plugin = async (input) => {
       team_spawn: tool({
         description: "Spawn a new teammate that works in parallel. The teammate starts immediately with the given prompt. " +
           "Each teammate gets their own git worktree for file isolation. " +
-          "Teammates work asynchronously and will message you when done. Do not poll for their status.",
+          "Teammates work asynchronously and will message you when done. Do not poll for their status. " +
+          "Do not spawn anyone for a question you can answer with one tool call — answer it yourself.",
         args: {
           name: tool.schema.string().describe("Teammate name (lowercase alphanumeric with hyphens)"),
-          agent: tool.schema.string().default("build").describe("Agent type (e.g. 'build', 'plan', 'explore')"),
+          // The data roles, not 'build'/'plan'/'explore': those are coding
+          // agents whose permissions deny the database tools, so a teammate
+          // spawned as one cannot run a single query.
+          agent: tool.schema.string().default("sql-analyst").describe(
+            "Data-team role: 'semantic-planner' (define metrics and periods), 'source-discovery' (map terms to real tables), " +
+            "'sql-analyst' (query a database), 'api-analyst', 'file-analyst', 'finance-analyst', 'bi-analyst', 'data-scientist', " +
+            "'bi-specialist' (build dashboards), 'data-validator' / 'metric-validator' / 'sql-validator' (independently recompute a result), " +
+            "'answer-synthesizer' (assemble verified results). Coding agents ('build', 'plan', 'explore') cannot reach the database.",
+          ),
           prompt: tool.schema.string().describe("Task instructions for the teammate"),
           model: tool.schema.string().optional().describe("Model in provider/model format (optional, uses default)"),
           claim_task: tool.schema.string().optional().describe("Task ID to auto-claim for this teammate (optional)"),
