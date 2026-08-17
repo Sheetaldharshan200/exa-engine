@@ -26,6 +26,7 @@ import { FSUtil } from "@exa/core/fs-util"
 import { isRecord } from "@/util/record"
 import { optional } from "@exa/core/schema"
 import { ProviderTransform } from "./transform"
+import { OLLAMA_HOST, OLLAMA_ID, detect as detectOllama, toModel as ollamaModel } from "./ollama"
 import { ProviderV2 } from "@exa/core/provider"
 import { ModelV2 } from "@exa/core/model"
 import { ModelStatus } from "./model-status"
@@ -1519,6 +1520,25 @@ const layer = Layer.effect(
           database[providerID] = parsed
         }
 
+        // A local Ollama cannot come from the catalogue: it needs no API key,
+        // and the models it serves are whatever the user has pulled, which
+        // changes without notice. Ask the server instead. Registered AFTER the
+        // config providers so an explicit exa.json entry still wins.
+        if (!database[OLLAMA_ID as ProviderV2.ID] && !disabled.has(OLLAMA_ID as ProviderV2.ID)) {
+          const detected = yield* Effect.promise(() => detectOllama())
+          if (detected) {
+            database[ProviderV2.ID.make(OLLAMA_ID)] = {
+              id: ProviderV2.ID.make(OLLAMA_ID),
+              name: "Ollama (local)",
+              // No env var gates it. It is running or it is not.
+              env: [],
+              source: "config",
+              options: { baseURL: `${OLLAMA_HOST}/v1` },
+              models: Object.fromEntries(detected.map((m) => [m.id, ollamaModel(m)])),
+            }
+          }
+        }
+
         // load env
         const envs = yield* env.all()
         for (const [id, provider] of Object.entries(database)) {
@@ -1530,6 +1550,12 @@ const layer = Layer.effect(
             source: "env",
             key: provider.env.length === 1 ? apiKey : undefined,
           })
+        }
+
+        // Local servers have no credential to discover, so the env and auth
+        // passes never activate them. Being reachable IS the credential.
+        if (database[OLLAMA_ID as ProviderV2.ID] && !disabled.has(OLLAMA_ID as ProviderV2.ID)) {
+          mergeProvider(ProviderV2.ID.make(OLLAMA_ID), { source: "config" })
         }
 
         // load apikeys
