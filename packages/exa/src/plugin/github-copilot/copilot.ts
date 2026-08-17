@@ -149,9 +149,25 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
             )
           })
           .catch((error) => {
-            models = {}
+            // Say what happened. Silently swapping in a different list made a
+            // slow network look identical to a broken account, with nothing in
+            // the output to tell them apart.
+            const reason = error instanceof Error ? error.message : String(error)
+            const timedOut = error instanceof Error && error.name === "TimeoutError"
+            console.warn(
+              `[github-copilot] could not read the model list from GitHub: ${
+                timedOut ? "the request timed out" : reason
+              }. Showing the last known models.`,
+            )
+
+            // Prefer what GitHub actually served this session. The catalogue is
+            // a generic list of what Copilot offers SOMEWHERE — for an account
+            // that cannot reach those models it is entirely wrong, and picking
+            // one only fails later at request time. Fall back to it just when
+            // there is nothing better.
+            const known = Object.keys(models).length > 0 ? models : provider.models
             return Object.fromEntries(
-              Object.entries(provider.models).map(([id, model]) => [id, fix(model, base(auth.enterpriseUrl))]),
+              Object.entries(known).map(([id, model]) => [id, fix(model, base(auth.enterpriseUrl))]),
             )
           })
       },

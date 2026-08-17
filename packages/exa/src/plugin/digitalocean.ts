@@ -173,7 +173,7 @@ async function listRouters(
       Accept: "application/json",
       "User-Agent": `exa/${InstallationVersion}`,
     },
-    signal: AbortSignal.timeout(10_000),
+    signal: AbortSignal.timeout(15_000),
   }).catch(() => undefined)
   if (!res) return { ok: false, status: 0 }
   if (!res.ok) return { ok: false, status: res.status }

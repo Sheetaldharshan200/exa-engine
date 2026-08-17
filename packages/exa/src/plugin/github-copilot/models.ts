@@ -249,12 +249,15 @@ export async function get(
   headers: HeadersInit = {},
   existing: Record<string, Model> = {},
 ): Promise<{ models: Record<string, Model>; pickerEnabled: Set<string> }> {
+  // 5s was tight enough that an ordinary slow network dropped every Copilot
+  // model from the picker, which reads as the provider being broken rather
+  // than a request being slow.
   const data = await fetch(`${baseURL}/models`, {
     headers,
-    signal: AbortSignal.timeout(5_000),
+    signal: AbortSignal.timeout(15_000),
   }).then(async (res) => {
     if (!res.ok) {
-      throw new Error(`Failed to fetch models: ${res.status}`)
+      throw new Error(`GitHub returned HTTP ${res.status} for the model list`)
     }
     return decodeModels(await res.json())
   })

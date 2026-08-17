@@ -52,7 +52,7 @@ export async function get(baseURL: string, apiKey: string, existing: Record<stri
     headers: {
       Authorization: `Bearer ${apiKey}`,
     },
-    signal: AbortSignal.timeout(3_000),
+    signal: AbortSignal.timeout(15_000),
   }).then(async (res) => {
     if (!res.ok) throw new Error(`Failed to fetch Modal models: ${res.status}`)
     return decode(await res.json())
