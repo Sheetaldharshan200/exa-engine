@@ -232,13 +232,31 @@ export function DialogExaConnectDb() {
   ])
   onMount(async () => {
     try {
-      const [{ prepareSetup }, { listConnections }] = await Promise.all([
-        import("../../../exa/src/database/setup"),
-        import("../../../exa/src/database/connection"),
+      const [{ prepareSetup }, { listConnections, activeConnection, connectionsMissingCredentials }] =
+        await Promise.all([
+          import("../../../exa/src/database/setup"),
+          import("../../../exa/src/database/connection"),
+        ])
+      const [{ options: setup }, connected, current, missing] = await Promise.all([
+        prepareSetup(),
+        listConnections(),
+        activeConnection(),
+        connectionsMissingCredentials(),
       ])
-      const [{ options: setup }, connected] = await Promise.all([prepareSetup(), listConnections()])
+      const unusable = new Set(missing.map((c) => c.id))
       setOptions([
-        ...connected.map((c) => ({ title: `Connected: ${c.name}`, value: `connected:${c.id}` })),
+        // Several databases can be connected at once, and only one of them is
+        // the one an unqualified question goes to — so say which, and make
+        // picking another one actually change it.
+        ...connected.map((c) => {
+          const where = `${c.host}:${c.port}`
+          const mark = unusable.has(c.id)
+            ? " — needs a password here"
+            : c.id === current?.id
+              ? " — default"
+              : ""
+          return { title: `${c.name}  (${where})${mark}`, value: `connected:${c.id}` }
+        }),
         ...setup.map((o) => ({ title: o.hint ? `${o.label} — ${o.hint}` : o.label, value: o.value })),
       ])
     } catch {
@@ -247,13 +265,31 @@ export function DialogExaConnectDb() {
   })
   return (
     <DialogSelect
-      title="Connect a database"
+      title="Databases"
       options={options()}
       onSelect={async (opt) => {
         dialog.clear()
         const value = String(opt.value)
         if (value.startsWith("connected:")) {
-          toast.show({ message: "Already connected — the agent is using it.", variant: "info" })
+          const id = value.slice("connected:".length)
+          const { setDefaultConnection, listConnections, connectionsMissingCredentials } = await import(
+            "../../../exa/src/database/connection"
+          )
+          const entry = (await listConnections()).find((c) => c.id === id)
+          const missing = (await connectionsMissingCredentials()).some((c) => c.id === id)
+          if (missing) {
+            toast.show({
+              message: `${entry?.name ?? id} has no password on this machine — run: exa connect exasol://${entry?.user ?? "sys"}@${entry?.host ?? ""}:${entry?.port ?? ""}`,
+              variant: "warning",
+              duration: 12_000,
+            })
+            return
+          }
+          await setDefaultConnection(id)
+          toast.show({
+            message: `${entry?.name ?? id} is now the default. Other databases stay available — name them in a question.`,
+            variant: "success",
+          })
           return
         }
         // Everything else needs credentials or a long-running install, which

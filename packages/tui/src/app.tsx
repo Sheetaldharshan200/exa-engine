@@ -848,7 +848,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
       },
       {
         name: "exa.connect_db",
-        title: "Connect a database",
+        title: "Databases — see what is connected, switch the default, add another",
         slashName: "connect-db",
         run: () => {
           dialog.replace(() => <DialogExaConnectDb />)
