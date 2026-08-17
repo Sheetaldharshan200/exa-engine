@@ -37,7 +37,7 @@ export const ConnectCommand = effectCmd({
       .option("name", { describe: "label for this connection", type: "string" })
       .option("list", { describe: "show connected databases", type: "boolean" })
       .option("add", { describe: "add another database even when one is connected", type: "boolean" })
-      .option("forget", { describe: "remove a connection by id", type: "string" })
+      .option("forget", { describe: "remove a connection by name or id", type: "string" })
       .option("default", {
         describe: "use this database when a question names none",
         type: "string",
@@ -54,14 +54,16 @@ export const ConnectCommand = effectCmd({
       // without the user having to reason about registration order.
       const fallback = yield* Effect.promise(() => activeConnection())
       for (const c of all) {
+        const endpoint = `${c.user}@${c.host}:${c.port}${c.schema ? "/" + c.schema : ""}`
+        // A connection with no label of its own is named after its endpoint;
+        // printing both would just say the same thing twice.
+        const label = c.name === `${c.user}@${c.host}:${c.port}` ? endpoint : `${c.name}  (${endpoint})`
         const tag = c.managed ? " (managed)" : ""
+        const isDefault = c.id === fallback?.id ? " (default)" : ""
         // An entry can be listed without a usable secret: Studio publishes
         // remote databases but keeps their credentials in its vault.
         const note = missing.has(c.id) ? "  — password needed here (`exa connect exasol://…`)" : ""
-        const isDefault = c.id === fallback?.id ? "  (default)" : ""
-        UI.println(
-          `  ${c.name}  [${c.id}]  ${c.user}@${c.host}:${c.port}${c.schema ? "/" + c.schema : ""}${tag}${isDefault}${note}`,
-        )
+        UI.println(`  ${label}${tag}${isDefault}${note}`)
       }
       if (all.length > 1) UI.println("\nchange the default with `exa connect --default <name>`")
       return
@@ -84,8 +86,19 @@ export const ConnectCommand = effectCmd({
     }
 
     if (args.forget) {
-      yield* Effect.promise(() => forgetConnection(args.forget!))
-      UI.println(`removed ${args.forget}`)
+      // Accept whatever `--list` showed: a name reads more naturally than an
+      // id, and passing one used to remove nothing at all, silently.
+      const all = yield* Effect.promise(() => listConnections())
+      const found = matchConnection(all, args.forget)
+      if (!found.ok) {
+        return yield* fail(
+          found.reason === "ambiguous"
+            ? `"${args.forget}" matches more than one database (${found.candidates.map((c) => c.name).join(", ")}).`
+            : `No connection matches "${args.forget}". Known: ${all.map((c) => c.name).join(", ") || "none"}.`,
+        )
+      }
+      yield* Effect.promise(() => forgetConnection(found.connection.id))
+      UI.println(`removed ${found.connection.name}`)
       return
     }
 
