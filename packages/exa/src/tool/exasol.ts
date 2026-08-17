@@ -193,6 +193,18 @@ export const ExasolQueryTool = Tool.define<typeof QueryParameters, { operation: 
           }
           const limit = Number.isFinite(params.limit) ? Math.max(1, Math.floor(params.limit!)) : 100
           const out = await withDriver(params.database, async (driver) => {
+            // The driver splits these: query() returns a result set and REJECTS
+            // a statement that has none ("Please use method execute instead"),
+            // while execute() returns the affected row count. Sending a granted
+            // INSERT or CREATE through query() therefore failed at the driver
+            // even though the ops check had passed. classifySql already
+            // distinguishes them — reads classify as undefined.
+            if (op) {
+              const affected = await driver.execute(params.sql)
+              return Number.isFinite(affected)
+                ? `OK — ${affected} row${affected === 1 ? "" : "s"} affected`
+                : "OK"
+            }
             const r = await driver.query(params.sql)
             const rows = typeof (r as { getRows?: unknown }).getRows === "function" ? r.getRows() : []
             return rowsToText(rows, limit)
