@@ -218,13 +218,17 @@ const layer: Layer.Layer<Service, never, HttpClient.HttpClient | AppProcess.Serv
             const info = yield* Schema.decodeUnknownEffect(Schema.fromJsonString(BrewInfoV2))(infoJson)
             return info.formulae[0].versions.stable
           }
+          // No tap, so there is no formula of ours to ask about. This used to
+          // query homebrew-core's "exa" — the unrelated ls replacement — and
+          // compare this product's version against that project's, which is
+          // never right. The releases are the authoritative source.
           const response = yield* httpOk.execute(
-            HttpClientRequest.get("https://formulae.brew.sh/api/formula/exa.json").pipe(
+            HttpClientRequest.get("https://api.github.com/repos/Sheetaldharshan200/exa-engine/releases/latest").pipe(
               HttpClientRequest.acceptJson,
             ),
           )
-          const data = yield* HttpClientResponse.schemaBodyJson(BrewFormula)(response)
-          return data.versions.stable
+          const data = yield* HttpClientResponse.schemaBodyJson(GitHubRelease)(response)
+          return data.tag_name.replace(/^v/, "")
         }
 
         if (detectedMethod === "npm" || detectedMethod === "bun" || detectedMethod === "pnpm") {

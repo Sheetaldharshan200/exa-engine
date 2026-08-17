@@ -2,27 +2,27 @@ import { test, expect } from "bun:test"
 import { parseGitHubRemote } from "../../src/cli/cmd/github"
 
 test("parses https URL with .git suffix", () => {
-  expect(parseGitHubRemote("https://github.com/sst/exa.git")).toEqual({ owner: "sst", repo: "exa" })
+  expect(parseGitHubRemote("https://github.com/Sheetaldharshan200/exa-engine.git")).toEqual({ owner: "Sheetaldharshan200", repo: "exa-engine" })
 })
 
 test("parses https URL without .git suffix", () => {
-  expect(parseGitHubRemote("https://github.com/sst/exa")).toEqual({ owner: "sst", repo: "exa" })
+  expect(parseGitHubRemote("https://github.com/Sheetaldharshan200/exa-engine")).toEqual({ owner: "Sheetaldharshan200", repo: "exa-engine" })
 })
 
 test("parses git@ URL with .git suffix", () => {
-  expect(parseGitHubRemote("git@github.com:sst/exa.git")).toEqual({ owner: "sst", repo: "exa" })
+  expect(parseGitHubRemote("git@github.com:Sheetaldharshan200/exa-engine.git")).toEqual({ owner: "Sheetaldharshan200", repo: "exa-engine" })
 })
 
 test("parses git@ URL without .git suffix", () => {
-  expect(parseGitHubRemote("git@github.com:sst/exa")).toEqual({ owner: "sst", repo: "exa" })
+  expect(parseGitHubRemote("git@github.com:Sheetaldharshan200/exa-engine")).toEqual({ owner: "Sheetaldharshan200", repo: "exa-engine" })
 })
 
 test("parses ssh:// URL with .git suffix", () => {
-  expect(parseGitHubRemote("ssh://git@github.com/sst/exa.git")).toEqual({ owner: "sst", repo: "exa" })
+  expect(parseGitHubRemote("ssh://git@github.com/Sheetaldharshan200/exa-engine.git")).toEqual({ owner: "Sheetaldharshan200", repo: "exa-engine" })
 })
 
 test("parses ssh:// URL without .git suffix", () => {
-  expect(parseGitHubRemote("ssh://git@github.com/sst/exa")).toEqual({ owner: "sst", repo: "exa" })
+  expect(parseGitHubRemote("ssh://git@github.com/Sheetaldharshan200/exa-engine")).toEqual({ owner: "Sheetaldharshan200", repo: "exa-engine" })
 })
 
 test("parses git protocol URLs from package metadata", () => {

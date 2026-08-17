@@ -1356,7 +1356,10 @@ export const githubRun = Effect.fn("Cli.github.run")(function* (args: { event?: 
         const titleAlt = encodeURIComponent(session.title.substring(0, 50))
         const title64 = Buffer.from(session.title.substring(0, 700), "utf8").toString("base64")
 
-        return `<a href="${shareBaseUrl}/s/${shareId}"><img width="200" alt="${titleAlt}" src="https://social-cards.sst.dev/exa-share/${title64}.png?model=${providerID}/${modelID}&version=${session.version}&id=${shareId}" /></a>\n`
+        // A plain link, not an embedded card. The card image was rendered by a
+        // third party's server, so every comment posted the session id, model
+        // and version to them and broke if they went away.
+        return `[${titleAlt}](${shareBaseUrl}/s/${shareId}) — ${providerID}/${modelID}\n`
       })()
       const shareUrl = shareId ? `[exa session](${shareBaseUrl}/s/${shareId})&nbsp;&nbsp;|&nbsp;&nbsp;` : ""
       return `\n\n${image}${shareUrl}[github run](${runUrl})`

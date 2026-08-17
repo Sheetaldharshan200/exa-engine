@@ -146,15 +146,18 @@ describe("installation", () => {
 
     testEffect(
       testLayer(
-        () => jsonResponse({ versions: { stable: "2.0.0" } }),
+        () => jsonResponse({ tag_name: "v2.0.0" }),
         (cmd, args) => {
-          // getBrewFormula: return core formula (no tap)
+          // getBrewFormula: no tap installed, so there is no formula of ours
           if (cmd === "brew" && args.includes("--formula") && args.includes("Sheetaldharshan200/tap/exa")) return ""
           if (cmd === "brew" && args.includes("--formula") && args.includes("exa")) return "exa"
           return ""
         },
       ),
-    ).effect("reads brew formulae API versions", () =>
+      // Without a tap this used to ask homebrew-core about "exa" — the
+      // unrelated ls replacement — and report that project's version as an
+      // available upgrade. The releases are the only authoritative source.
+    ).effect("falls back to this product's releases, not a same-named formula", () =>
       Effect.gen(function* () {
         const result = yield* Installation.use.latest("brew")
         expect(result).toBe("2.0.0")
