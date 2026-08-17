@@ -151,6 +151,27 @@ export async function detectBuiltin(host: string): Promise<OllamaModel[] | undef
     .map((id) => ({ id, toolcall: true, vision: false }))
 }
 
+/**
+ * Every model exa can run, whether or not it has been downloaded yet.
+ *
+ * The picker should list these the way it lists any other provider's models —
+ * a model you have not downloaded is still a model you can choose. Listing
+ * only what is already serving meant the feature was invisible until you had
+ * already used it, which is the wrong way round.
+ */
+export function builtinCatalogModels(
+  catalog: { id: string; name: string }[],
+  host: string,
+  providerID: string,
+): Record<string, Model> {
+  return Object.fromEntries(
+    catalog.map((entry) => [
+      entry.id,
+      toBuiltinModel({ id: entry.id, toolcall: true, vision: false }, host, providerID),
+    ]),
+  )
+}
+
 /** A built-in engine model in the shape the provider registry expects. */
 export function toBuiltinModel(model: OllamaModel, host: string, providerID: string): Model {
   const base = toModel(model)

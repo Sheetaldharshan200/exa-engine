@@ -26,8 +26,8 @@ import { FSUtil } from "@exa/core/fs-util"
 import { isRecord } from "@/util/record"
 import { optional } from "@exa/core/schema"
 import { ProviderTransform } from "./transform"
-import { OLLAMA_HOST, OLLAMA_ID, detect as detectOllama, detectBuiltin, toModel as ollamaModel, toBuiltinModel } from "./ollama"
-import { ENGINE_HOST, ENGINE_ID } from "../local/catalog"
+import { OLLAMA_HOST, OLLAMA_ID, detect as detectOllama, detectBuiltin, toModel as ollamaModel, toBuiltinModel, builtinCatalogModels } from "./ollama"
+import { ENGINE_HOST, ENGINE_ID, MODELS as LOCAL_MODELS } from "../local/catalog"
 import { ProviderV2 } from "@exa/core/provider"
 import { ModelV2 } from "@exa/core/model"
 import { ModelStatus } from "./model-status"
@@ -1542,17 +1542,23 @@ const layer = Layer.effect(
 
         // exa's own engine, when the user has started one. Same reasoning as
         // Ollama: no key, and the models are whatever they have downloaded.
+        // Everything exa can run is listed, downloaded or not — the picker
+        // should offer these like any other provider's models. Whatever is
+        // actually serving is merged over the top, so a model started outside
+        // the catalogue still appears.
         if (!database[ENGINE_ID as ProviderV2.ID] && !disabled.has(ENGINE_ID as ProviderV2.ID)) {
-          const builtin = yield* Effect.promise(() => detectBuiltin(ENGINE_HOST))
-          if (builtin && builtin.length > 0) {
-            database[ProviderV2.ID.make(ENGINE_ID)] = {
-              id: ProviderV2.ID.make(ENGINE_ID),
-              name: "Exa engine (local)",
-              env: [],
-              source: "config",
-              options: { baseURL: `${ENGINE_HOST}/v1` },
-              models: Object.fromEntries(builtin.map((m) => [m.id, toBuiltinModel(m, ENGINE_HOST, ENGINE_ID)])),
-            }
+          const serving = yield* Effect.promise(() => detectBuiltin(ENGINE_HOST))
+          const models = {
+            ...builtinCatalogModels(LOCAL_MODELS, ENGINE_HOST, ENGINE_ID),
+            ...Object.fromEntries((serving ?? []).map((m) => [m.id, toBuiltinModel(m, ENGINE_HOST, ENGINE_ID)])),
+          }
+          database[ProviderV2.ID.make(ENGINE_ID)] = {
+            id: ProviderV2.ID.make(ENGINE_ID),
+            name: "Exa engine (local)",
+            env: [],
+            source: "config",
+            options: { baseURL: `${ENGINE_HOST}/v1` },
+            models,
           }
         }
 
