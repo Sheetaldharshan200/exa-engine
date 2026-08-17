@@ -252,9 +252,17 @@ export async function get(
     result[id] = build(id, m, baseURL)
   }
 
+  const flagged = new Set([...remote].filter(([, item]) => item.model_picker_enabled).map(([id]) => id))
+
   return {
     models: result,
-    pickerEnabled: new Set([...remote].filter(([, item]) => item.model_picker_enabled).map(([id]) => id)),
+    // model_picker_enabled is GitHub's hint for its OWN editor picker, and it
+    // comes back false for every model on some accounts and OAuth apps.
+    // Filtering on it then hides every usable model and the picker reads "No
+    // results found" while the API is happily returning eight of them. Treat
+    // the flag as a preference: when GitHub singles some models out, respect
+    // that; when it singles out none, offer everything it returned.
+    pickerEnabled: flagged.size > 0 ? flagged : new Set(remote.keys()),
   }
 }
 

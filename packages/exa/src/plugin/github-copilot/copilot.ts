@@ -30,6 +30,28 @@ const CLIENT_ID_HELP =
   "EXA_COPILOT_CLIENT_ID=<client id> — or add it to exa.json under " +
   'provider."github-copilot".options.clientId.'
 
+/** GitHub's device-flow error codes, in terms of what to do about them. */
+function deviceFlowError(code: string, description?: string): string {
+  const detail = description ? ` (${description})` : ""
+  switch (code) {
+    case "access_denied":
+      return "Authorization was declined on GitHub. Run the login again and approve the app."
+    case "expired_token":
+      return "The device code expired before it was entered. Run the login again and enter the code promptly."
+    case "device_flow_disabled":
+      return (
+        "This GitHub app does not have device flow enabled. Turn it on in the app's settings " +
+        "(GitHub → Settings → Developer settings → OAuth Apps → your app → Enable Device Flow)."
+      )
+    case "incorrect_client_credentials":
+      return `The client id is not accepted by GitHub${detail}. Check EXA_COPILOT_CLIENT_ID, or the id in exa.json.`
+    case "unsupported_grant_type":
+      return `GitHub rejected the device-flow grant${detail}.`
+    default:
+      return `GitHub returned "${code}"${detail}.`
+  }
+}
+
 async function clientId(): Promise<string | undefined> {
   const fromEnv = process.env["EXA_COPILOT_CLIENT_ID"]?.trim()
   if (fromEnv) return fromEnv
@@ -323,11 +345,16 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                     }),
                   })
 
-                  if (!response.ok) return { type: "failed" as const }
+                  if (!response.ok) {
+                    throw new Error(
+                      `GitHub rejected the token request (HTTP ${response.status}). ${await response.text().catch(() => "")}`.trim(),
+                    )
+                  }
 
                   const data = (await response.json()) as {
                     access_token?: string
                     error?: string
+                    error_description?: string
                     interval?: number
                   }
 
@@ -374,7 +401,11 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                     continue
                   }
 
-                  if (data.error) return { type: "failed" as const }
+                  // Everything else is terminal. Reporting a bare "failed"
+                  // here made every cause look identical — a denied consent, an
+                  // expired code and an app that cannot mint Copilot tokens all
+                  // printed the same thing, so there was nothing to act on.
+                  if (data.error) throw new Error(deviceFlowError(data.error, data.error_description))
 
                   await sleep(deviceData.interval * 1000 + OAUTH_POLLING_SAFETY_MARGIN_MS)
                   continue
