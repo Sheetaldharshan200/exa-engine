@@ -22,7 +22,7 @@ type Diff = {
   message: string
 }
 
-const repo = process.env.GH_REPO ?? "anomalyco/exa"
+const repo = process.env.GH_REPO ?? "Sheetaldharshan200/exa-engine"
 const bot = ["actions-user", "github-actions[bot]", "exa", "exa-agent[bot]"]
 const team = [
   ...(await Bun.file(new URL("../.github/TEAM_MEMBERS", import.meta.url))

@@ -366,7 +366,7 @@ jobs:
           persist-credentials: false
 
       - name: Run exa
-        uses: anomalyco/exa/github@latest${envStr}
+        uses: Sheetaldharshan200/exa-engine/github@latest${envStr}
         with:
           model: ${provider}/${model}`,
         )

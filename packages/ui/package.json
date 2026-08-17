@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anomalyco/exa.git",
+    "url": "git+https://github.com/Sheetaldharshan200/exa.git",
     "directory": "packages/ui"
   },
   "publishConfig": {

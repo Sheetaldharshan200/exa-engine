@@ -6,7 +6,45 @@ import { setTimeout as sleep } from "node:timers/promises"
 import { CopilotModels } from "./models"
 import { MessageV2 } from "@/session/message-v2"
 
-const CLIENT_ID = "Ov23li8tweQw6odWQebz"
+/**
+ * The GitHub OAuth app used for Copilot's device login.
+ *
+ * There is deliberately no built-in default. A client id identifies whoever
+ * registered the app, and GitHub shows that owner's name on the consent screen
+ * — shipping the upstream project's id meant every user was asked to authorize
+ * a company with no connection to this product.
+ *
+ * Register your own (GitHub → Settings → Developer settings → OAuth Apps, with
+ * device flow enabled) and set EXA_COPILOT_CLIENT_ID, or put it in exa.json as
+ * provider["github-copilot"].options.clientId. Then the consent screen names
+ * you.
+ */
+const CLIENT_ID_HELP =
+  "GitHub Copilot login needs an OAuth app you control. Create one at " +
+  "https://github.com/settings/developers (enable device flow), then set " +
+  "EXA_COPILOT_CLIENT_ID=<client id> — or add it to exa.json under " +
+  'provider."github-copilot".options.clientId.'
+
+async function clientId(): Promise<string | undefined> {
+  const fromEnv = process.env["EXA_COPILOT_CLIENT_ID"]?.trim()
+  if (fromEnv) return fromEnv
+  const { Global } = await import("@exa/core/global")
+  const fs = await import("node:fs/promises")
+  const path = await import("node:path")
+  for (const name of ["exa.json", "exa.jsonc"]) {
+    try {
+      const text = await fs.readFile(path.join(Global.Path.config, name), "utf8")
+      const parsed = JSON.parse(text.replace(/^\s*\/\/.*$/gm, "")) as {
+        provider?: Record<string, { options?: { clientId?: unknown } }>
+      }
+      const id = parsed.provider?.["github-copilot"]?.options?.clientId
+      if (typeof id === "string" && id.trim()) return id.trim()
+    } catch {
+      /* absent or unparseable — treat as unset */
+    }
+  }
+  return undefined
+}
 const API_VERSION = "2026-06-01"
 const UTILITY_MODELS = ["gpt-5.4-nano", "gpt-4.1", "gpt-4o", "gpt-4o-mini"]
 // Add a small safety buffer when polling to avoid hitting the server
@@ -231,6 +269,11 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
 
             const urls = getUrls(domain)
 
+            // No id, no login. Falling back to a shipped one would put someone
+            // else's name on GitHub's consent screen.
+            const id = await clientId()
+            if (!id) throw new Error(CLIENT_ID_HELP)
+
             const deviceResponse = await fetch(urls.DEVICE_CODE_URL, {
               method: "POST",
               headers: {
@@ -239,7 +282,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                 "User-Agent": `exa/${InstallationVersion}`,
               },
               body: JSON.stringify({
-                client_id: CLIENT_ID,
+                client_id: id,
                 scope: "read:user",
               }),
             })
@@ -269,7 +312,7 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
                       "User-Agent": `exa/${InstallationVersion}`,
                     },
                     body: JSON.stringify({
-                      client_id: CLIENT_ID,
+                      client_id: id,
                       device_code: deviceData.device_code,
                       grant_type: "urn:ietf:params:oauth:grant-type:device_code",
                     }),

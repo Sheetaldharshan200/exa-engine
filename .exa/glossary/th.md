@@ -2,8 +2,8 @@
 
 ## Sources
 
-- PR #10809: https://github.com/anomalyco/exa/pull/10809
-- PR #11496: https://github.com/anomalyco/exa/pull/11496
+- PR #10809: https://github.com/Sheetaldharshan200/exa-engine/pull/10809
+- PR #11496: https://github.com/Sheetaldharshan200/exa-engine/pull/11496
 
 ## Do Not Translate (Locale Additions)
 

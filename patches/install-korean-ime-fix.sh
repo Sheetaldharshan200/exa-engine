@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # exa Korean IME Fix Installer
-# https://github.com/anomalyco/exa/issues/14371
+# https://github.com/Sheetaldharshan200/exa-engine/issues/14371
 #
 # Patches exa to prevent Korean (and other CJK) IME last character
 # truncation when pressing Enter in Kitty and other terminals.
