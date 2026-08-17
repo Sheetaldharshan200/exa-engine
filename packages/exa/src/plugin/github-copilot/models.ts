@@ -213,6 +213,37 @@ function usable(item: Item): item is SelectableItem {
   )
 }
 
+/**
+ * A dated snapshot id such as "gpt-4o-2024-11-20" or "gpt-3.5-turbo-0613",
+ * as opposed to the stable alias "gpt-4o".
+ */
+function isDatedSnapshot(id: string): boolean {
+  return /-\d{4}(-\d{2}-\d{2})?$/.test(id)
+}
+
+/**
+ * One entry per display name.
+ *
+ * GitHub returns the stable alias AND its dated snapshots, all carrying the
+ * same name — so "GPT-4o" appeared three times in the picker with nothing to
+ * tell the rows apart. Keep the alias, which is the one that keeps working as
+ * GitHub moves it forward; if a name only ever appears dated, keep the newest
+ * (ids sort by date).
+ */
+export function oneEntryPerName(ids: Iterable<string>, items: Map<string, { name: string }>): Set<string> {
+  const byName = new Map<string, string[]>()
+  for (const id of ids) {
+    const name = items.get(id)?.name ?? id
+    byName.set(name, [...(byName.get(name) ?? []), id])
+  }
+  const kept = new Set<string>()
+  for (const group of byName.values()) {
+    const stable = group.filter((id) => !isDatedSnapshot(id))
+    kept.add(stable[0] ?? [...group].sort().at(-1)!)
+  }
+  return kept
+}
+
 export async function get(
   baseURL: string,
   headers: HeadersInit = {},
@@ -262,7 +293,7 @@ export async function get(
     // results found" while the API is happily returning eight of them. Treat
     // the flag as a preference: when GitHub singles some models out, respect
     // that; when it singles out none, offer everything it returned.
-    pickerEnabled: flagged.size > 0 ? flagged : new Set(remote.keys()),
+    pickerEnabled: oneEntryPerName(flagged.size > 0 ? flagged : remote.keys(), remote),
   }
 }
 
