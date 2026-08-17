@@ -11,6 +11,7 @@ import { ModelsCommand } from "./cli/cmd/models"
 import { SandboxCommand, OpsCommand, PersonaCommand, ToolsCommand } from "./cli/cmd/exa"
 import { BackupCommand } from "./cli/cmd/backup"
 import { ConnectCommand } from "./cli/cmd/connect"
+import { ModelCommand } from "./cli/cmd/model"
 import { UI } from "./cli/ui"
 import { InstallationVersion } from "@exa/core/installation/version"
 import { FormatError } from "./cli/error"
@@ -102,6 +103,7 @@ const cli = yargs(args)
   .command(ToolsCommand)
   .command(BackupCommand)
   .command(ConnectCommand)
+  .command(ModelCommand)
   .command(StatsCommand)
   .command(ExportCommand)
   .command(ImportCommand)

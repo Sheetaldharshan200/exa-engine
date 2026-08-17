@@ -130,3 +130,36 @@ export async function detect(host = OLLAMA_HOST): Promise<OllamaModel[] | undefi
     }),
   )
 }
+
+// ── exa's own engine ────────────────────────────────────────────────────────
+
+/**
+ * The built-in engine, detected exactly like Ollama.
+ *
+ * It speaks the OpenAI API, so listing its models is one call to /v1/models.
+ * Everything it serves is tool-capable by construction: the catalogue only
+ * contains such models and the server is started with --jinja.
+ */
+export async function detectBuiltin(host: string): Promise<OllamaModel[] | undefined> {
+  const body = await json(`${host}/v1/models`, undefined, 1_500)
+  if (body === undefined) return undefined
+  const data = (body as { data?: { id: string }[] })?.data
+  if (!Array.isArray(data)) return []
+  return data
+    .map((m) => m.id)
+    .filter(Boolean)
+    .map((id) => ({ id, toolcall: true, vision: false }))
+}
+
+/** A built-in engine model in the shape the provider registry expects. */
+export function toBuiltinModel(model: OllamaModel, host: string, providerID: string): Model {
+  const base = toModel(model)
+  return {
+    ...base,
+    providerID: ProviderV2.ID.make(providerID),
+    api: { id: model.id, url: `${host}/v1`, npm: "@ai-sdk/openai-compatible" },
+    // The server is started with a 32k window; anything larger would be
+    // promised and then refused mid-conversation.
+    limit: { context: model.context ?? 32_768, output: 4_096 },
+  }
+}

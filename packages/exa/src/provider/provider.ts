@@ -26,7 +26,8 @@ import { FSUtil } from "@exa/core/fs-util"
 import { isRecord } from "@/util/record"
 import { optional } from "@exa/core/schema"
 import { ProviderTransform } from "./transform"
-import { OLLAMA_HOST, OLLAMA_ID, detect as detectOllama, toModel as ollamaModel } from "./ollama"
+import { OLLAMA_HOST, OLLAMA_ID, detect as detectOllama, detectBuiltin, toModel as ollamaModel, toBuiltinModel } from "./ollama"
+import { ENGINE_HOST, ENGINE_ID } from "../local/catalog"
 import { ProviderV2 } from "@exa/core/provider"
 import { ModelV2 } from "@exa/core/model"
 import { ModelStatus } from "./model-status"
@@ -1539,6 +1540,22 @@ const layer = Layer.effect(
           }
         }
 
+        // exa's own engine, when the user has started one. Same reasoning as
+        // Ollama: no key, and the models are whatever they have downloaded.
+        if (!database[ENGINE_ID as ProviderV2.ID] && !disabled.has(ENGINE_ID as ProviderV2.ID)) {
+          const builtin = yield* Effect.promise(() => detectBuiltin(ENGINE_HOST))
+          if (builtin && builtin.length > 0) {
+            database[ProviderV2.ID.make(ENGINE_ID)] = {
+              id: ProviderV2.ID.make(ENGINE_ID),
+              name: "Exa engine (local)",
+              env: [],
+              source: "config",
+              options: { baseURL: `${ENGINE_HOST}/v1` },
+              models: Object.fromEntries(builtin.map((m) => [m.id, toBuiltinModel(m, ENGINE_HOST, ENGINE_ID)])),
+            }
+          }
+        }
+
         // load env
         const envs = yield* env.all()
         for (const [id, provider] of Object.entries(database)) {
@@ -1556,6 +1573,10 @@ const layer = Layer.effect(
         // passes never activate them. Being reachable IS the credential.
         if (database[OLLAMA_ID as ProviderV2.ID] && !disabled.has(OLLAMA_ID as ProviderV2.ID)) {
           mergeProvider(ProviderV2.ID.make(OLLAMA_ID), { source: "config" })
+        }
+
+        if (database[ENGINE_ID as ProviderV2.ID] && !disabled.has(ENGINE_ID as ProviderV2.ID)) {
+          mergeProvider(ProviderV2.ID.make(ENGINE_ID), { source: "config" })
         }
 
         // load apikeys
