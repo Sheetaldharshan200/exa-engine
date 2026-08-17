@@ -782,7 +782,7 @@ it.instance("exa agent may write AGENTS.md and nothing else", () =>
 it.instance("exa agent can always reach the database", () =>
   Effect.gen(function* () {
     const exa = yield* load((svc) => svc.get("exa"))
-    for (const tool of ["exasol_query", "exasol_schemas", "exasol_tables", "exasol_describe"]) {
+    for (const tool of ["exasol_databases", "exasol_query", "exasol_schemas", "exasol_tables", "exasol_describe"]) {
       expect(evalPerm(exa, tool)).not.toBe("deny")
     }
   }),

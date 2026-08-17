@@ -14,7 +14,7 @@ describe("spawnPermissions", () => {
   test("every teammate can reach the database, whatever role it was spawned as", () => {
     for (const readOnly of [true, false]) {
       const rules = spawnPermissions({ worktreeDir: null, isReadOnly: readOnly })
-      for (const tool of ["exasol_query", "exasol_schemas", "exasol_tables", "exasol_describe"]) {
+      for (const tool of ["exasol_databases", "exasol_query", "exasol_schemas", "exasol_tables", "exasol_describe"]) {
         expect(effective(rules, tool)).toBe("allow")
       }
     }

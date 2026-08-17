@@ -70,7 +70,7 @@ const TEAM_TOOLS = [
 ] as const
 
 /** The database tools. A teammate with none of these cannot do data work. */
-const DATA_TOOLS = ["exasol_query", "exasol_schemas", "exasol_tables", "exasol_describe"] as const
+const DATA_TOOLS = ["exasol_databases", "exasol_query", "exasol_schemas", "exasol_tables", "exasol_describe"] as const
 
 /**
  * The permission rules a spawned teammate's session carries.

@@ -1,6 +1,6 @@
 import { Effect, Schema } from "effect"
 import * as Tool from "./tool"
-import { activeConnection, createDriver } from "../database/connection"
+import { NO_CONNECTION, createDriver, resolveConnection, usableConnections } from "../database/connection"
 import { classifySql, describeOperation, type SqlOps } from "../database/sql-ops"
 
 /**
@@ -14,20 +14,33 @@ import { classifySql, describeOperation, type SqlOps } from "../database/sql-ops
  *    clever prompting gets an UPDATE through when the user granted none.
  *  - Results are truncated to a row cap, because an agent that pulls a
  *    million rows into its context is useless and expensive.
+ *
+ * Every tool takes an optional `database`, so one session can work across all
+ * the databases the user has connected. Omitting it uses the default, which is
+ * what a single-database setup always gets.
  */
 
-const NO_CONNECTION =
-  "No database is connected. Run `exa connect` (or /connect-db in a session) to attach one, then try again."
+/** The database argument, worded the same way on every tool. */
+const DatabaseArg = Schema.optional(Schema.String).annotate({
+  description:
+    "Which connected database to use — a name from exasol_databases. Omit when only one is connected, or to use the default.",
+})
 
-async function withDriver<T>(fn: (driver: ReturnType<typeof createDriver>) => Promise<T>): Promise<T | string> {
-  const conn = await activeConnection()
-  if (!conn) return NO_CONNECTION
+async function withDriver<T>(
+  database: string | undefined,
+  fn: (driver: ReturnType<typeof createDriver>) => Promise<T>,
+): Promise<T | string> {
+  const resolved = await resolveConnection(database)
+  if (!resolved.ok) return resolved.message
+  const conn = resolved.connection
   const driver = createDriver(conn)
   try {
     await driver.connect()
     return await fn(driver)
   } catch (err) {
-    return `Exasol error: ${err instanceof Error ? err.message : String(err)}`
+    // Name the database in the error: with several connected, "Exasol error"
+    // alone leaves the agent unable to tell which one failed.
+    return `Exasol error on ${conn.name}: ${err instanceof Error ? err.message : String(err)}`
   } finally {
     await driver.close().catch(() => undefined)
   }
@@ -45,18 +58,47 @@ function rowsToText(rows: unknown[], limit: number): string {
   return lines.join("\n")
 }
 
-export const SchemasParameters = Schema.Struct({})
+export const DatabasesParameters = Schema.Struct({})
+
+export const ExasolDatabasesTool = Tool.define<typeof DatabasesParameters, {}, never>(
+  "exasol_databases",
+  Effect.gen(function* () {
+    return {
+      description:
+        "List the Exasol databases connected on this machine. Call this first when a question spans more than one source, then pass a name as `database` to the other tools.",
+      parameters: DatabasesParameters,
+      execute: () =>
+        Effect.promise(async () => {
+          const usable = await usableConnections()
+          if (usable.length === 0) {
+            return { output: NO_CONNECTION, title: "no databases", metadata: {} }
+          }
+          const lines = usable.map((c, i) => {
+            const where = `${c.host}:${c.port} as ${c.user}`
+            return `${c.name} — ${where}${i === 0 ? "  (default)" : ""}`
+          })
+          return {
+            output: lines.join("\n"),
+            title: `${usable.length} database${usable.length === 1 ? "" : "s"}`,
+            metadata: {},
+          }
+        }),
+    }
+  }),
+)
+
+export const SchemasParameters = Schema.Struct({ database: DatabaseArg })
 
 export const ExasolSchemasTool = Tool.define<typeof SchemasParameters, {}, never>(
   "exasol_schemas",
   Effect.gen(function* () {
     return {
       description:
-        "List the schemas in the connected Exasol database. Use this before writing SQL so table names come from the database, not a guess.",
+        "List the schemas in a connected Exasol database. Use this before writing SQL so table names come from the database, not a guess.",
       parameters: SchemasParameters,
-      execute: () =>
+      execute: (params: Schema.Schema.Type<typeof SchemasParameters>) =>
         Effect.promise(async () => {
-          const out = await withDriver(async (driver) => {
+          const out = await withDriver(params.database, async (driver) => {
             const r = await driver.query("SELECT SCHEMA_NAME AS S FROM SYS.EXA_ALL_SCHEMAS ORDER BY 1")
             return rowsToText(r.getRows(), 200)
           })
@@ -68,17 +110,18 @@ export const ExasolSchemasTool = Tool.define<typeof SchemasParameters, {}, never
 
 export const TablesParameters = Schema.Struct({
   schema: Schema.String.annotate({ description: "Schema name (case-insensitive)" }),
+  database: DatabaseArg,
 })
 
 export const ExasolTablesTool = Tool.define<typeof TablesParameters, {}, never>(
   "exasol_tables",
   Effect.gen(function* () {
     return {
-      description: "List tables and views in a schema of the connected Exasol database, with row counts where known.",
+      description: "List tables and views in a schema of a connected Exasol database, with row counts where known.",
       parameters: TablesParameters,
       execute: (params: Schema.Schema.Type<typeof TablesParameters>) =>
         Effect.promise(async () => {
-          const out = await withDriver(async (driver) => {
+          const out = await withDriver(params.database, async (driver) => {
             const schema = params.schema.toUpperCase().replaceAll("'", "''")
             const r = await driver.query(
               `SELECT TABLE_NAME AS NAME, TABLE_ROW_COUNT AS ROWS FROM SYS.EXA_ALL_TABLES WHERE TABLE_SCHEMA = '${schema}'
@@ -97,6 +140,7 @@ export const ExasolTablesTool = Tool.define<typeof TablesParameters, {}, never>(
 export const DescribeParameters = Schema.Struct({
   schema: Schema.String.annotate({ description: "Schema name" }),
   table: Schema.String.annotate({ description: "Table or view name" }),
+  database: DatabaseArg,
 })
 
 export const ExasolDescribeTool = Tool.define<typeof DescribeParameters, {}, never>(
@@ -107,7 +151,7 @@ export const ExasolDescribeTool = Tool.define<typeof DescribeParameters, {}, nev
       parameters: DescribeParameters,
       execute: (params: Schema.Schema.Type<typeof DescribeParameters>) =>
         Effect.promise(async () => {
-          const out = await withDriver(async (driver) => {
+          const out = await withDriver(params.database, async (driver) => {
             const schema = params.schema.toUpperCase().replaceAll("'", "''")
             const table = params.table.toUpperCase().replaceAll("'", "''")
             const r = await driver.query(
@@ -126,6 +170,7 @@ export const ExasolDescribeTool = Tool.define<typeof DescribeParameters, {}, nev
 export const QueryParameters = Schema.Struct({
   sql: Schema.String.annotate({ description: "The SQL to run against the connected Exasol database" }),
   limit: Schema.optional(Schema.Finite).annotate({ description: "Max rows to return (default 100)" }),
+  database: DatabaseArg,
 })
 
 export const ExasolQueryTool = Tool.define<typeof QueryParameters, { operation: string }, never>(
@@ -133,7 +178,7 @@ export const ExasolQueryTool = Tool.define<typeof QueryParameters, { operation: 
   Effect.gen(function* () {
     return {
       description:
-        "Run SQL against the connected Exasol database. Reads are always allowed; anything that writes or changes structure is refused unless the user granted that operation class (`exa ops`). Exasol notes: identifiers fold to uppercase unless quoted, and paging uses LIMIT n.",
+        "Run SQL against a connected Exasol database. One statement runs against one database — Exasol cannot join across separate databases, so to combine sources, query each and combine the results yourself. Reads are always allowed; anything that writes or changes structure is refused unless the user granted that operation class (`exa ops`). Exasol notes: identifiers fold to uppercase unless quoted, and paging uses LIMIT n.",
       parameters: QueryParameters,
       execute: (params: Schema.Schema.Type<typeof QueryParameters>) =>
         Effect.promise(async () => {
@@ -147,7 +192,7 @@ export const ExasolQueryTool = Tool.define<typeof QueryParameters, { operation: 
             }
           }
           const limit = Number.isFinite(params.limit) ? Math.max(1, Math.floor(params.limit!)) : 100
-          const out = await withDriver(async (driver) => {
+          const out = await withDriver(params.database, async (driver) => {
             const r = await driver.query(params.sql)
             const rows = typeof (r as { getRows?: unknown }).getRows === "function" ? r.getRows() : []
             return rowsToText(rows, limit)

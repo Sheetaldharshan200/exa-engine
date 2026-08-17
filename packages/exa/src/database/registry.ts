@@ -33,7 +33,16 @@ export type ConnectionEntry = {
   createdAt?: string
 }
 
-export type Registry = { version: 1; connections: ConnectionEntry[] }
+/**
+ * `defaultId` is the connection used when a tool call names none. Without it
+ * the default is whichever was registered most recently, which is arbitrary
+ * once several databases are connected — the user should be able to say which
+ * one their unqualified questions mean.
+ *
+ * Unknown keys are preserved on write, so a field Exasol Studio adds later is
+ * not dropped by an older exa (and the other way round).
+ */
+export type Registry = { version: 1; connections: ConnectionEntry[]; defaultId?: string }
 
 export const EMPTY: Registry = { version: 1, connections: [] }
 
@@ -62,7 +71,8 @@ export function parseRegistry(text: string | undefined): Registry {
       (c): c is ConnectionEntry =>
         !!c && typeof c.id === "string" && typeof c.host === "string" && typeof c.port === "number",
     )
-    return { version: 1, connections }
+    const defaultId = typeof raw.defaultId === "string" ? raw.defaultId : undefined
+    return defaultId ? { version: 1, connections, defaultId } : { version: 1, connections }
   } catch {
     return { ...EMPTY, connections: [] }
   }

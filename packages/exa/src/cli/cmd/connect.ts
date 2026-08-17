@@ -4,11 +4,15 @@ import { effectCmd, fail } from "../effect-cmd"
 import { UI } from "../ui"
 import { parseDsn } from "../../database/registry"
 import {
+  activeConnection,
   connectionsMissingCredentials,
   forgetConnection,
   listConnections,
+  matchConnection,
   probe,
   saveConnection,
+  setDefaultConnection,
+  usableConnections,
 } from "../../database/connection"
 import { choiceFromValue, prepareSetup } from "../../database/setup"
 import { connectLocal, installPersonal } from "../../database/install"
@@ -33,7 +37,11 @@ export const ConnectCommand = effectCmd({
       .option("name", { describe: "label for this connection", type: "string" })
       .option("list", { describe: "show connected databases", type: "boolean" })
       .option("add", { describe: "add another database even when one is connected", type: "boolean" })
-      .option("forget", { describe: "remove a connection by id", type: "string" }),
+      .option("forget", { describe: "remove a connection by id", type: "string" })
+      .option("default", {
+        describe: "use this database when a question names none",
+        type: "string",
+      }),
   handler: Effect.fn("Cli.connect")(function* (args) {
     if (args.list) {
       const all = yield* Effect.promise(() => listConnections())
@@ -42,13 +50,36 @@ export const ConnectCommand = effectCmd({
         return
       }
       const missing = new Set((yield* Effect.promise(() => connectionsMissingCredentials())).map((c) => c.id))
+      // Which one an unqualified question goes to, so the list answers that
+      // without the user having to reason about registration order.
+      const fallback = yield* Effect.promise(() => activeConnection())
       for (const c of all) {
         const tag = c.managed ? " (managed)" : ""
         // An entry can be listed without a usable secret: Studio publishes
         // remote databases but keeps their credentials in its vault.
         const note = missing.has(c.id) ? "  — password needed here (`exa connect exasol://…`)" : ""
-        UI.println(`  ${c.id}  ${c.user}@${c.host}:${c.port}${c.schema ? "/" + c.schema : ""}${tag}${note}`)
+        const isDefault = c.id === fallback?.id ? "  (default)" : ""
+        UI.println(
+          `  ${c.name}  [${c.id}]  ${c.user}@${c.host}:${c.port}${c.schema ? "/" + c.schema : ""}${tag}${isDefault}${note}`,
+        )
       }
+      if (all.length > 1) UI.println("\nchange the default with `exa connect --default <name>`")
+      return
+    }
+
+    if (args.default) {
+      const usable = yield* Effect.promise(() => usableConnections())
+      const found = matchConnection(usable, args.default)
+      if (!found.ok) {
+        const names = usable.map((c) => c.name).join(", ")
+        return yield* fail(
+          found.reason === "ambiguous"
+            ? `"${args.default}" matches more than one database (${found.candidates.map((c) => c.name).join(", ")}).`
+            : `No connected database matches "${args.default}". Connected: ${names || "none"}.`,
+        )
+      }
+      yield* Effect.promise(() => setDefaultConnection(found.connection.id))
+      UI.println(`default is now ${found.connection.name} (${found.connection.host}:${found.connection.port})`)
       return
     }
 
