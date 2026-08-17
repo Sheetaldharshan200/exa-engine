@@ -1363,6 +1363,16 @@ export function Prompt(props: PromptProps) {
             flexGrow={1}
             width="100%"
           >
+            {/*
+              The prompt marker. A composer with a bare text field looks like
+              every other one; a console has a prompt. It carries the brand
+              colour and dims with the leader key, so it also reports whether
+              the next keystroke goes to the input or to a chord.
+            */}
+            <box flexDirection="row" width="100%">
+              <box flexShrink={0} marginRight={1}>
+                <text fg={leader() ? theme.textMuted : theme.primary}>›</text>
+              </box>
             <textarea
               width="100%"
               placeholder={placeholderText()}
@@ -1439,6 +1449,7 @@ export function Prompt(props: PromptProps) {
               cursorStyle={tuiConfig.cursor}
               syntaxStyle={syntax()}
             />
+            </box>
             <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
               <box flexDirection="row" gap={1}>
                 <Show when={local.agent.current()} fallback={<box height={1} />}>
@@ -1642,13 +1653,23 @@ export function Prompt(props: PromptProps) {
                       )}
                     </Match>
                     <Match when={true}>
-                      <text fg={theme.text}>
+                      {/*
+                        Keys carry the brand colour and the label follows in
+                        muted text, so the strip reads as a set of keycaps
+                        rather than a run of words.
+                      */}
+                      <text fg={theme.primary}>
                         {agentShortcut()} <span style={{ fg: theme.textMuted }}>agents</span>
                       </text>
                     </Match>
                   </Switch>
-                  <text fg={theme.text}>
+                  <text fg={theme.textMuted}>·</text>
+                  <text fg={theme.primary}>
                     {paletteShortcut()} <span style={{ fg: theme.textMuted }}>commands</span>
+                  </text>
+                  <text fg={theme.textMuted}>·</text>
+                  <text fg={theme.primary}>
+                    /connect-db <span style={{ fg: theme.textMuted }}>database</span>
                   </text>
                 </Match>
                 <Match when={store.mode === "shell"}>

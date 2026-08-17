@@ -162,6 +162,16 @@ export function Tips(props: { api: TuiPluginApi; connected?: boolean }) {
 }
 
 const TIPS: Tip[] = [
+  // Data first. The rest of this list came from a coding tool and talks about
+  // LSP, formatters and git permissions — true only once file tools are
+  // granted, and a poor first impression of a database agent either way.
+  "Run {highlight}/init{/highlight} to profile your database into {highlight}AGENTS.md{/highlight} — schemas, joins, grain and traps",
+  "Use {highlight}/connect-db{/highlight} to see connected databases and switch the default",
+  "Several databases can be connected at once — name one in a question, or pass {highlight}database{/highlight} to a tool",
+  "{highlight}exa model list{/highlight} shows models exa can run locally; {highlight}exa model run <id>{/highlight} starts one",
+  "A local Ollama is picked up automatically — no API key, just the models you have pulled",
+  "Grant write access per operation class with {highlight}/ops{/highlight}; reads are always allowed",
+  "{highlight}/review{/highlight} re-derives a result and checks grain, joins, filters and nulls",
   "Type {highlight}@{/highlight} followed by a filename to fuzzy search and attach files",
   "Start a message with {highlight}!{/highlight} to run shell commands (e.g., {highlight}!ls -la{/highlight})",
   (shortcuts) => press(shortcuts.agentCycle(), "to cycle between Build and Plan agents"),
@@ -171,7 +181,6 @@ const TIPS: Tip[] = [
   "Drag and drop images or PDFs into the terminal as context",
   (shortcuts) => press(shortcuts.inputPaste(), "to paste images from your clipboard into the prompt"),
   (shortcuts) => `Use ${commandText("/editor", shortcuts.editorOpen())} to compose messages in your external editor`,
-  "Run {highlight}/init{/highlight} to auto-generate project rules based on your codebase",
   (shortcuts) => `Use ${commandText("/models", shortcuts.modelList())} to switch between available AI models`,
   (shortcuts) => `Use ${commandText("/themes", shortcuts.themeList())} to switch between ${themeCount} built-in themes`,
   (shortcuts) => `Use ${commandText("/new", shortcuts.sessionNew())} to start a fresh conversation session`,

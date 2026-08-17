@@ -17,11 +17,13 @@ let once = false
 // What this agent is actually for. The examples a user sees first tell them
 // what to ask, and coding prompts taught the wrong thing about a data agent.
 const placeholder = {
+  // Kept short on purpose: with the prompt marker and the frame, anything
+  // longer wraps and the composer grows a second line before a key is pressed.
   normal: [
-    "Which customers generated the most revenue last quarter?",
-    "What tables are in this database, and how do they join?",
-    "Find the rows that would break this report",
-    "Chart monthly orders for the last two years",
+    "Top customers by revenue last quarter",
+    "What tables are here, and how do they join?",
+    "Rows that would break this report",
+    "Chart monthly orders for two years",
   ],
   shell: ["exa connect --list", "exa ops", "exa models"],
 }
