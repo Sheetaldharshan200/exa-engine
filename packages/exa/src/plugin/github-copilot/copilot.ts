@@ -9,16 +9,21 @@ import { MessageV2 } from "@/session/message-v2"
 /**
  * The GitHub OAuth app used for Copilot's device login.
  *
- * There is deliberately no built-in default. A client id identifies whoever
- * registered the app, and GitHub shows that owner's name on the consent screen
- * — shipping the upstream project's id meant every user was asked to authorize
- * a company with no connection to this product.
+ * A client id identifies whoever registered the app, and GitHub shows that
+ * owner's name on the consent screen — which is why the upstream project's id
+ * could not stay: it asked every user to authorize a company unrelated to this
+ * product. This is Exa's own app, so the consent screen names Exa.
  *
- * Register your own (GitHub → Settings → Developer settings → OAuth Apps, with
- * device flow enabled) and set EXA_COPILOT_CLIENT_ID, or put it in exa.json as
- * provider["github-copilot"].options.clientId. Then the consent screen names
- * you.
+ * The id is not a secret. GitHub's device flow sends it in the clear from every
+ * client and has no client secret at all, so it ships in the source the same way
+ * other CLIs ship theirs. The secret in this flow is the token GitHub returns,
+ * which never leaves the user's machine.
+ *
+ * Override it with EXA_COPILOT_CLIENT_ID, or provider["github-copilot"]
+ * .options.clientId in exa.json, to point the login at your own app instead.
  */
+const DEFAULT_CLIENT_ID = "Ov23liz4QdgwzRWpLGFZ"
+
 const CLIENT_ID_HELP =
   "GitHub Copilot login needs an OAuth app you control. Create one at " +
   "https://github.com/settings/developers (enable device flow), then set " +
@@ -40,10 +45,10 @@ async function clientId(): Promise<string | undefined> {
       const id = parsed.provider?.["github-copilot"]?.options?.clientId
       if (typeof id === "string" && id.trim()) return id.trim()
     } catch {
-      /* absent or unparseable — treat as unset */
+      /* absent or unparseable — fall through to the default */
     }
   }
-  return undefined
+  return DEFAULT_CLIENT_ID
 }
 const API_VERSION = "2026-06-01"
 const UTILITY_MODELS = ["gpt-5.4-nano", "gpt-4.1", "gpt-4o", "gpt-4o-mini"]
