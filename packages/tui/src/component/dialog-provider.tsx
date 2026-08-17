@@ -17,6 +17,11 @@ import { useBindings } from "../keymap"
 import { useClipboard } from "../context/clipboard"
 
 const PROVIDER_PRIORITY: Record<string, number> = {
+  // What runs on this machine comes first. There are ~190 providers in the
+  // list, so anything not deliberately lifted is effectively undiscoverable —
+  // which is why the local engine looked like it was missing entirely.
+  builtin: 0,
+  ollama: 1,
   openai: 2,
   "github-copilot": 3,
   anthropic: 4,
@@ -42,6 +47,12 @@ type ProviderOption =
       type: "custom"
     })
 
+/**
+ * Providers that run on this machine. They have no credential to enter: they
+ * are reachable or they are not, so the connect flow must not ask for one.
+ */
+export const LOCAL_PROVIDERS = new Set(["ollama", "builtin"])
+
 export function providerOptions(list: { id: string; name: string }[]): ProviderOption[] {
   return [
     ...pipe(
@@ -59,8 +70,16 @@ export function providerOptions(list: { id: string; name: string }[]): ProviderO
         description: {
           anthropic: "(API key)",
           openai: "(ChatGPT Plus/Pro or API key)",
+          // Local servers need no credential at all — saying "(API key)" here
+          // would promise a step that does not exist.
+          ollama: "(no key needed — models you have pulled)",
+          builtin: "(no key needed — models exa runs for you)",
         }[provider.id],
-        category: provider.id in PROVIDER_PRIORITY ? "Popular" : "Providers",
+        category: LOCAL_PROVIDERS.has(provider.id)
+          ? "On this machine"
+          : provider.id in PROVIDER_PRIORITY
+            ? "Popular"
+            : "Providers",
       })),
     ),
     {
@@ -140,6 +159,25 @@ export function createDialogProviderOptions() {
           gutter: connected && onboarded() ? () => <text fg={theme.success}>✓</text> : undefined,
           async onSelect() {
             if (consoleManaged) return
+
+            // A local server has no credential to collect. Falling through to
+            // the default "API key" prompt asked for something that does not
+            // exist and left the user with no way to finish.
+            if (LOCAL_PROVIDERS.has(providerID)) {
+              dialog.clear()
+              toast.show({
+                variant: connected ? "success" : "info",
+                duration: 10_000,
+                message: connected
+                  ? providerID === "builtin"
+                    ? "Ready — pick a model from the list; exa downloads and starts it. `exa model list` shows sizes."
+                    : "Ready — the models you have pulled are in the model list."
+                  : providerID === "builtin"
+                    ? "Nothing running yet. Start one with `exa model run <id>` — `exa model list` shows what is available."
+                    : "Ollama is not running on this machine. Start it, then pull a model with `ollama pull <model>`.",
+              })
+              return
+            }
 
             const methods = sync.data.provider_auth[providerID] ?? [
               {
