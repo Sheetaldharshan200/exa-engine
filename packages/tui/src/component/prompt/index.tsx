@@ -16,7 +16,7 @@ import { fileURLToPath } from "url"
 import { useLocal } from "../../context/local"
 import { Flag } from "@exa/core/flag/flag"
 import { tint, useTheme } from "../../context/theme"
-import { EmptyBorder, SplitBorder } from "../../ui/border"
+import { ComposerBorder, EmptyBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { useClipboard } from "../../context/clipboard"
 import { Spinner } from "../spinner"
@@ -1313,10 +1313,10 @@ export function Prompt(props: PromptProps) {
     if (store.mode === "shell") {
       if (!shell().length) return undefined
       const example = shell()[store.placeholder % shell().length]
-      return `Run a command... "${example}"`
+      return `Run a command — ${example}`
     }
     if (!list().length) return undefined
-    return `Ask anything... "${list()[store.placeholder % list().length]}"`
+    return `Ask your data — ${list()[store.placeholder % list().length]}`
   })
 
   const spinnerDef = createMemo(() => {
@@ -1350,17 +1350,14 @@ export function Prompt(props: PromptProps) {
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
         <box
           width="100%"
-          border={["left"]}
+          border={ComposerBorder.border}
           borderColor={borderHighlight()}
-          customBorderChars={{
-            ...SplitBorder.customBorderChars,
-            bottomLeft: "╹",
-          }}
+          customBorderChars={ComposerBorder.customBorderChars}
+          backgroundColor={theme.backgroundElement}
         >
           <box
-            paddingLeft={2}
-            paddingRight={2}
-            paddingTop={1}
+            paddingLeft={1}
+            paddingRight={1}
             flexShrink={0}
             backgroundColor={theme.backgroundElement}
             flexGrow={1}
@@ -1484,38 +1481,6 @@ export function Prompt(props: PromptProps) {
               </Show>
             </box>
           </box>
-        </box>
-        <box
-          height={1}
-          border={["left"]}
-          borderColor={borderHighlight()}
-          customBorderChars={{
-            ...EmptyBorder,
-            vertical: theme.backgroundElement.a !== 0 ? "╹" : " ",
-          }}
-        >
-          <box
-            height={1}
-            border={["bottom"]}
-            borderColor={theme.backgroundElement}
-            // This row draws "▀", so only its TOP half takes the border colour
-            // — the bottom half is the cell's own background. Left unset it
-            // fell through to the raw terminal background and read as a black
-            // bar pinned under the input. Painting it the composer's colour
-            // closes the box on a solid row instead.
-            backgroundColor={theme.backgroundElement}
-            customBorderChars={
-              theme.backgroundElement.a !== 0
-                ? {
-                    ...EmptyBorder,
-                    horizontal: "▀",
-                  }
-                : {
-                    ...EmptyBorder,
-                    horizontal: " ",
-                  }
-            }
-          />
         </box>
         <box width="100%" flexDirection="row" justifyContent="space-between">
           <Switch>

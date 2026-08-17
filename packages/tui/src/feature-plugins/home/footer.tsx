@@ -1,6 +1,6 @@
 import type { TuiPlugin, TuiPluginApi } from "@exa/plugin/tui"
 import type { BuiltinTuiPlugin } from "../builtins"
-import { createMemo, Match, Show, Switch } from "solid-js"
+import { createMemo, createSignal, Match, onMount, Show, Switch } from "solid-js"
 import { abbreviateHome } from "../../runtime"
 import { useTuiPaths } from "../../context/runtime"
 import { useHomeSessionDestination } from "../../routes/home/session-destination"
@@ -22,6 +22,38 @@ function Directory(props: { api: TuiPluginApi }) {
   })
 
   return <Show when={dir()}>{(value) => <text fg={theme().textMuted}>{value()}</text>}</Show>
+}
+
+/**
+ * The database this session will query.
+ *
+ * A data agent's footer should answer "what am I connected to", the way a
+ * coding tool's answers "what branch am I on". Read once on mount: the
+ * registry only changes when the user runs `exa connect` or /connect-db, both
+ * of which restart this view.
+ */
+function Database(props: { api: TuiPluginApi }) {
+  const theme = () => props.api.theme.current
+  const [name, setName] = createSignal<string>()
+  onMount(async () => {
+    try {
+      const { activeConnection } = await import("../../../../exa/src/database/connection")
+      const current = await activeConnection()
+      if (current) setName(current.name)
+    } catch {
+      // The footer must never be the reason the app fails to draw.
+    }
+  })
+  return (
+    <Show when={name()}>
+      {(value) => (
+        <text fg={theme().textMuted}>
+          <span style={{ fg: theme().success }}>⛁ </span>
+          {value()}
+        </text>
+      )}
+    </Show>
+  )
 }
 
 function Mcp(props: { api: TuiPluginApi }) {
@@ -74,6 +106,7 @@ function View(props: { api: TuiPluginApi }) {
       gap={2}
     >
       <Directory api={props.api} />
+      <Database api={props.api} />
       <Mcp api={props.api} />
       <box flexGrow={1} />
       <Version api={props.api} />

@@ -14,9 +14,16 @@ import { useTuiConfig } from "../config"
 import { HomeSessionDestinationProvider } from "./home/session-destination"
 
 let once = false
+// What this agent is actually for. The examples a user sees first tell them
+// what to ask, and coding prompts taught the wrong thing about a data agent.
 const placeholder = {
-  normal: ["Fix a TODO in the codebase", "What is the tech stack of this project?", "Fix broken tests"],
-  shell: ["ls -la", "git status", "pwd"],
+  normal: [
+    "Which customers generated the most revenue last quarter?",
+    "What tables are in this database, and how do they join?",
+    "Find the rows that would break this report",
+    "Chart monthly orders for the last two years",
+  ],
+  shell: ["exa connect --list", "exa ops", "exa models"],
 }
 
 export function Home() {
