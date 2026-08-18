@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { MODELS, assetFragment, findModel, fitsInMemory, formatSize, pickAsset } from "./catalog"
+import { MODELS, assetFragment, chooseContext, findModel, fitsInMemory, formatSize, pickAsset } from "./catalog"
 
 // Real asset names from a llama.cpp release. Picking the wrong one downloads
 // ~50MB that cannot execute, and the failure surfaces as a confusing exec
@@ -136,5 +136,51 @@ describe("stopping the engine", () => {
     const { killable } = await import("./engine")
     expect(killable("", 123)).toEqual([])
     expect(killable("\n  \n", 123)).toEqual([])
+  })
+})
+
+describe("chooseContext", () => {
+  const llama = MODELS.find((m) => m.id === "llama-3.2-3b")!
+  const coder = MODELS.find((m) => m.id === "qwen2.5-coder-7b")!
+  const GB = 1024 ** 3
+
+  // "Use the maximum" is right as an aim and wrong as an instruction: the KV
+  // cache is charged per token of window, so the full 128k for this model
+  // needs several GB on top of the weights.
+  test("gives a large machine the model's full window", () => {
+    expect(chooseContext(llama, 128 * GB)).toBe(llama.contextMax)
+  })
+
+  test("reduces it on a machine that cannot hold it", () => {
+    const chosen = chooseContext(llama, 8 * GB)
+    expect(chosen).toBeLessThan(llama.contextMax)
+    expect(chosen).toBeGreaterThanOrEqual(8_192)
+  })
+
+  // Halving keeps the number recognisable — a user reading 65,536 can tell
+  // what happened to it.
+  test("reduces by halving, so the result stays a familiar size", () => {
+    const chosen = chooseContext(llama, 16 * GB)
+    expect(llama.contextMax % chosen).toBe(0)
+    expect(Number.isInteger(Math.log2(chosen))).toBe(true)
+  })
+
+  // Below this the agent's own system prompt does not fit, so a smaller
+  // window is not a degraded experience but a broken one.
+  test("never goes below a window that can hold the system prompt", () => {
+    expect(chooseContext(llama, 1 * GB)).toBe(8_192)
+    expect(chooseContext(coder, 1 * GB)).toBe(8_192)
+  })
+
+  // Grouped-query attention makes this model's context far cheaper per token,
+  // so it should keep its full window where a denser model could not.
+  test("respects that a cheaper cache reaches further", () => {
+    expect(chooseContext(coder, 32 * GB)).toBe(coder.contextMax)
+  })
+
+  test("never exceeds what the model was trained for", () => {
+    for (const model of MODELS) {
+      expect(chooseContext(model, 512 * GB)).toBeLessThanOrEqual(model.contextMax)
+    }
   })
 })

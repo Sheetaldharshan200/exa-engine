@@ -33,6 +33,16 @@ export type LocalModel = {
   sizeMB: number
   /** Refuse to suggest a model the machine cannot hold. */
   minRamGB: number
+  /** The window the model was trained for — the most it can usefully hold. */
+  contextMax: number
+  /**
+   * Bytes of KV cache per token, with the cache quantised to q8_0.
+   *
+   * 2 (keys and values) x layers x kv-heads x head-dim, one byte per element.
+   * This is what makes a large window expensive: it is charged per token of
+   * context, whether or not the conversation ever fills it.
+   */
+  kvBytesPerToken: number
 }
 
 /**
@@ -53,6 +63,9 @@ export const MODELS: LocalModel[] = [
     url: "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/main/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
     sizeMB: 2500,
     minRamGB: 8,
+    contextMax: 262_144,
+    // 36 layers x 8 kv heads x 128 head dim
+    kvBytesPerToken: 2 * 36 * 8 * 128,
   },
   {
     id: "llama-3.2-3b",
@@ -62,6 +75,9 @@ export const MODELS: LocalModel[] = [
     url: "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf",
     sizeMB: 1926,
     minRamGB: 8,
+    contextMax: 131_072,
+    // 28 layers x 8 kv heads x 128 head dim
+    kvBytesPerToken: 2 * 28 * 8 * 128,
   },
   {
     id: "qwen2.5-coder-7b",
@@ -71,6 +87,10 @@ export const MODELS: LocalModel[] = [
     url: "https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/qwen2.5-coder-7b-instruct-q4_k_m.gguf",
     sizeMB: 4467,
     minRamGB: 16,
+    contextMax: 32_768,
+    // 28 layers x 4 kv heads x 128 head dim — grouped-query attention makes
+    // this model's context far cheaper per token than its size suggests.
+    kvBytesPerToken: 2 * 28 * 4 * 128,
   },
 ]
 
@@ -130,4 +150,30 @@ export function fitsInMemory(model: LocalModel, totalBytes: number): boolean {
 
 export function formatSize(mb: number): string {
   return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb} MB`
+}
+
+
+/**
+ * The largest context this machine can actually hold for a model.
+ *
+ * "Use the maximum" is the right instinct and the wrong instruction: the KV
+ * cache is charged per token of window, so Llama 3.2 3B at its full 128k needs
+ * about 7GB of cache on top of the 2GB of weights. Asking for it on a laptop
+ * either fails to allocate or swaps until the machine is unusable.
+ *
+ * So: the model's trained window, reduced by halves until the cache fits the
+ * budget. Halving rather than trimming keeps the number recognisable — a user
+ * reading 65,536 can tell what happened.
+ */
+export function chooseContext(model: LocalModel, totalRamBytes: number, budgetFraction = 0.35): number {
+  const budget = totalRamBytes * budgetFraction - model.sizeMB * 1024 * 1024
+  let context = model.contextMax
+  // Never go below this: the agent's own system prompt — tool schemas, skills,
+  // database context — runs to tens of thousands of tokens, and a window under
+  // this cannot hold a conversation at all.
+  const floor = 8_192
+  while (context > floor && context * model.kvBytesPerToken > budget) {
+    context = Math.floor(context / 2)
+  }
+  return Math.max(floor, context)
 }

@@ -145,10 +145,20 @@ export async function detectBuiltin(host: string): Promise<OllamaModel[] | undef
   if (body === undefined) return undefined
   const data = (body as { data?: { id: string }[] })?.data
   if (!Array.isArray(data)) return []
+
+  // Ask the server what it allocated rather than assuming. The window depends
+  // on the model and the machine, so a fixed number here would promise more
+  // than the server can hold on a small machine and less than it offers on a
+  // large one — and the agent sizes its requests from this figure.
+  const props = (await json(`${host}/props`, undefined, 1_500)) as
+    | { default_generation_settings?: { n_ctx?: number } }
+    | undefined
+  const allocated = props?.default_generation_settings?.n_ctx
+
   return data
     .map((m) => m.id)
     .filter(Boolean)
-    .map((id) => ({ id, toolcall: true, vision: false }))
+    .map((id) => ({ id, toolcall: true, vision: false, context: allocated }))
 }
 
 /**

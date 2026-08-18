@@ -9,7 +9,7 @@
  */
 import path from "path"
 import os from "os"
-import { ENGINE_HOST, ENGINE_ID, ENGINE_PORT, MODELS, RELEASES_LATEST, assetFragment, pickAsset, type LocalModel } from "./catalog"
+import { ENGINE_HOST, ENGINE_ID, ENGINE_PORT, MODELS, RELEASES_LATEST, assetFragment, chooseContext, pickAsset, type LocalModel } from "./catalog"
 
 type Log = (line: string) => void
 
@@ -210,7 +210,13 @@ export async function serve(model: LocalModel, log: Log): Promise<void> {
     }
   }
 
-  log(`starting ${model.name}…`)
+  const context = chooseContext(model, os.totalmem())
+  log(
+    context < model.contextMax
+      ? `starting ${model.name} with a ${context.toLocaleString()} token window ` +
+          `(its maximum is ${model.contextMax.toLocaleString()}; the rest would not fit in memory)…`
+      : `starting ${model.name} with its full ${context.toLocaleString()} token window…`,
+  )
   const proc = Bun.spawn(
     [
       bin,
@@ -226,10 +232,24 @@ export async function serve(model: LocalModel, log: Log): Promise<void> {
       // Full GPU offload where there is one; ignored by CPU-only builds.
       "-ngl",
       "99",
-      // The agent's system prompt alone runs to tens of thousands of tokens,
-      // so a smaller window overflows before the user has typed anything.
+      // One conversation gets the whole window. llama-server defaults to four
+      // parallel slots and divides the context between them, so a 32k
+      // allocation quietly became 8k per conversation — less than this agent's
+      // own system prompt.
+      "--parallel",
+      "1",
+      // The largest window this machine can hold for this model, rather than
+      // a fixed number that is too small on a workstation and too large on a
+      // laptop.
       "-c",
-      "32768",
+      String(context),
+      // Quantising the KV cache halves what the window costs, which is what
+      // makes the larger windows reachable at all. The quality cost at q8_0 is
+      // negligible next to running out of memory.
+      "--cache-type-k",
+      "q8_0",
+      "--cache-type-v",
+      "q8_0",
       // The alias becomes the model id the user types after `builtin/`, so it
       // must be the catalogue id — the display name has spaces and would need
       // quoting on every command.
