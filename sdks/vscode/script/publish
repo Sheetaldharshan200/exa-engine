@@ -1,21 +1,68 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Get the latest Git tag
-latest_tag=$(git tag --sort=committerdate | grep -E '^vscode-v[0-9]+\.[0-9]+\.[0-9]+$' | tail -1)
-if [ -z "$latest_tag" ]; then
-    echo "No tags found"
-    exit 1
+# Publish the editor extension.
+#
+# Everything that differs between people — the publisher id and the tokens —
+# comes from .env rather than from the committed source, so a fork can publish
+# under its own name without editing a tracked file. See .env.example.
+
+cd "$(dirname "$0")/.."
+
+if [ -f .env ]; then
+  set -a; . ./.env; set +a
 fi
-echo "Latest tag: $latest_tag"
-version=$(echo "$latest_tag" | sed 's/^vscode-v//')
-echo "Latest version: $version"
 
-# package-marketplace
-vsce package --no-git-tag-version --no-update-package-json --no-dependencies --skip-license -o dist/exa.vsix "$version"
+if [ -z "${VSCE_PUBLISHER:-}" ]; then
+  echo "VSCE_PUBLISHER is not set. Copy .env.example to .env and fill it in." >&2
+  echo "It is the publisher id from https://marketplace.visualstudio.com/manage" >&2
+  exit 1
+fi
 
-# publish-marketplace
-vsce publish --packagePath dist/exa.vsix
+# The version: an explicit override, else the newest vscode-v* tag.
+if [ -n "${VSCE_VERSION:-}" ]; then
+  version="$VSCE_VERSION"
+else
+  latest_tag=$(git tag --sort=committerdate | grep -E '^vscode-v[0-9]+\.[0-9]+\.[0-9]+$' | tail -1 || true)
+  if [ -z "$latest_tag" ]; then
+    echo "No vscode-v* tag found and VSCE_VERSION is not set." >&2
+    echo "Tag one (git tag vscode-v0.1.0) or set VSCE_VERSION in .env." >&2
+    exit 1
+  fi
+  version="${latest_tag#vscode-v}"
+fi
+echo "› publishing version $version as $VSCE_PUBLISHER"
 
-# publish-openvsx
-npx ovsx publish dist/exa.vsix -p "$OPENVSX_TOKEN"
+# vsce reads the publisher from package.json and has no flag to override it, so
+# it is written in for the packaging step and restored afterwards — the
+# committed file must not carry someone's account id.
+# Backed up OUTSIDE the package directory: a .bak sitting next to package.json
+# is picked up by vsce and shipped inside the vsix.
+backup="$(mktemp -t exa-vsce-pkg)"
+cp package.json "$backup"
+trap 'cp -f "$backup" package.json; rm -f "$backup"' EXIT
+node -e '
+  const fs = require("fs");
+  const p = JSON.parse(fs.readFileSync("package.json", "utf8"));
+  p.publisher = process.env.VSCE_PUBLISHER;
+  p.version = process.argv[1];
+  fs.writeFileSync("package.json", JSON.stringify(p, null, 2) + "\n");
+' "$version"
+
+mkdir -p dist
+npx --yes @vscode/vsce package --no-git-tag-version --no-update-package-json \
+  --no-dependencies --skip-license -o dist/exa.vsix "$version"
+
+if [ -n "${VSCE_PAT:-}" ]; then
+  npx --yes @vscode/vsce publish --packagePath dist/exa.vsix --pat "$VSCE_PAT"
+else
+  npx --yes @vscode/vsce publish --packagePath dist/exa.vsix
+fi
+
+if [ -n "${OPENVSX_TOKEN:-}" ]; then
+  npx --yes ovsx publish dist/exa.vsix -p "$OPENVSX_TOKEN"
+else
+  echo "› OPENVSX_TOKEN not set — skipping Open VSX (Cursor, Windsurf, VSCodium)"
+fi
+
+echo "› done"
