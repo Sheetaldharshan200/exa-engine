@@ -33,11 +33,25 @@ export function alreadyInstalled() {
   return process.env["EXA_CALLER"] === "vscode" || process.env["EXA_CALLER"] === "vscode-insiders"
 }
 
+/**
+ * The extension to install, as publisher.name on the marketplace.
+ *
+ * This was hardcoded to the upstream project's published extension, so
+ * running exa inside an editor terminal installed THEIR extension — a
+ * different product, from a different publisher, silently. The default now
+ * matches this repository's own extension (sdks/vscode/package.json), and
+ * EXA_VSCODE_EXTENSION_ID overrides it for anyone publishing a fork under
+ * their own publisher id.
+ */
+export function extensionId(env: Record<string, string | undefined> = process.env): string {
+  return env["EXA_VSCODE_EXTENSION_ID"]?.trim() || "sheetaldharshan200.exa"
+}
+
 export async function install(ide: (typeof SUPPORTED_IDES)[number]["name"]) {
   const cmd = SUPPORTED_IDES.find((i) => i.name === ide)?.cmd
   if (!cmd) throw new Error(`Unknown IDE: ${ide}`)
 
-  const p = await Process.run([cmd, "--install-extension", "sst-dev.exa"], {
+  const p = await Process.run([cmd, "--install-extension", extensionId()], {
     nothrow: true,
   })
   const stdout = p.stdout.toString()
