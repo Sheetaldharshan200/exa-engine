@@ -41,7 +41,7 @@ import type { AssistantMessage, FilePart, UserMessage } from "@exa/sdk/v2"
 import { Locale } from "../../util/locale"
 import { errorMessage } from "../../util/error"
 import { formatDuration } from "../../util/format"
-import { createColors, createFrames } from "../../ui/spinner"
+import { createDataWaveColors, createDataWaveFrames } from "../../ui/spinner"
 import { useDialog } from "../../ui/dialog"
 import { DialogProvider as DialogProviderConnect } from "../dialog-provider"
 import { DialogAlert } from "../../ui/dialog-alert"
@@ -1325,21 +1325,11 @@ export function Prompt(props: PromptProps) {
         ? (local.agent.list().find((a) => a.name === lastUserMessage()?.agent) ?? local.agent.current())
         : local.agent.current()
     const color = agent ? local.agent.color(agent.name) : theme.border
+    // A bar chart filling and draining, not a scanner sweeping back and forth:
+    // the wait belongs to a query, so it should look like one.
     return {
-      frames: createFrames({
-        color,
-        style: "blocks",
-        inactiveFactor: 0.6,
-        // enableFading: false,
-        minAlpha: 0.3,
-      }),
-      color: createColors({
-        color,
-        style: "blocks",
-        inactiveFactor: 0.6,
-        // enableFading: false,
-        minAlpha: 0.3,
-      }),
+      frames: createDataWaveFrames(),
+      color: createDataWaveColors(color),
     }
   })
   const maxHeight = createMemo(() => tuiConfig.prompt?.max_height ?? Math.max(6, Math.floor(dimensions().height / 3)))

@@ -21,7 +21,7 @@ import { useRoute, useRouteData } from "../../context/route"
 import { useProject } from "../../context/project"
 import { useSync } from "../../context/sync"
 import { useEvent } from "../../context/event"
-import { SplitBorder } from "../../ui/border"
+import { PromptBorder, SplitBorder } from "../../ui/border"
 import { useTuiPaths, useTuiTerminalEnvironment } from "../../context/runtime"
 import { Spinner } from "../../component/spinner"
 import { createSyntaxStyleMemo, generateSubtleSyntax, selectedForeground, useTheme } from "../../context/theme"
@@ -1400,7 +1400,10 @@ function UserMessage(props: {
           ref={(el: BoxRenderable) => alwaysSeparate.add(el)}
           border={["left"]}
           borderColor={color()}
-          customBorderChars={SplitBorder.customBorderChars}
+          // The transcript answers the composer. What you type carries a "›",
+          // so what you said carries the same mark — one idiom across the
+          // screen instead of a chevron below and a heavy bar above.
+          customBorderChars={PromptBorder.customBorderChars}
           marginTop={props.index === 0 ? 0 : 1}
         >
           <box
@@ -1803,6 +1806,23 @@ type ToolProps = {
   output?: string
   part: ToolPart
 }
+/**
+ * Database work should look like database work.
+ *
+ * Everything without a renderer of its own fell through to a gear labelled
+ * with its raw tool name, so a session reading the catalogue showed three
+ * identical "⚙ exasol_schemas" rows. The database tools carry the same mark
+ * the footer uses for a connection, and drop the prefix that is on every one
+ * of them — what is left is the verb, which is the part that differs.
+ */
+export function toolIcon(tool: string): string {
+  return tool.startsWith("exasol_") ? "⛁" : "⚙"
+}
+
+export function toolLabel(tool: string): string {
+  return tool.startsWith("exasol_") ? tool.slice("exasol_".length) : tool
+}
+
 function GenericTool(props: ToolProps) {
   const { theme } = useTheme()
   const ctx = use()
@@ -1820,8 +1840,8 @@ function GenericTool(props: ToolProps) {
     <Show
       when={props.output && ctx.showGenericToolOutput()}
       fallback={
-        <InlineTool icon="⚙" pending="Writing command..." complete={true} part={props.part}>
-          {props.tool} {input(props.input)}
+        <InlineTool icon={toolIcon(props.tool)} pending="Working..." complete={true} part={props.part}>
+          {toolLabel(props.tool)} {input(props.input)}
         </InlineTool>
       }
     >

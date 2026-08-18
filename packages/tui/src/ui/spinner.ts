@@ -366,3 +366,55 @@ export function createColors(options: KnightRiderOptions = {}): ColorGenerator {
 
   return createKnightRiderTrail(trailOptions)
 }
+
+// ── the data wave ───────────────────────────────────────────────────────────
+
+/**
+ * The loader for a data agent.
+ *
+ * A left-to-right scanner is the shape every CLI reaches for, and it says
+ * nothing about what is happening. This is a live bar chart: a wave travelling
+ * through columns of varying height, the way rows arrive while a query runs.
+ * It is built from the block-element ramp, so it reads as measurement rather
+ * than as decoration, and it is the same vocabulary a result chart would use.
+ */
+const BARS = ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"] as const
+
+export type DataWaveOptions = {
+  /** Columns in the chart. Narrow enough to sit inline beside text. */
+  width?: number
+  /** Frames per full traversal — lower is faster. */
+  frames?: number
+}
+
+export function createDataWaveFrames(options: DataWaveOptions = {}): string[] {
+  const width = options.width ?? 5
+  const frames = options.frames ?? 16
+
+  return Array.from({ length: frames }, (_, frame) =>
+    Array.from({ length: width }, (_, column) => {
+      // A sine wave shifted per column: each bar rises and falls a little
+      // behind its neighbour, which reads as travelling rather than blinking.
+      const phase = (frame / frames) * Math.PI * 2 - (column / width) * Math.PI * 1.2
+      const height = (Math.sin(phase) + 1) / 2
+      const index = Math.min(BARS.length - 1, Math.max(0, Math.round(height * (BARS.length - 1))))
+      return BARS[index]
+    }).join(""),
+  )
+}
+
+/**
+ * One colour per frame, brightening as the wave peaks.
+ *
+ * The height already carries the motion, so the colour only has to keep the
+ * whole thing feeling alive without competing with it.
+ */
+export function createDataWaveColors(color: RGBA, options: DataWaveOptions = {}): ColorGenerator {
+  const frames = options.frames ?? 16
+  const palette = Array.from({ length: frames }, (_, frame) => {
+    const phase = (frame / frames) * Math.PI * 2
+    const lift = 0.55 + ((Math.sin(phase) + 1) / 2) * 0.45
+    return RGBA.fromValues(color.r, color.g, color.b, lift)
+  })
+  return (_charIndex: number, frameIndex: number) => palette[frameIndex % palette.length]!
+}

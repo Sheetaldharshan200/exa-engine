@@ -45,3 +45,18 @@ export const ComposerBorder = {
     rightT: "┤",
   },
 }
+
+/**
+ * The rule beside something the user said.
+ *
+ * A heavy "┃" bar was the loudest thing in the transcript and belonged to the
+ * project this was forked from. A thin rule recedes, letting the text carry
+ * the message, and matches the weight of the composer's own frame.
+ */
+export const PromptBorder = {
+  border: ["left" as const],
+  customBorderChars: {
+    ...EmptyBorder,
+    vertical: "▏",
+  },
+}
