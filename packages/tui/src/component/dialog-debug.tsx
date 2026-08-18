@@ -1,4 +1,5 @@
 import { TextAttributes } from "@opentui/core"
+import { copiedMessage } from "../util/clipboard-message"
 import { createMemo, createSignal, For } from "solid-js"
 import { InstallationChannel, InstallationVersion } from "@exa/core/installation/version"
 import { useTheme } from "../context/theme"
@@ -41,7 +42,7 @@ export function DialogDebug() {
       .write?.(text)
       .then(() => {
         setCopied(true)
-        toast.show({ message: "Debug info copied to clipboard", variant: "info" })
+        toast.show({ message: copiedMessage(text, "Copied debug info —"), variant: "info" })
       })
       .catch(toast.error)
   }

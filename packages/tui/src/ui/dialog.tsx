@@ -1,4 +1,5 @@
 import { useRenderer, useTerminalDimensions } from "@opentui/solid"
+import { copiedMessage } from "../util/clipboard-message"
 import { batch, createContext, createEffect, onCleanup, Show, useContext, type JSX, type ParentProps } from "solid-js"
 import { useTheme } from "../context/theme"
 import { MouseButton, Renderable, RGBA } from "@opentui/core"
@@ -189,7 +190,7 @@ export function DialogProvider(props: ParentProps) {
     const text = renderer.getSelection()?.getSelectedText()
     if (!text || !clipboard.write) return false
     void clipboard.write(text).then(
-      () => toast.show({ message: "Copied to clipboard", variant: "info" }),
+      () => toast.show({ message: copiedMessage(text), variant: "info" }),
       (error) => toast.error(error),
     )
     renderer.clearSelection()

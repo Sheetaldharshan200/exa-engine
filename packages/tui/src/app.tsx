@@ -1,4 +1,5 @@
 import { render, TimeToFirstDraw, useRenderer, useTerminalDimensions } from "@opentui/solid"
+import { copiedMessage } from "./util/clipboard-message"
 import { registerExaSpinner } from "./component/register-spinner"
 import { createDefaultOpenTuiKeymap } from "@opentui/keymap/opentui"
 import { Deferred, Effect } from "effect"
@@ -440,7 +441,7 @@ function App(props: { onSnapshot?: () => Promise<string[]>; pluginHost: TuiPlugi
 
     await clipboard
       .write?.(text)
-      .then(() => toast.show({ message: "Copied to clipboard", variant: "info" }))
+      .then(() => toast.show({ message: copiedMessage(text), variant: "info" }))
       .catch(toast.error)
 
     renderer.clearSelection()

@@ -24,7 +24,10 @@ export function Toast() {
           position="absolute"
           justifyContent="center"
           alignItems="flex-start"
-          top={2}
+          // Bottom right, out of the way of the transcript. A notice at the top
+          // sat over the newest output, which is exactly what the user was
+          // reading when it appeared.
+          bottom={2}
           right={2}
           maxWidth={Math.min(60, dimensions().width - 6)}
           paddingLeft={2}
