@@ -227,13 +227,6 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}} API түлхүүр",
   "provider.connect.apiKey.placeholder": "API түлхүүр",
   "provider.connect.apiKey.required": "API түлхүүр шаардлагатай",
-  "provider.connect.exaZen.line1":
-    "Exa Zen нь танд кодлох агентуудад зориулсан найдвартай оновчтой загваруудын цуглуулгад хандах боломжийг олгоно.",
-  "provider.connect.exaZen.line2":
-    "Ганц API товчлуураар та Claude, GPT, Gemini, GLM болон бусад загваруудад хандах боломжтой болно.",
-  "provider.connect.exaZen.visit.prefix": "зочилно уу",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": "API түлхүүрээ авахын тулд.",
   "provider.connect.oauth.code.visit.prefix": "зочилно уу",
   "provider.connect.oauth.code.visit.link": "энэ холбоос",
   "provider.connect.oauth.code.visit.suffix":

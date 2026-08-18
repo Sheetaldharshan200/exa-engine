@@ -226,13 +226,6 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}} API բանալի",
   "provider.connect.apiKey.placeholder": "API բանալի",
   "provider.connect.apiKey.required": "API բանալի է պահանջվում",
-  "provider.connect.exaZen.line1":
-    "Exa Zen-ը թույլ է տալիս մուտք գործել կոդավորման գործակալների համար հուսալի օպտիմիզացված մոդելների հավաքածու։",
-  "provider.connect.exaZen.line2":
-    "Մեկ API բանալիով դուք մուտք կունենաք այնպիսի մոդելների, ինչպիսիք են՝ Claude, GPT, Gemini, GLM և ավելին:",
-  "provider.connect.exaZen.visit.prefix": "Այցելություն ",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": " ձեր API բանալին հավաքելու համար",
   "provider.connect.oauth.code.visit.prefix": "Այցելություն ",
   "provider.connect.oauth.code.visit.link": "այս հղումը",
   "provider.connect.oauth.code.visit.suffix":

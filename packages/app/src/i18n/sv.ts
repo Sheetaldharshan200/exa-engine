@@ -226,13 +226,6 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}}-API-nyckel",
   "provider.connect.apiKey.placeholder": "API-nyckel",
   "provider.connect.apiKey.required": "API-nyckel krävs",
-  "provider.connect.exaZen.line1":
-    "Exa Zen ger dig tillgång till en utvald uppsättning pålitliga optimerade modeller för kodningsagenter.",
-  "provider.connect.exaZen.line2":
-    "Med en enda API-nyckel får du tillgång till modeller som Claude, GPT, Gemini, GLM och mer.",
-  "provider.connect.exaZen.visit.prefix": "Besök ",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": " för att hämta din API-nyckel.",
   "provider.connect.oauth.code.visit.prefix": "Besök ",
   "provider.connect.oauth.code.visit.link": "denna länk",
   "provider.connect.oauth.code.visit.suffix":

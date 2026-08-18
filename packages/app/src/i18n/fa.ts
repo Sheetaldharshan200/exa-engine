@@ -225,13 +225,6 @@ export const dict = {
   "provider.connect.apiKey.label": "کلید {{provider}} API",
   "provider.connect.apiKey.placeholder": "کلید API",
   "provider.connect.apiKey.required": "کلید API مورد نیاز است",
-  "provider.connect.exaZen.line1":
-    "Exa Zen به شما امکان دسترسی به مجموعه‌ای از مدل‌های بهینه‌شده قابل اعتماد را برای عوامل کدنویسی می‌دهد.",
-  "provider.connect.exaZen.line2":
-    "با یک کلید API به مدل هایی مانند Claude، GPT، Gemini، GLM و موارد دیگر دسترسی خواهید داشت.",
-  "provider.connect.exaZen.visit.prefix": "بازدید کنید ",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": " برای جمع آوری کلید API.",
   "provider.connect.oauth.code.visit.prefix": "بازدید کنید ",
   "provider.connect.oauth.code.visit.link": "این لینک",
   "provider.connect.oauth.code.visit.suffix":

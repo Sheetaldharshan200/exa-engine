@@ -224,13 +224,6 @@ export const dict = {
   "provider.connect.apiKey.label": "ລະຫັດ API {{provider}}",
   "provider.connect.apiKey.placeholder": "ລະຫັດ API",
   "provider.connect.apiKey.required": "ຕ້ອງການລະຫັດ API",
-  "provider.connect.exaZen.line1":
-    "Exa Zen ໃຫ້ທ່ານເຂົ້າເຖິງຊຸດຮູບແບບການປັບແຕ່ງທີ່ໜ້າເຊື່ອຖືໄດ້ສຳລັບຕົວແທນການເຂົ້າລະຫັດ.",
-  "provider.connect.exaZen.line2":
-    "ດ້ວຍລະຫັດ API ດຽວເຈົ້າຈະໄດ້ຮັບການເຂົ້າເຖິງຕົວແບບເຊັ່ນ: Claude, GPT, Gemini, GLM ແລະອື່ນໆ.",
-  "provider.connect.exaZen.visit.prefix": "ຢ້ຽມຢາມ",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": "ເພື່ອເກັບກຳລະຫັດ API ຂອງທ່ານ.",
   "provider.connect.oauth.code.visit.prefix": "ຢ້ຽມຢາມ",
   "provider.connect.oauth.code.visit.link": "ລິ້ງນີ້",
   "provider.connect.oauth.code.visit.suffix":

@@ -228,13 +228,6 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}} API ključ",
   "provider.connect.apiKey.placeholder": "Ključ API",
   "provider.connect.apiKey.required": "Potreban je ključ API",
-  "provider.connect.exaZen.line1":
-    "Exa Zen vam daje pristup odabranom skupu pouzdanih optimiziranih modela za agente za kodiranje.",
-  "provider.connect.exaZen.line2":
-    "S jednim ključem API dobit ćete pristup modelima kao što su Claude, GPT, Gemini, GLM i još mnogo toga.",
-  "provider.connect.exaZen.visit.prefix": "Posjetiti",
-  "provider.connect.exaZen.visit.link": "otvoreni kod.ai/zen",
-  "provider.connect.exaZen.visit.suffix": "da preuzmete svoj ključ API.",
   "provider.connect.oauth.code.visit.prefix": "Posjetiti",
   "provider.connect.oauth.code.visit.link": "ovaj link",
   "provider.connect.oauth.code.visit.suffix":

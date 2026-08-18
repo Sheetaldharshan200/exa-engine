@@ -133,13 +133,6 @@ export const dict = {
   "provider.connect.apiKey.label": "Chiave API di {{provider}}",
   "provider.connect.apiKey.placeholder": "Chiave API",
   "provider.connect.apiKey.required": "È richiesta la chiave API",
-  "provider.connect.exaZen.line1":
-    "Exa Zen offre l'accesso a una selezione di modelli affidabili e ottimizzati per gli agenti di programmazione.",
-  "provider.connect.exaZen.line2":
-    "Con una sola chiave API avrai accesso a modelli come Claude, GPT, Gemini, GLM e altri.",
-  "provider.connect.exaZen.visit.prefix": "Visita ",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": " per ottenere la tua chiave API.",
   "provider.connect.oauth.code.visit.prefix": "Visita ",
   "provider.connect.oauth.code.visit.link": "questo collegamento",
   "provider.connect.oauth.code.visit.suffix":

@@ -227,13 +227,6 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}} API ключ",
   "provider.connect.apiKey.placeholder": "API ключ",
   "provider.connect.apiKey.required": "Изисква се ключ API",
-  "provider.connect.exaZen.line1":
-    "Exa Zen ви дава достъп до подбран набор от надеждни оптимизирани модели за кодиращи агенти.",
-  "provider.connect.exaZen.line2":
-    "С един ключ API ще получите достъп до модели като Claude, GPT, Gemini, GLM и други.",
-  "provider.connect.exaZen.visit.prefix": "Посетете",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": "за да вземете своя ключ API.",
   "provider.connect.oauth.code.visit.prefix": "Посетете",
   "provider.connect.oauth.code.visit.link": "тази връзка",
   "provider.connect.oauth.code.visit.suffix":

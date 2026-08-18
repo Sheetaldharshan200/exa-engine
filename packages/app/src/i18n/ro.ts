@@ -224,13 +224,6 @@ export const dict = {
   "provider.connect.apiKey.label": "Cheie API {{provider}}",
   "provider.connect.apiKey.placeholder": "Cheie API",
   "provider.connect.apiKey.required": "Cheia API este obligatorie",
-  "provider.connect.exaZen.line1":
-    "Exa Zen îți oferă acces la un set selectat de modele optimizate și fiabile pentru agenți de programare.",
-  "provider.connect.exaZen.line2":
-    "Cu o singură cheie API ai acces la modele precum Claude, GPT, Gemini, GLM și altele.",
-  "provider.connect.exaZen.visit.prefix": "Vizitează",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": "pentru a obține cheia ta API.",
   "provider.connect.oauth.code.visit.prefix": "Vizitează",
   "provider.connect.oauth.code.visit.link": "acest link",
   "provider.connect.oauth.code.visit.suffix":

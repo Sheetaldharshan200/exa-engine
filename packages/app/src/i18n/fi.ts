@@ -132,13 +132,6 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}}-API-avain",
   "provider.connect.apiKey.placeholder": "API-avain",
   "provider.connect.apiKey.required": "API-avain vaaditaan",
-  "provider.connect.exaZen.line1":
-    "Exa Zen antaa sinulle pääsyn kuratoituun joukkoon luotettavia optimoituja malleja koodausagenteille.",
-  "provider.connect.exaZen.line2":
-    "Yhdellä API-avaimella pääset käyttämään malleja, kuten Claude, GPT, Gemini, GLM ja paljon muuta.",
-  "provider.connect.exaZen.visit.prefix": "Avaa ",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": " ja hae API-avaimesi.",
   "provider.connect.oauth.code.visit.prefix": "Avaa ",
   "provider.connect.oauth.code.visit.link": "tämä linkki",
   "provider.connect.oauth.code.visit.suffix":

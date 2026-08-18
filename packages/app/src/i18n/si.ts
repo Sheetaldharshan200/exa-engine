@@ -224,13 +224,6 @@ export const dict: Record<string, string> = {
   "provider.connect.apiKey.label": "{{provider}} API යතුර",
   "provider.connect.apiKey.placeholder": "API යතුර",
   "provider.connect.apiKey.required": "API යතුර අවශ්‍යයි",
-  "provider.connect.exaZen.line1":
-    "Exa Zen ඔබට කේතීකරණ නියෝජිතයන් සඳහා විශ්වාසදායක ප්‍රශස්ත මාදිලි සමූහයකට ප්‍රවේශය ලබා දෙයි.",
-  "provider.connect.exaZen.line2":
-    "තනි API යතුරක් සමඟින් ඔබට Claude, GPT, Gemini, GLM සහ තවත් ආකෘති වෙත ප්‍රවේශය ලැබෙනු ඇත.",
-  "provider.connect.exaZen.visit.prefix": "පිවිසෙන්න",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": "ඔබගේ API යතුර එකතු කිරීමට.",
   "provider.connect.oauth.code.visit.prefix": "පිවිසෙන්න",
   "provider.connect.oauth.code.visit.link": "මෙම සබැඳිය",
   "provider.connect.oauth.code.visit.suffix":

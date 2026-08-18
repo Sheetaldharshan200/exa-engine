@@ -232,12 +232,6 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}} API कुंजी",
   "provider.connect.apiKey.placeholder": "API कुंजी",
   "provider.connect.apiKey.required": "API कुंजी आवश्यक है",
-  "provider.connect.exaZen.line1":
-    "Exa Zen आपको कोडिंग एजेंटों के लिए चुने गए विश्वसनीय, अनुकूलित मॉडलों तक पहुँच देता है।",
-  "provider.connect.exaZen.line2": "एक API कुंजी से आपको Claude, GPT, Gemini, GLM जैसे कई मॉडलों तक पहुँच मिलेगी।",
-  "provider.connect.exaZen.visit.prefix": "यहाँ जाएँ: ",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": " अपनी API कुंजी प्राप्त करने के लिए।",
   "provider.connect.oauth.code.visit.prefix": "यहाँ जाएँ: ",
   "provider.connect.oauth.code.visit.link": "इस लिंक",
   "provider.connect.oauth.code.visit.suffix":

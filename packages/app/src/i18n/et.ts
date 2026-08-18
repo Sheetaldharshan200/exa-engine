@@ -224,13 +224,6 @@ export const dict = {
   "provider.connect.apiKey.label": "{{provider}} API klahv",
   "provider.connect.apiKey.placeholder": "API klahv",
   "provider.connect.apiKey.required": "Klahv API on nõutav",
-  "provider.connect.exaZen.line1":
-    "Exa Zen annab teile juurdepääsu kodeerimisagentide usaldusväärsete optimeeritud mudelite kureeritud komplektile.",
-  "provider.connect.exaZen.line2":
-    "Ühe klahviga API pääsete juurde sellistele mudelitele nagu Claude, GPT, Gemini, GLM ja palju muud.",
-  "provider.connect.exaZen.visit.prefix": "Külastage ",
-  "provider.connect.exaZen.visit.link": "opencode.ai/zen",
-  "provider.connect.exaZen.visit.suffix": " API võtme kättesaamiseks.",
   "provider.connect.oauth.code.visit.prefix": "Külastage ",
   "provider.connect.oauth.code.visit.link": "see link",
   "provider.connect.oauth.code.visit.suffix":
