@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { detect, parseShow, parseTags, toModel } from "./ollama"
+import { OLLAMA_DEFAULT_CONTEXT, detect, effectiveContext, parseLoaded, parseShow, parseTags, toModel } from "./ollama"
 
 describe("parseTags", () => {
   // The shape a real `GET /api/tags` returns.
@@ -94,5 +94,44 @@ describe("detect", () => {
   // hide the provider, the second must show it as available but empty.
   test("reports nothing when no server is listening", async () => {
     expect(await detect("http://127.0.0.1:11499")).toBeUndefined()
+  })
+})
+
+describe("the window Ollama will actually serve", () => {
+  // The bug this fixes: exa advertised a model's trained 32,768 while Ollama
+  // had loaded it with 4,096. The agent sizes requests from that number, so
+  // the conversation was being silently truncated to an eighth of what exa
+  // thought it had.
+  test("uses Ollama's default, not the trained maximum", () => {
+    expect(effectiveContext(32_768, undefined)).toBe(4_096)
+    expect(effectiveContext(131_072, undefined)).toBe(4_096)
+  })
+
+  // A loaded model states the truth, so raising OLLAMA_CONTEXT_LENGTH is
+  // reflected rather than ignored.
+  test("believes a loaded model over any assumption", () => {
+    expect(effectiveContext(32_768, 32_768)).toBe(32_768)
+    expect(effectiveContext(32_768, 16_384)).toBe(16_384)
+  })
+
+  // A model trained for less than the default cannot be given more.
+  test("never promises more than the model was trained for", () => {
+    expect(effectiveContext(2_048, undefined)).toBe(2_048)
+  })
+
+  test("falls back to the default when the model says nothing", () => {
+    expect(effectiveContext(undefined, undefined)).toBe(OLLAMA_DEFAULT_CONTEXT)
+  })
+})
+
+describe("parseLoaded", () => {
+  test("reads the window of each loaded model", () => {
+    const loaded = parseLoaded({ models: [{ model: "qwen2.5:0.5b", context_length: 4096 }] })
+    expect(loaded.get("qwen2.5:0.5b")).toBe(4096)
+  })
+
+  test("is empty when nothing is loaded", () => {
+    expect(parseLoaded({ models: [] }).size).toBe(0)
+    expect(parseLoaded(undefined).size).toBe(0)
   })
 })
