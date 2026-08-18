@@ -37,12 +37,49 @@ jobs:
             --notes "exa by Exasol — the Exa data agent CLI + engine. Install: curl -fsSL https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/exa-main/install.sh | sh" \
             --repo "${GITHUB_REPOSITORY}" || true
 
+      # Exasol Studio's web UI is the interface `exa web` serves, and it lives
+      # in its own repository with its own toolchain. Build it here and hand
+      # the output to the build script, so each exa release carries whatever
+      # Studio was at that moment.
+      #
+      # Deliberately non-fatal. Without STUDIO_REPO_TOKEN — a fork, or a run
+      # before the secret is set — this is skipped and the build falls back to
+      # packages/app. A release that ships the previous UI is a far better
+      # outcome than a release that does not happen.
+      - name: Build Exasol Studio's web UI
+        id: studio
+        continue-on-error: true
+        env:
+          STUDIO_REPO: ${{ vars.STUDIO_REPO || 'Sheetaldharshan200/Exasol-studio' }}
+          STUDIO_REF: ${{ vars.STUDIO_REF || 'main' }}
+          STUDIO_REPO_TOKEN: ${{ secrets.STUDIO_REPO_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${STUDIO_REPO_TOKEN:-}" ]; then
+            echo "::notice::STUDIO_REPO_TOKEN is not set — embedding packages/app instead of Studio's UI"
+            exit 0
+          fi
+          git clone --depth 1 --branch "$STUDIO_REF" \
+            "https://x-access-token:${STUDIO_REPO_TOKEN}@github.com/${STUDIO_REPO}.git" /tmp/studio
+          corepack enable
+          cd /tmp/studio
+          pnpm install --frozen-lockfile
+          pnpm --dir ./apps/desktop build
+          # Prove the bundle is real before the binary is built around it: an
+          # empty dist would embed a blank page and only be noticed at runtime.
+          test -s /tmp/studio/apps/desktop/dist/index.html
+          echo "dist=/tmp/studio/apps/desktop/dist" >> "$GITHUB_OUTPUT"
+          echo "::notice::embedding Studio's web UI from ${STUDIO_REPO}@${STUDIO_REF}"
+
       - name: Build all targets and upload assets
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           # v1.18.12-exa.1 -> 1.18.12-exa.1 (build script prefixes the v)
           EXA_RELEASE: "1"
+          # Empty when the step above was skipped or failed, which makes the
+          # build script fall back to packages/app.
+          EXA_WEB_UI_DIST: ${{ steps.studio.outputs.dist }}
         run: |
           export EXA_VERSION="${GITHUB_REF_NAME#v}"
           bun ./packages/exa/script/build.ts

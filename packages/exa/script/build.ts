@@ -30,7 +30,10 @@ const plugin = createSolidTransformPlugin()
 // and is built by its own toolchain, so this build embeds the output rather
 // than trying to build it. The exa server answers Studio's /ipc commands, so
 // the bundle it serves is the real app rather than the mock.
-const prebuiltWebUi = process.env["EXA_WEB_UI_DIST"]
+// Trimmed, and empty treated as unset: a skipped CI step sets the variable to
+// an empty string rather than leaving it out, and `??` would have accepted
+// that as a path — globbing "" instead of falling back to packages/app.
+const prebuiltWebUi = process.env["EXA_WEB_UI_DIST"]?.trim() || undefined
 const webUiDir = path.join(import.meta.dirname, "../../app")
 const skipEmbedWebUi =
   process.argv.includes("--skip-embed-web-ui") || (!prebuiltWebUi && !existsSync(webUiDir))
