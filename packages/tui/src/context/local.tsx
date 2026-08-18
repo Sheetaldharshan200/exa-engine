@@ -80,12 +80,17 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
       const [agentStore, setAgentStore] = createStore({
         current: undefined as string | undefined,
       })
+      // Agents are coloured by position, so whatever leads this list is what
+      // the default agent — and therefore the composer border — is tinted
+      // with. It led with secondary, a blue, which put a blue frame around
+      // the input of a product whose colour is green. Brand first, then the
+      // rest, still all distinct from one another.
       const colors = createMemo(() => [
-        theme.secondary,
+        theme.primary,
         theme.accent,
         theme.success,
         theme.warning,
-        theme.primary,
+        theme.secondary,
         theme.error,
         theme.info,
       ])
