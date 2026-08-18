@@ -24,14 +24,27 @@ const sourcemapsFlag = process.argv.includes("--sourcemaps")
 const plugin = createSolidTransformPlugin()
 // The web UI package is optional: skip embedding when it is not present
 // (this build ships the CLI/engine only).
+//
+// EXA_WEB_UI_DIST names an ALREADY BUILT bundle to embed instead. That is how
+// Exasol Studio's own web build gets in: it lives in a different repository
+// and is built by its own toolchain, so this build embeds the output rather
+// than trying to build it. The exa server answers Studio's /ipc commands, so
+// the bundle it serves is the real app rather than the mock.
+const prebuiltWebUi = process.env["EXA_WEB_UI_DIST"]
 const webUiDir = path.join(import.meta.dirname, "../../app")
-const skipEmbedWebUi = process.argv.includes("--skip-embed-web-ui") || !existsSync(webUiDir)
+const skipEmbedWebUi =
+  process.argv.includes("--skip-embed-web-ui") || (!prebuiltWebUi && !existsSync(webUiDir))
 
 const createEmbeddedWebUIBundle = async () => {
-  console.log(`Building Web UI to embed in the binary`)
   const appDir = path.join(import.meta.dirname, "../../app")
-  const dist = path.join(appDir, "dist")
-  await $`EXA_CHANNEL=${Script.channel} bun run --cwd ${appDir} build`
+  const dist = prebuiltWebUi ?? path.join(appDir, "dist")
+  if (prebuiltWebUi) {
+    if (!existsSync(dist)) throw new Error(`EXA_WEB_UI_DIST does not exist: ${dist}`)
+    console.log(`Embedding prebuilt Web UI from ${dist}`)
+  } else {
+    console.log(`Building Web UI to embed in the binary`)
+    await $`EXA_CHANNEL=${Script.channel} bun run --cwd ${appDir} build`
+  }
   const files = (await Array.fromAsync(new Bun.Glob("**/*").scan({ cwd: dist })))
     .map((file) => file.replaceAll("\\", "/"))
     .filter((file) => !file.endsWith(".map"))
