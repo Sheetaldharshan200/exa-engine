@@ -14,6 +14,7 @@ import { useToast } from "../ui/toast"
 import { isConsoleManagedProvider } from "../util/provider-origin"
 import { useConnected } from "./use-connected"
 import { useBindings } from "../keymap"
+import { DialogLocalModels } from "./dialog-local-models"
 import { useClipboard } from "../context/clipboard"
 
 const PROVIDER_PRIORITY: Record<string, number> = {
@@ -163,18 +164,23 @@ export function createDialogProviderOptions() {
             // A local server has no credential to collect. Falling through to
             // the default "API key" prompt asked for something that does not
             // exist and left the user with no way to finish.
+            // Local servers have no credential to collect, so the API key
+            // prompt below asked for something that does not exist. The engine
+            // opens its model list instead: every other provider finishes its
+            // setup in this dialog, and installing a local model is the same
+            // kind of step.
+            if (providerID === "builtin") {
+              dialog.replace(() => <DialogLocalModels />)
+              return
+            }
             if (LOCAL_PROVIDERS.has(providerID)) {
               dialog.clear()
               toast.show({
                 variant: connected ? "success" : "info",
                 duration: 10_000,
                 message: connected
-                  ? providerID === "builtin"
-                    ? "Ready — pick a model from the list; exa downloads and starts it. `exa model list` shows sizes."
-                    : "Ready — the models you have pulled are in the model list."
-                  : providerID === "builtin"
-                    ? "Nothing running yet. Start one with `exa model run <id>` — `exa model list` shows what is available."
-                    : "Ollama is not running on this machine. Start it, then pull a model with `ollama pull <model>`.",
+                  ? "Ready — the models you have pulled are in the model list."
+                  : "Ollama is not running on this machine. Start it, then pull a model with `ollama pull <model>`.",
               })
               return
             }
