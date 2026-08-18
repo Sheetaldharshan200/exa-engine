@@ -1338,16 +1338,18 @@ export function Prompt(props: PromptProps) {
   return (
     <>
       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
-        <box
-          width="100%"
-          border={ComposerBorder.border}
-          borderColor={borderHighlight()}
-          customBorderChars={ComposerBorder.customBorderChars}
-          backgroundColor={theme.backgroundElement}
-        >
+        {/*
+          No frame at all. The composer is already set apart by its own
+          background and by the prompt marker; a drawn border on top of that
+          was a second way of saying the same thing, and it boxed in the one
+          part of the screen the user is meant to feel free in.
+        */}
+        <box width="100%" backgroundColor={theme.backgroundElement}>
           <box
             paddingLeft={1}
             paddingRight={1}
+            paddingTop={1}
+            paddingBottom={1}
             flexShrink={0}
             backgroundColor={theme.backgroundElement}
             flexGrow={1}
