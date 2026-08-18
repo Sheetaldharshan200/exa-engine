@@ -242,7 +242,7 @@ describe("Instruction.system", () => {
         expect(yield* svc.system()).toEqual([])
       }).pipe(
         provideInstance(projectTmp),
-        provideInstruction({ home: globalTmp, config: globalTmp }, { disableClaudeCodePrompt: true }),
+        provideInstruction({ home: globalTmp, config: globalTmp }, { claudeCodePrompt: false }),
       )
     }),
   )

@@ -17,13 +17,16 @@ import fs from "fs/promises"
 const node = LayerNode.compile(CrossSpawnSpawner.node)
 
 const it = testEffect(Layer.mergeAll(LayerNode.compile(Skill.node), node, testInstanceStoreLayer))
-const itWithoutClaudeCodeSkills = testEffect(
+// Reading ~/.claude/skills is opt-in now, so the tests that cover it turn it
+// on rather than relying on a default that no longer exists.
+const itWithClaudeCodeSkills = testEffect(
   Layer.mergeAll(
-    LayerNode.compile(Skill.node, [[RuntimeFlags.node, RuntimeFlags.layer({ disableClaudeCodeSkills: true })]]),
+    LayerNode.compile(Skill.node, [[RuntimeFlags.node, RuntimeFlags.layer({ claudeCodeSkills: true })]]),
     node,
     testInstanceStoreLayer,
   ),
 )
+const itWithoutClaudeCodeSkills = it
 const itWithoutExternalSkills = testEffect(
   Layer.mergeAll(
     LayerNode.compile(Skill.node, [[RuntimeFlags.node, RuntimeFlags.layer({ disableExternalSkills: true })]]),
@@ -242,7 +245,7 @@ Instructions here.
     ),
   )
 
-  it.live("discovers skills from .claude/skills/ directory", () =>
+  itWithClaudeCodeSkills.live("discovers skills from .claude/skills/ directory", () =>
     provideTmpdirInstance(
       (dir) =>
         Effect.gen(function* () {
@@ -270,7 +273,7 @@ description: A skill in the .claude/skills directory.
     ),
   )
 
-  it.live("discovers global skills from ~/.claude/skills/ directory", () =>
+  itWithClaudeCodeSkills.live("discovers global skills from ~/.claude/skills/ directory", () =>
     Effect.gen(function* () {
       const tmp = yield* Effect.acquireRelease(
         Effect.promise(() => tmpdir({ git: true })),
@@ -404,7 +407,7 @@ This skill is loaded from the global home directory.
     }),
   )
 
-  it.live("discovers skills from both .claude/skills/ and .agents/skills/", () =>
+  itWithClaudeCodeSkills.live("discovers skills from both .claude/skills/ and .agents/skills/", () =>
     provideTmpdirInstance(
       (dir) =>
         Effect.gen(function* () {
@@ -527,7 +530,7 @@ description: A skill in the .exa/skill directory.
     ),
   )
 
-  it.live("properly resolves directories that skills live in", () =>
+  itWithClaudeCodeSkills.live("properly resolves directories that skills live in", () =>
     provideTmpdirInstance(
       (dir) =>
         Effect.gen(function* () {

@@ -176,7 +176,7 @@ const discoverSkills = Effect.fnUntraced(function* (
   fsys: FSUtil.Interface,
   global: Global.Interface,
   disableExternalSkills: boolean,
-  disableClaudeCodeSkills: boolean,
+  claudeCodeSkills: boolean,
   directory: string,
   worktree: string,
 ) {
@@ -184,7 +184,7 @@ const discoverSkills = Effect.fnUntraced(function* (
 
   const externalDirs: string[] = []
   if (!disableExternalSkills) {
-    if (!disableClaudeCodeSkills) externalDirs.push(CLAUDE_EXTERNAL_DIR)
+    if (claudeCodeSkills) externalDirs.push(CLAUDE_EXTERNAL_DIR)
     externalDirs.push(AGENTS_EXTERNAL_DIR)
 
     for (const dir of externalDirs) {
@@ -264,7 +264,7 @@ const layer = Layer.effect(
           fsys,
           global,
           flags.disableExternalSkills,
-          flags.disableClaudeCodeSkills,
+          flags.claudeCodeSkills,
           ctx.directory,
           ctx.worktree,
         )

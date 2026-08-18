@@ -3,6 +3,7 @@ import { DialogSelect } from "../ui/dialog-select"
 import { useDialog } from "../ui/dialog"
 import { useToast } from "../ui/toast"
 import { useTheme } from "../context/theme"
+import { useLocal } from "../context/local"
 
 /**
  * The local engine's models, shown the way a package manager shows them:
@@ -58,6 +59,7 @@ function Progress(props: { title: string; line: () => string; done: () => boolea
 export function DialogLocalModels() {
   const dialog = useDialog()
   const toast = useToast()
+  const local = useLocal()
   const [entries, setEntries] = createSignal<Entry[]>([])
   const [serving, setServing] = createSignal<string>()
 
@@ -114,9 +116,13 @@ export function DialogLocalModels() {
 
     try {
       await serve(model, (l) => setLine(l.trim()))
+      // Starting it is not the point — using it is. Leaving the user to go and
+      // find it in a second picker afterwards made the whole dialog a detour.
+      const { ENGINE_ID } = await import("../../../exa/src/local/catalog")
+      local.model.set({ providerID: ENGINE_ID, modelID: model.id }, { recent: true })
       setDone(true)
-      setLine(`${entry.name} is running — pick it from the model list`)
-      toast.show({ variant: "success", message: `${entry.name} is ready` })
+      setLine(`${entry.name} is running, and is now the selected model`)
+      toast.show({ variant: "success", message: `Using ${entry.name}` })
     } catch (error) {
       setFailed(error instanceof Error ? error.message : String(error))
     }

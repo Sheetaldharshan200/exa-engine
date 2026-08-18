@@ -45,7 +45,7 @@ describe("RuntimeFlags", () => {
       expect(flags.disableEmbeddedWebUi).toBe(true)
       expect(flags.disableExternalSkills).toBe(true)
       expect(flags.disableLspDownload).toBe(true)
-      expect(flags.disableClaudeCodePrompt).toBe(false)
+      expect(flags.claudeCodePrompt).toBe(false)
       expect(flags.enableExa).toBe(true)
       expect(flags.enableParallel).toBe(true)
       expect(flags.enableExperimentalModels).toBe(true)
@@ -111,8 +111,8 @@ describe("RuntimeFlags", () => {
       expect(flags.disableEmbeddedWebUi).toBe(false)
       expect(flags.disableExternalSkills).toBe(false)
       expect(flags.disableLspDownload).toBe(false)
-      expect(flags.disableClaudeCodePrompt).toBe(false)
-      expect(flags.disableClaudeCodeSkills).toBe(false)
+      expect(flags.claudeCodePrompt).toBe(false)
+      expect(flags.claudeCodeSkills).toBe(false)
       expect(flags.enableExa).toBe(false)
       expect(flags.experimentalIconDiscovery).toBe(false)
       expect(flags.experimentalOxfmt).toBe(false)
@@ -163,27 +163,39 @@ describe("RuntimeFlags", () => {
     }),
   )
 
-  it.effect("disableClaudeCodePrompt defaults to false", () =>
+  // exa must not read another product's configuration unless asked. Left on,
+  // the user's ~/.claude/CLAUDE.md became exa's agent instructions.
+  it.effect("Claude Code compatibility is off unless asked for", () =>
     Effect.gen(function* () {
       const flags = yield* readFlags.pipe(Effect.provide(fromConfig({})))
 
-      expect(flags.disableClaudeCodePrompt).toBe(false)
+      expect(flags.claudeCodePrompt).toBe(false)
+      expect(flags.claudeCodeSkills).toBe(false)
     }),
   )
 
-  it.effect("disableClaudeCodePrompt reads EXA_DISABLE_CLAUDE_CODE_PROMPT", () =>
+  it.effect("EXA_CLAUDE_CODE_COMPAT turns it back on", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ EXA_DISABLE_CLAUDE_CODE_PROMPT: "true" })))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ EXA_CLAUDE_CODE_COMPAT: "true" })))
 
-      expect(flags.disableClaudeCodePrompt).toBe(true)
+      expect(flags.claudeCodePrompt).toBe(true)
+      expect(flags.claudeCodeSkills).toBe(true)
     }),
   )
 
-  it.effect("disableClaudeCodePrompt inherits EXA_DISABLE_CLAUDE_CODE", () =>
+  // Scripts that already set the old disable flags must keep working.
+  it.effect("the old disable variables still force it off", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ EXA_DISABLE_CLAUDE_CODE: "true" })))
+      const both = yield* readFlags.pipe(
+        Effect.provide(fromConfig({ EXA_CLAUDE_CODE_COMPAT: "true", EXA_DISABLE_CLAUDE_CODE: "true" })),
+      )
+      expect(both.claudeCodePrompt).toBe(false)
+      expect(both.claudeCodeSkills).toBe(false)
 
-      expect(flags.disableClaudeCodePrompt).toBe(true)
+      const prompt = yield* readFlags.pipe(
+        Effect.provide(fromConfig({ EXA_CLAUDE_CODE_COMPAT: "true", EXA_DISABLE_CLAUDE_CODE_PROMPT: "true" })),
+      )
+      expect(prompt.claudeCodePrompt).toBe(false)
     }),
   )
 
@@ -337,8 +349,8 @@ describe("RuntimeFlags", () => {
       expect(flags.disableEmbeddedWebUi).toBe(false)
       expect(flags.disableExternalSkills).toBe(false)
       expect(flags.disableLspDownload).toBe(false)
-      expect(flags.disableClaudeCodePrompt).toBe(false)
-      expect(flags.disableClaudeCodeSkills).toBe(false)
+      expect(flags.claudeCodePrompt).toBe(false)
+      expect(flags.claudeCodeSkills).toBe(false)
       expect(flags.enableExa).toBe(false)
       expect(flags.experimentalIconDiscovery).toBe(false)
       expect(flags.experimentalOxfmt).toBe(false)
@@ -348,27 +360,21 @@ describe("RuntimeFlags", () => {
     }),
   )
 
-  it.effect("disableClaudeCodeSkills defaults to false", () =>
+  it.effect("EXA_CLAUDE_CODE_COMPAT alone enables the skills directory", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({})))
+      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ EXA_CLAUDE_CODE_COMPAT: "true" })))
 
-      expect(flags.disableClaudeCodeSkills).toBe(false)
+      expect(flags.claudeCodeSkills).toBe(true)
     }),
   )
 
-  it.effect("disableClaudeCodeSkills reads EXA_DISABLE_CLAUDE_CODE_SKILLS", () =>
+  it.effect("EXA_DISABLE_CLAUDE_CODE_SKILLS still wins over the opt-in", () =>
     Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ EXA_DISABLE_CLAUDE_CODE_SKILLS: "true" })))
+      const flags = yield* readFlags.pipe(
+        Effect.provide(fromConfig({ EXA_CLAUDE_CODE_COMPAT: "true", EXA_DISABLE_CLAUDE_CODE_SKILLS: "true" })),
+      )
 
-      expect(flags.disableClaudeCodeSkills).toBe(true)
-    }),
-  )
-
-  it.effect("disableClaudeCodeSkills inherits EXA_DISABLE_CLAUDE_CODE", () =>
-    Effect.gen(function* () {
-      const flags = yield* readFlags.pipe(Effect.provide(fromConfig({ EXA_DISABLE_CLAUDE_CODE: "true" })))
-
-      expect(flags.disableClaudeCodeSkills).toBe(true)
+      expect(flags.claudeCodeSkills).toBe(false)
     }),
   )
 })

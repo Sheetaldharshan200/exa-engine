@@ -20,14 +20,28 @@ export class Service extends ConfigService.Service<Service>()("@exa/RuntimeFlags
   disableEmbeddedWebUi: bool("EXA_DISABLE_EMBEDDED_WEB_UI"),
   disableExternalSkills: bool("EXA_DISABLE_EXTERNAL_SKILLS"),
   disableLspDownload: bool("EXA_DISABLE_LSP_DOWNLOAD"),
-  disableClaudeCodePrompt: Config.all({
+  // Reading another product's configuration is opt-in, not the default.
+  //
+  // Upstream loaded ~/.claude/CLAUDE.md as agent instructions and ~/.claude
+  // /skills as skills, for compatibility with the tool it lived alongside.
+  // Inherited unchanged, that means exa silently ingests a different
+  // product's config and skills — the user's Claude Code instructions became
+  // exa's instructions, which is how a session about an Exasol database
+  // started describing "the agentic database behind Claude".
+  //
+  // Anyone who wants that back sets EXA_CLAUDE_CODE_COMPAT=1. The old
+  // EXA_DISABLE_CLAUDE_CODE* variables still force it off, so a script that
+  // set them keeps working.
+  claudeCodePrompt: Config.all({
+    compat: bool("EXA_CLAUDE_CODE_COMPAT"),
     broad: bool("EXA_DISABLE_CLAUDE_CODE"),
     direct: bool("EXA_DISABLE_CLAUDE_CODE_PROMPT"),
-  }).pipe(Config.map((flags) => flags.broad || flags.direct)),
-  disableClaudeCodeSkills: Config.all({
+  }).pipe(Config.map((flags) => flags.compat && !flags.broad && !flags.direct)),
+  claudeCodeSkills: Config.all({
+    compat: bool("EXA_CLAUDE_CODE_COMPAT"),
     broad: bool("EXA_DISABLE_CLAUDE_CODE"),
     direct: bool("EXA_DISABLE_CLAUDE_CODE_SKILLS"),
-  }).pipe(Config.map((flags) => flags.broad || flags.direct)),
+  }).pipe(Config.map((flags) => flags.compat && !flags.broad && !flags.direct)),
   enableExa: Config.all({
     experimental,
     enabled: bool("EXA_ENABLE_EXA"),
