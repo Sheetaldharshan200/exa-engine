@@ -157,6 +157,27 @@ export async function ensureModel(model: LocalModel, log: Log): Promise<string> 
   return dest
 }
 
+/**
+ * The lsof invocation that finds the SERVER on a port.
+ *
+ * -sTCP:LISTEN matters far more than it looks. Without it lsof reports every
+ * process holding a socket on the port — the listener AND everything connected
+ * to it. exa itself is one of those the moment it detects the engine, so
+ * restarting a model sent kill -9 to the user's own session: "zsh: killed exa",
+ * with the terminal left in mouse-tracking mode.
+ */
+export function listenerLookup(port: number): string[] {
+  return ["lsof", "-ti", `tcp:${port}`, "-sTCP:LISTEN"]
+}
+
+/** The pids to signal — never our own, whatever lsof reported. */
+export function killable(lsofOutput: string, self: number): string[] {
+  return lsofOutput
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter((pid) => pid !== String(self))
+}
+
 /** True when something is already serving the engine port. */
 export async function running(host = ENGINE_HOST): Promise<boolean> {
   try {
@@ -241,8 +262,8 @@ export async function stop(): Promise<boolean> {
     })
     return (await proc.exited) === 0
   }
-  const find = Bun.spawn(["lsof", "-ti", `:${ENGINE_PORT}`], { stdout: "pipe", stderr: "ignore" })
-  const pids = (await new Response(find.stdout).text()).split(/\s+/).filter(Boolean)
+  const find = Bun.spawn(listenerLookup(ENGINE_PORT), { stdout: "pipe", stderr: "ignore" })
+  const pids = killable(await new Response(find.stdout).text(), process.pid)
   if (pids.length === 0) return false
   for (const pid of pids) {
     const kill = Bun.spawn(["kill", "-9", pid], { stdout: "ignore", stderr: "ignore" })

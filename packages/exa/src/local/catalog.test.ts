@@ -116,3 +116,25 @@ describe("formatSize", () => {
     expect(formatSize(2500)).toBe("2.4 GB")
   })
 })
+
+describe("stopping the engine", () => {
+  test("looks only for the listener, never for clients", async () => {
+    const { listenerLookup } = await import("./engine")
+    // Without -sTCP:LISTEN, lsof also reports every process CONNECTED to the
+    // port. exa holds such a connection while detecting the engine, so
+    // restarting a model killed the user's own session.
+    expect(listenerLookup(41414)).toEqual(["lsof", "-ti", "tcp:41414", "-sTCP:LISTEN"])
+  })
+
+  test("never signals this process, whatever lsof reported", async () => {
+    const { killable } = await import("./engine")
+    expect(killable("69622\n77490\n", 77490)).toEqual(["69622"])
+    expect(killable("77490\n", 77490)).toEqual([])
+  })
+
+  test("handles no listener at all", async () => {
+    const { killable } = await import("./engine")
+    expect(killable("", 123)).toEqual([])
+    expect(killable("\n  \n", 123)).toEqual([])
+  })
+})
