@@ -191,6 +191,37 @@ const docRoute = HttpRouter.use((router) => router.add("GET", "/doc", () => Effe
   Layer.provide(authOnlyRouterLayer),
 )
 
+/**
+ * The IPC bridge Exasol Studio's web build talks to.
+ *
+ * Studio's frontend POSTs each command to /ipc/<command>; inside the desktop
+ * shell the same call goes to Rust instead. Mounted before the catch-all so a
+ * command name is never mistaken for a static path.
+ */
+const studioIpcRoute = HttpRouter.use((router) =>
+  Effect.gen(function* () {
+    yield* router.add("POST", "/ipc/:command", (request) =>
+      Effect.gen(function* () {
+        const { handleIpc } = yield* Effect.promise(() => import("../../../studio-ipc"))
+        // Taken from the path rather than a params helper: the router's shape
+        // varies by version, the URL does not.
+        const command = decodeURIComponent(new URL(request.url, "http://localhost").pathname.split("/ipc/")[1] ?? "")
+        // A command with no body is normal, so a parse failure is an empty
+        // argument set rather than a request error.
+        const args = yield* request.json.pipe(
+          Effect.map((value) => (value && typeof value === "object" ? (value as Record<string, unknown>) : {})),
+          Effect.orElseSucceed(() => ({}) as Record<string, unknown>),
+        )
+        const result = yield* Effect.promise(() => handleIpc(command, args))
+        if (!result.ok) {
+          return HttpServerResponse.jsonUnsafe({ error: result.error }, { status: result.status })
+        }
+        return HttpServerResponse.jsonUnsafe(result.value ?? null)
+      }),
+    )
+  }),
+).pipe(Layer.provide(authOnlyRouterLayer))
+
 const uiRoute = HttpRouter.use((router) =>
   Effect.gen(function* () {
     const fs = yield* FSUtil.Service
@@ -280,6 +311,7 @@ export function createRoutes(
     instanceRoutes,
     serverRoutes,
     docRoute,
+    studioIpcRoute,
     uiRoute,
   ).pipe(
     Layer.provide([
