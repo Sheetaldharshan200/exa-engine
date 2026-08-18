@@ -1,6 +1,7 @@
 interface ImportMetaEnv {
   readonly VITE_EXA_SERVER_HOST: string
   readonly VITE_EXA_SERVER_PORT: string
+  readonly VITE_EXA_CHANGELOG_URL?: string
   readonly VITE_EXA_CHANNEL?: "dev" | "beta" | "prod"
 
   readonly VITE_SENTRY_DSN?: string

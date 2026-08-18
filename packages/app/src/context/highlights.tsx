@@ -7,7 +7,18 @@ import { useSettings } from "@/context/settings"
 import { persisted } from "@/utils/persist"
 import { DialogReleaseNotes, type Highlight } from "@/components/dialog-release-notes"
 
-const CHANGELOG_URL = "https://exasol.com/exa/changelog.json"
+/**
+ * Where release highlights come from.
+ *
+ * This pointed at a changelog feed on the upstream project's website, which
+ * the rename turned into an address that does not exist — so every launch
+ * made a request that 404s, and the release-notes dialog could never appear.
+ *
+ * There is no such feed for this project yet, so the fetch is skipped unless
+ * one is configured. A skipped request is honest; a failing one on every
+ * launch is noise that hides real failures.
+ */
+const CHANGELOG_URL = import.meta.env.VITE_EXA_CHANGELOG_URL ?? ""
 
 type Store = {
   version?: string
@@ -176,6 +187,8 @@ export const { use: useHighlights, provider: HighlightsProvider } = createSimple
         controller.abort()
         clearTimer()
       })
+
+      if (!CHANGELOG_URL) return
 
       fetcher(CHANGELOG_URL, {
         signal: controller.signal,

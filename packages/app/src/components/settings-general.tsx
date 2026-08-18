@@ -482,7 +482,7 @@ export const SettingsGeneral: Component = () => {
           description={
             <>
               {language.t("settings.general.row.theme.description")}{" "}
-              <ExternalLink href="https://exasol.com/exa/docs/themes/">{language.t("common.learnMore")}</ExternalLink>
+              <ExternalLink href="https://github.com/Sheetaldharshan200/exa-engine#themes">{language.t("common.learnMore")}</ExternalLink>
             </>
           }
         >

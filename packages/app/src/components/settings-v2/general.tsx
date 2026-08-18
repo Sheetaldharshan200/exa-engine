@@ -150,7 +150,7 @@ const AppearanceSection: Component<{ controller: AppearanceSettingsController }>
           description={
             <>
               {language.t("settings.general.row.theme.description")}{" "}
-              <ExternalLink class="settings-v2-link" href="https://exasol.com/exa/docs/themes/">
+              <ExternalLink class="settings-v2-link" href="https://github.com/Sheetaldharshan200/exa-engine#themes">
                 {language.t("common.learnMore")}
               </ExternalLink>
             </>

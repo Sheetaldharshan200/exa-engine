@@ -70,7 +70,7 @@ const notify: Platform["notify"] = async (title, description, onClick) => {
 
   const notification = new Notification(title, {
     body: description ?? "",
-    icon: "https://exasol.com/exa/favicon-96x96-v3.png",
+    icon: "/favicon-96x96-v3.png",
   })
 
   notification.onclick = () => {

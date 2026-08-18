@@ -279,19 +279,19 @@ export const DESKTOP_MENU: DesktopMenu[] = [
     id: "help",
     labelKey: "desktop.menu.help",
     items: [
-      { type: "item", labelKey: "desktop.menu.documentation", href: "https://exasol.com/exa/docs" },
-      { type: "item", labelKey: "desktop.menu.supportForum", href: "https://discord.com/invite/exa" },
+      { type: "item", labelKey: "desktop.menu.documentation", href: "https://github.com/Sheetaldharshan200/exa-engine" },
+      { type: "item", labelKey: "desktop.menu.supportForum", href: "https://github.com/Sheetaldharshan200/exa-engine/discussions" },
       { type: "item", labelKey: "desktop.menu.exportLogs", command: "logs.export" },
       { type: "separator" },
       {
         type: "item",
         labelKey: "desktop.menu.shareFeedback",
-        href: "https://github.com/anomalyco/exa/issues/new?template=feature_request.yml",
+        href: "https://github.com/Sheetaldharshan200/exa-engine/issues/new",
       },
       {
         type: "item",
         labelKey: "desktop.menu.reportBug",
-        href: "https://github.com/anomalyco/exa/issues/new?template=bug_report.yml",
+        href: "https://github.com/Sheetaldharshan200/exa-engine/issues/new",
       },
     ],
   },

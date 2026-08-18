@@ -38,7 +38,7 @@ describe("inlineCodeKind", () => {
   })
 
   test("detects urls", () => {
-    expect(inlineCodeKind(`https://exasol.com/exa/docs`)).toBe("url")
+    expect(inlineCodeKind(`https://github.com/Sheetaldharshan200/exa-engine`)).toBe("url")
     expect(inlineCodeKind(`http://localhost:4444`)).toBe("url")
     expect(inlineCodeKind(`file:///tmp/exa`)).toBeUndefined()
     expect(inlineCodeKind(`ftp://exa.ai/docs`)).toBeUndefined()
