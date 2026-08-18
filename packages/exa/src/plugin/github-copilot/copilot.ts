@@ -52,6 +52,35 @@ function deviceFlowError(code: string, description?: string): string {
   }
 }
 
+/**
+ * Report a model-list failure once per run, and separate the two causes.
+ *
+ * An expired sign-in is not a transient error and will not fix itself, so it
+ * gets the instruction that resolves it. A timeout or a network fault might,
+ * so it does not. Repeating either on every command — including commands that
+ * never touch a model, like `exa web` — is noise on top of a failure.
+ */
+let warned = false
+export function copilotFailureMessage(error: unknown): string {
+  const reason = error instanceof Error ? error.message : String(error)
+  if (/\b401\b|\b403\b|unauthor/i.test(reason)) {
+    return (
+      "[github-copilot] the GitHub sign-in has expired, so its models are unavailable. " +
+      "Reconnect with /connect in a session, then restart. Other providers are unaffected."
+    )
+  }
+  if (error instanceof Error && error.name === "TimeoutError") {
+    return "[github-copilot] GitHub did not answer in time; showing the models from the last successful check."
+  }
+  return `[github-copilot] could not read the model list: ${reason}. Showing the last known models.`
+}
+
+function warnOnce(error: unknown) {
+  if (warned) return
+  warned = true
+  console.warn(copilotFailureMessage(error))
+}
+
 async function clientId(): Promise<string | undefined> {
   const fromEnv = process.env["EXA_COPILOT_CLIENT_ID"]?.trim()
   if (fromEnv) return fromEnv
@@ -149,16 +178,11 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
             )
           })
           .catch((error) => {
-            // Say what happened. Silently swapping in a different list made a
-            // slow network look identical to a broken account, with nothing in
-            // the output to tell them apart.
-            const reason = error instanceof Error ? error.message : String(error)
-            const timedOut = error instanceof Error && error.name === "TimeoutError"
-            console.warn(
-              `[github-copilot] could not read the model list from GitHub: ${
-                timedOut ? "the request timed out" : reason
-              }. Showing the last known models.`,
-            )
+            // Say what happened, once. Silently swapping in a different list
+            // made a slow network look identical to a broken account; saying
+            // it on every command instead buries whatever the user was
+            // actually reading.
+            warnOnce(error)
 
             // Prefer what GitHub actually served this session. The catalogue is
             // a generic list of what Copilot offers SOMEWHERE — for an account

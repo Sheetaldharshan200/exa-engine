@@ -55,3 +55,36 @@ describe("oneEntryPerName", () => {
     expect([...oneEntryPerName([], REAL)]).toEqual([])
   })
 })
+
+describe("copilotFailureMessage", () => {
+  // An expired sign-in will not fix itself, so the message has to carry the
+  // action that resolves it. The old text said "could not read the model
+  // list", which reads as a network hiccup and left the user waiting.
+  test("an expired sign-in says so, and how to fix it", async () => {
+    const { copilotFailureMessage } = await import("./copilot")
+    const msg = copilotFailureMessage(new Error("GitHub returned HTTP 401 for the model list"))
+    expect(msg).toContain("expired")
+    expect(msg).toContain("/connect")
+  })
+
+  test("403 is treated the same way", async () => {
+    const { copilotFailureMessage } = await import("./copilot")
+    expect(copilotFailureMessage(new Error("HTTP 403"))).toContain("expired")
+  })
+
+  // A timeout might resolve itself, so it must not tell the user to
+  // re-authenticate — that would send them to fix something that is not broken.
+  test("a timeout does not blame the sign-in", async () => {
+    const { copilotFailureMessage } = await import("./copilot")
+    const timeout = new Error("aborted")
+    timeout.name = "TimeoutError"
+    const msg = copilotFailureMessage(timeout)
+    expect(msg).toContain("did not answer in time")
+    expect(msg).not.toContain("expired")
+  })
+
+  test("anything else is reported verbatim", async () => {
+    const { copilotFailureMessage } = await import("./copilot")
+    expect(copilotFailureMessage(new Error("socket hang up"))).toContain("socket hang up")
+  })
+})
