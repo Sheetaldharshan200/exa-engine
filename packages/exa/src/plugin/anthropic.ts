@@ -1,0 +1,260 @@
+/**
+ * Anthropic subscription sign-in (Claude Pro/Max).
+ *
+ * Anthropic's OAuth treats subscription inference as Claude Code traffic: the
+ * flow requests the `user:inference` scope with Anthropic's public CLI client
+ * id, and every request must carry the oauth beta header and identify itself
+ * with Claude Code's system line — requests that don't are rejected, so the
+ * fetch wrapper injects both rather than hoping the caller remembered.
+ *
+ * Two ways in, mirroring the ChatGPT plugin next door:
+ * - Claude Pro/Max: sign in on claude.ai, usage bills to the subscription.
+ * - Console account: sign in on console.anthropic.com, which creates a real
+ *   API key (billed per token) and stores that instead of OAuth tokens.
+ *
+ * Both use the paste-a-code flow: Anthropic's redirect lands on their own
+ * /oauth/code/callback page showing `code#state`, which the user pastes back.
+ */
+import type { Hooks, PluginInput } from "@exa/plugin"
+import { OAUTH_DUMMY_KEY } from "../auth"
+
+const CLIENT_ID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
+const TOKEN_ENDPOINT = "https://console.anthropic.com/v1/oauth/token"
+const REDIRECT_URI = "https://console.anthropic.com/oauth/code/callback"
+const SCOPES = "org:create_api_key user:profile user:inference"
+const OAUTH_BETA = "oauth-2025-04-20"
+/** The identity Anthropic's API expects on subscription traffic — verbatim. */
+const SPOOF_SYSTEM = "You are Claude Code, Anthropic's official CLI for Claude."
+
+interface Pkce {
+  verifier: string
+  challenge: string
+}
+
+async function generatePKCE(): Promise<Pkce> {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+  const verifier = Array.from(crypto.getRandomValues(new Uint8Array(43)))
+    .map((b) => chars[b % chars.length])
+    .join("")
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier))
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "")
+  return { verifier, challenge }
+}
+
+export function authorizeUrl(base: "claude.ai" | "console.anthropic.com", pkce: Pkce): string {
+  const params = new URLSearchParams({
+    code: "true",
+    client_id: CLIENT_ID,
+    response_type: "code",
+    redirect_uri: REDIRECT_URI,
+    scope: SCOPES,
+    code_challenge: pkce.challenge,
+    code_challenge_method: "S256",
+    // Anthropic's code page echoes the state back as `code#state`; using the
+    // verifier keeps the exchange bound to this run without extra storage.
+    state: pkce.verifier,
+  })
+  return `https://${base}/oauth/authorize?${params.toString()}`
+}
+
+interface TokenResponse {
+  access_token: string
+  refresh_token: string
+  expires_in?: number
+  account?: { uuid?: string }
+}
+
+/** The pasted value is `code#state`; both halves go into the exchange. */
+export function splitPastedCode(pasted: string): { code: string; state: string | undefined } {
+  const [code, state] = pasted.trim().split("#")
+  return { code: code ?? "", state }
+}
+
+async function exchangeCode(pasted: string, verifier: string): Promise<TokenResponse> {
+  const { code, state } = splitPastedCode(pasted)
+  const response = await fetch(TOKEN_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      grant_type: "authorization_code",
+      code,
+      state,
+      client_id: CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      code_verifier: verifier,
+    }),
+  })
+  if (!response.ok) throw new Error(`Token exchange failed: ${response.status}`)
+  return (await response.json()) as TokenResponse
+}
+
+async function refreshTokens(refreshToken: string): Promise<TokenResponse> {
+  const response = await fetch(TOKEN_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+      client_id: CLIENT_ID,
+    }),
+  })
+  if (!response.ok) throw new Error(`Token refresh failed: ${response.status}`)
+  return (await response.json()) as TokenResponse
+}
+
+/** Merge the oauth beta into whatever betas the request already carries. */
+export function mergedBeta(existing: string | null | undefined): string {
+  const betas = (existing ?? "").split(",").map((b) => b.trim()).filter(Boolean)
+  if (!betas.includes(OAUTH_BETA)) betas.unshift(OAUTH_BETA)
+  return betas.join(",")
+}
+
+/**
+ * Make a /v1/messages body acceptable to subscription inference: the first
+ * system block must be Claude Code's identity line. The real system prompt
+ * stays intact right behind it.
+ */
+export function spoofSystem(body: unknown): unknown {
+  if (typeof body !== "object" || body === null) return body
+  const request = body as Record<string, unknown>
+  const spoof = { type: "text", text: SPOOF_SYSTEM }
+  const system = request["system"]
+  if (system === undefined) return { ...request, system: [spoof] }
+  if (typeof system === "string") return { ...request, system: [spoof, { type: "text", text: system }] }
+  if (Array.isArray(system)) {
+    const first = system[0] as { text?: string } | undefined
+    if (first?.text === SPOOF_SYSTEM) return request
+    return { ...request, system: [spoof, ...system] }
+  }
+  return request
+}
+
+export async function AnthropicAuthPlugin(input: PluginInput): Promise<Hooks> {
+  return {
+    auth: {
+      provider: "anthropic",
+      async loader(getAuth) {
+        const auth = await getAuth()
+        if (auth.type !== "oauth") return {}
+
+        let refreshPromise: Promise<string> | undefined
+
+        return {
+          apiKey: OAUTH_DUMMY_KEY,
+          async fetch(requestInput: RequestInfo | URL, init?: RequestInit) {
+            const currentAuth = await getAuth()
+            if (currentAuth.type !== "oauth") return fetch(requestInput, init)
+
+            if (!currentAuth.access || currentAuth.expires < Date.now()) {
+              if (!refreshPromise) {
+                refreshPromise = refreshTokens(currentAuth.refresh)
+                  .then(async (tokens) => {
+                    await input.client.auth.set({
+                      path: { id: "anthropic" },
+                      body: {
+                        type: "oauth",
+                        refresh: tokens.refresh_token,
+                        access: tokens.access_token,
+                        expires: Date.now() + (tokens.expires_in ?? 3600) * 1000,
+                      },
+                    })
+                    return tokens.access_token
+                  })
+                  .finally(() => {
+                    refreshPromise = undefined
+                  })
+              }
+              currentAuth.access = await refreshPromise
+            }
+
+            const headers = new Headers(init?.headers)
+            headers.delete("x-api-key")
+            headers.set("authorization", `Bearer ${currentAuth.access}`)
+            headers.set("anthropic-beta", mergedBeta(headers.get("anthropic-beta")))
+
+            const url =
+              requestInput instanceof URL
+                ? requestInput
+                : new URL(typeof requestInput === "string" ? requestInput : requestInput.url)
+
+            let body = init?.body
+            if (url.pathname.endsWith("/v1/messages") && typeof body === "string") {
+              try {
+                body = JSON.stringify(spoofSystem(JSON.parse(body)))
+              } catch {
+                // not JSON — send as-is and let the API answer
+              }
+            }
+
+            return fetch(url, { ...init, body, headers })
+          },
+        }
+      },
+      methods: [
+        {
+          label: "Claude Pro/Max (subscription)",
+          type: "oauth",
+          authorize: async () => {
+            const pkce = await generatePKCE()
+            return {
+              url: authorizeUrl("claude.ai", pkce),
+              instructions: "Sign in with your Claude account, then paste the code shown on the final page.",
+              method: "code" as const,
+              callback: async (pasted: string) => {
+                try {
+                  const tokens = await exchangeCode(pasted, pkce.verifier)
+                  return {
+                    type: "success" as const,
+                    refresh: tokens.refresh_token,
+                    access: tokens.access_token,
+                    expires: Date.now() + (tokens.expires_in ?? 3600) * 1000,
+                    ...(tokens.account?.uuid && { accountId: tokens.account.uuid }),
+                  }
+                } catch {
+                  return { type: "failed" as const }
+                }
+              },
+            }
+          },
+        },
+        {
+          label: "Console account (creates an API key)",
+          type: "oauth",
+          authorize: async () => {
+            const pkce = await generatePKCE()
+            return {
+              url: authorizeUrl("console.anthropic.com", pkce),
+              instructions: "Sign in to the Anthropic Console, then paste the code shown on the final page.",
+              method: "code" as const,
+              callback: async (pasted: string) => {
+                try {
+                  const tokens = await exchangeCode(pasted, pkce.verifier)
+                  const response = await fetch("https://api.anthropic.com/api/oauth/claude_cli/create_api_key", {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${tokens.access_token}`,
+                      "Content-Type": "application/json",
+                    },
+                  })
+                  if (!response.ok) return { type: "failed" as const }
+                  const created = (await response.json()) as { raw_key?: string }
+                  if (!created.raw_key) return { type: "failed" as const }
+                  return { type: "success" as const, key: created.raw_key }
+                } catch {
+                  return { type: "failed" as const }
+                }
+              },
+            }
+          },
+        },
+        {
+          label: "API key (manual)",
+          type: "api" as const,
+        },
+      ],
+    },
+  }
+}

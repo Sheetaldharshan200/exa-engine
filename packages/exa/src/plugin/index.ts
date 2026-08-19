@@ -10,6 +10,7 @@ import { Config } from "@/config/config"
 import { createExaClient } from "@exa/sdk"
 import { ServerAuth } from "@/server/auth"
 import { CodexAuthPlugin } from "./openai/codex"
+import { AnthropicAuthPlugin } from "./anthropic"
 import { Session } from "@/session/session"
 import { NamedError } from "@exa/core/util/error"
 import { CopilotAuthPlugin } from "./github-copilot/copilot"
@@ -72,6 +73,7 @@ function internalPlugins(flags: RuntimeFlags.Info): PluginInstance[] {
       CodexAuthPlugin(input, {
         experimentalWebSockets: experimentalWebSocketsEnabled({ enabled: flags.experimentalWebSockets }),
       }),
+    AnthropicAuthPlugin,
     CopilotAuthPlugin,
     ExaTeamsPlugin,
     BackupAutosavePlugin,

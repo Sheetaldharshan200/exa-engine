@@ -1588,6 +1588,9 @@ const layer = Layer.effect(
         // load apikeys
         const auths = yield* auth.all().pipe(Effect.orDie)
         for (const [id, provider] of Object.entries(auths)) {
+          // `provider#N` keys are saved account slots (`exa accounts`), not
+          // providers — only the plain key is the active credential.
+          if (id.includes("#")) continue
           const providerID = ProviderV2.ID.make(id)
           if (disabled.has(providerID)) continue
           if (provider.type === "api") {

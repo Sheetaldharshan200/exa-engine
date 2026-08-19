@@ -201,6 +201,23 @@ Use the keybind `variant_cycle` to quickly switch between variants. [Learn more]
 
 ---
 
+## Switching fast
+
+The `/models` picker is interactive; for one-command switching, define an agent per setup you use. Any `.md` file in `.exa/agent/` becomes a `/name` command:
+
+```markdown title=".exa/agent/sonnet-high.md"
+---
+model: anthropic/claude-sonnet-4-5
+variant: high
+---
+```
+
+Now `/sonnet-high` switches model and reasoning effort in one keystroke sequence — no menus. Frontmatter-only files keep the default prompt and change only what they name; see [Agents](./agents.mdx) and [Variants](#variants).
+
+Multiple accounts on the same provider (two Claude subscriptions, work and personal ChatGPT) are managed with [`exa accounts`](./cli.mdx#accounts).
+
+---
+
 ## Loading models
 
 When Exa starts up, it checks for models in the following priority order:

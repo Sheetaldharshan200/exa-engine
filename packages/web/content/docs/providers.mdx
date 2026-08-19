@@ -267,42 +267,27 @@ For custom inference profiles, use the model and provider name in the key and se
 
 ### Anthropic
 
-1. Once you've signed up, run the `/connect` command and select Anthropic.
+Sign in with your **Claude Pro or Max subscription** — no API key, usage bills to the plan you already pay for. Or use an API key from the Anthropic Console.
+
+1. Run the `/connect` command and select Anthropic (also available from the terminal as `exa providers login`).
 
    ```txt
    /connect
    ```
 
-2. Here you can select the **Claude Pro/Max** option and it'll open your browser
-   and ask you to authenticate.
+2. Pick an auth method:
 
-   ```txt
-   ┌ Select auth method
-   │
-   │ Manually enter API Key
-   └
-   ```
+   - **Claude Pro/Max (subscription)** — your browser opens claude.ai; sign in, then paste the code shown on the final page back into Exa.
+   - **Console account (creates an API key)** — sign in to the Anthropic Console and Exa creates and stores an API key for you (billed per token).
+   - **API key (manual)** — paste an existing key.
 
-3. Now all the Anthropic models should be available when you use the `/models` command.
+3. All Anthropic models are now available in the `/models` command.
 
    ```txt
    /models
    ```
 
-<Callout type="info">
-There are plugins that allow you to use your Claude Pro/Max models with
-Exa. Anthropic explicitly prohibits this.
-
-Previous versions of Exa came bundled with these plugins but that is no
-longer the case as of 1.3.0
-
-Other companies support freedom of choice with developer tooling - you can use
-the following subscriptions in Exa with zero setup:
-
-- ChatGPT Plus
-- Github Copilot
-- Gitlab Duo
-</Callout>
+Tokens refresh automatically; you sign in once. To keep several Anthropic accounts and switch between them, see [`exa accounts`](./cli.mdx#accounts).
 
 ---
 

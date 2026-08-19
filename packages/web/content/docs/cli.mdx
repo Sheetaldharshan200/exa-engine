@@ -519,6 +519,21 @@ This starts an HTTP server and opens the full Exasol Studio web app — your dat
 
 ---
 
+### accounts
+
+Manage multiple signed-in accounts per provider — two Claude subscriptions, work and personal ChatGPT, several API keys.
+
+```bash
+exa accounts list                # every provider, active account marked
+exa accounts save anthropic      # stash the active account into a slot
+exa accounts use anthropic 1     # make slot 1 active (the current one swaps in)
+exa accounts remove anthropic 1  # delete a slot
+```
+
+Adding a second account: `save` the current one, sign in again with `exa providers login` (or `/connect` in the TUI), then `use` to switch between them any time. Switching is a swap — no account is ever lost.
+
+---
+
 ### docs
 
 Open the documentation in your browser.
