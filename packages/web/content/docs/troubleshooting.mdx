@@ -31,8 +31,8 @@ This directory contains:
 
 - `auth.json` - Authentication data like API keys, OAuth tokens
 - `log/` - Application logs
-- `project/` - Project-specific data like session and message data
-  - If the project is within a Git repo, it is stored in `./<project-slug>/storage/`
+- `project/` - Folder-specific data like session and message data
+  - If the folder is within a Git repo, it is stored in `./<project-slug>/storage/`
   - If it is not a Git repo, it is stored in `./global/storage/`
 
 ---
@@ -91,7 +91,7 @@ Exa can also load local plugins from disk. Temporarily move these out of the way
 - **Global plugins**
   - **macOS/Linux**: `~/.config/exa/plugins/`
   - **Windows**: Press `WIN+R` and paste `%USERPROFILE%\.config\exa\plugins`
-- **Project plugins** (only if you use per-project config)
+- **Folder plugins** (only if you use per-folder config)
   - `<your-project>/.exa/plugins/`
 
 If the app starts working again, re-enable plugins one at a time to find which one is causing the issue.
@@ -173,7 +173,7 @@ If the app won't start and you can't clear settings from inside the UI, reset th
 2. Find and delete these files (they live in the Exa Desktop app data directory):
 
 - `exa.settings.dat` (desktop default server URL)
-- `exa.global.dat` and `exa.workspace.*.dat` (UI state like recent servers/projects)
+- `exa.global.dat` and `exa.workspace.*.dat` (UI state like recent servers/folders)
 
 To find the directory quickly:
 

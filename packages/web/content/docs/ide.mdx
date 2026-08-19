@@ -5,6 +5,10 @@ description: The Exa extension for VS Code, Cursor, and other IDEs
 
 Exa integrates with VS Code, Cursor, or any IDE that supports a terminal. Just run `exa` in the terminal to get started.
 
+<Callout type="info" title="Prefer a full graphical client?">
+[Exasol Studio](https://github.com/Sheetaldharshan200/Exasol-studio) is the desktop app built on this same engine — schema browser, SQL editor, dashboards, and the agent in one window. `exa web` serves the same app in your browser; see [Web](./web.mdx).
+</Callout>
+
 ---
 
 ## Usage
@@ -24,13 +28,13 @@ To install Exa on VS Code and popular forks like Cursor, Windsurf, VSCodium:
 2. Open the integrated terminal
 3. Run `exa` - the extension installs automatically
 
-If on the other hand you want to use your own IDE when you run `/editor` or `/export` from the TUI, you'll need to set `export EDITOR="code --wait"`. [Learn more](/docs/tui/#editor-setup).
+If on the other hand you want to use your own IDE when you run `/editor` or `/export` from the TUI, you'll need to set `export EDITOR="code --wait"`. [Learn more](./tui.mdx#editor-setup).
 
 ---
 
 ### Manual Install
 
-Search for **Exa** in the Extension Marketplace and click **Install**.
+The extension ships with the CLI, so the automatic install above is the supported path. A marketplace listing is coming; until then, re-running `exa` inside the IDE's terminal reinstalls or updates it.
 
 ---
 

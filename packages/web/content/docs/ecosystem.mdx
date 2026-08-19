@@ -1,84 +1,18 @@
 ---
 title: Ecosystem
-description: Projects and integrations built with Exa.
+description: Plugins and integrations built on Exa.
 ---
 
-A collection of community projects built on Exa.
+Nothing is published here yet — Exa's plugin and integration catalog starts empty, on purpose. Everything listed on this page will be something that actually works with Exa, tested against it, not inherited from somewhere else.
 
-<Callout type="info">
-Want to add your Exa related project to this list? Submit a PR.
+What exists today is the machinery to build on:
+
+- **[Plugins](./plugins.mdx)** — hook into events, add authentication methods, wrap tool execution. A plugin is one JavaScript file or an npm package.
+- **[Custom tools](./custom-tools.mdx)** — give the agent new abilities with a typed `tool()` definition.
+- **[SDK](./sdk.mdx)** — drive Exa programmatically from your own application.
+- **[Server](./server.mdx)** — the HTTP API every client (TUI, Studio, SDK) already speaks.
+- **[Exasol Studio](https://github.com/Sheetaldharshan200/Exasol-studio)** — the desktop and web application built on this same engine, and the largest integration there is.
+
+<Callout type="info" title="Built something on Exa?">
+Open a PR against this page — a working link and a one-line description is all it takes.
 </Callout>
-
-You can also check out [awesome-exa](https://github.com/awesome-exa/awesome-exa) and [exa.cafe](https://exa.cafe), a community that aggregates the ecosystem and community.
-
----
-
-## Plugins
-
-| Name                                                                                               | Description                                                                                        |
-| -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| [exa-daytona](https://github.com/daytona/integrations/tree/main/packages/exa-plugin)     | Automatically run Exa sessions in isolated Daytona sandboxes with git sync and live previews  |
-| [exa-helicone-session](https://github.com/H2Shami/exa-helicone-session)                  | Automatically inject Helicone session headers for request grouping                                 |
-| [exa-type-inject](https://github.com/nick-vi/exa-type-inject)                            | Auto-inject TypeScript/Svelte types into file reads with lookup tools                              |
-| [exa-openai-codex-auth](https://github.com/numman-ali/exa-openai-codex-auth)             | Use your ChatGPT Plus/Pro subscription instead of API credits                                      |
-| [exa-gemini-auth](https://github.com/jenslys/exa-gemini-auth)                            | Use your existing Gemini plan instead of API billing                                               |
-| [exa-antigravity-auth](https://github.com/NoeFabris/exa-antigravity-auth)                | Use Antigravity's free models instead of API billing                                               |
-| [exa-devcontainers](https://github.com/athal7/exa-devcontainers)                         | Multi-branch devcontainer isolation with shallow clones and auto-assigned ports                    |
-| [exa-google-antigravity-auth](https://github.com/shekohex/exa-google-antigravity-auth)   | Google Antigravity OAuth Plugin, with support for Google Search, and more robust API handling      |
-| [exa-dynamic-context-pruning](https://github.com/Tarquinen/exa-dynamic-context-pruning)  | Optimize token usage by pruning obsolete tool outputs                                              |
-| [exa-vibeguard](https://github.com/inkdust2021/exa-vibeguard)                            | Redact secrets/PII into VibeGuard-style placeholders before LLM calls; restore locally             |
-| [exa-websearch-cited](https://github.com/ghoulr/exa-websearch-cited.git)                 | Add native websearch support for supported providers with Google grounded style                    |
-| [exa-pty](https://github.com/shekohex/exa-pty.git)                                       | Enables AI agents to run background processes in a PTY, send interactive input to them.            |
-| [exa-shell-strategy](https://github.com/JRedeker/exa-shell-strategy)                     | Instructions for non-interactive shell commands - prevents hangs from TTY-dependent operations     |
-| [exa-wakatime](https://github.com/angristan/exa-wakatime)                                | Track Exa usage with Wakatime                                                                 |
-| [exa-md-table-formatter](https://github.com/franlol/exa-md-table-formatter/tree/main)    | Clean up markdown tables produced by LLMs                                                          |
-| [exa-morph-fast-apply](https://github.com/JRedeker/exa-morph-fast-apply)                 | 10x faster code editing with Morph Fast Apply API and lazy edit markers                            |
-| [exa-morph-plugin](https://github.com/morphllm/exa-morph-plugin)                         | Fast Apply editing, WarpGrep codebase search, and context compaction via Morph                     |
-| [oh-my-exa](https://github.com/code-yeongyu/oh-my-exa)                                   | Background agents, pre-built LSP/AST/MCP tools, curated agents, Claude Code compatible             |
-| [exa-notificator](https://github.com/panta82/exa-notificator)                            | Desktop notifications and sound alerts for Exa sessions                                       |
-| [exa-notifier](https://github.com/mohak34/exa-notifier)                                  | Desktop notifications and sound alerts for permission, completion, and error events                |
-| [exa-zellij-namer](https://github.com/24601/exa-zellij-namer)                            | AI-powered automatic Zellij session naming based on Exa context                               |
-| [exa-skillful](https://github.com/zenobi-us/exa-skillful)                                | Allow Exa agents to lazy load prompts on demand with skill discovery and injection            |
-| [exa-supermemory](https://github.com/supermemoryai/exa-supermemory)                      | Persistent memory across sessions using Supermemory                                                |
-| [@plannotator/exa](https://github.com/backnotprop/plannotator/tree/main/apps/exa-plugin) | Interactive plan review with visual annotation and private/offline sharing                         |
-| [@openspoon/subtask2](https://github.com/spoons-and-mirrors/subtask2)                              | Extend exa /commands into a powerful orchestration system with granular flow control          |
-| [exa-scheduler](https://github.com/different-ai/exa-scheduler)                           | Schedule recurring jobs using launchd (Mac) or systemd (Linux) with cron syntax                    |
-| [exa-conductor](https://github.com/derekbar90/exa-conductor)                             | Protocol-Driven Workflow: Automation of the Context -> Spec -> Plan -> Implement lifecycle.        |
-| [micode](https://github.com/vtemian/micode)                                                        | Structured Brainstorm → Plan → Implement workflow with session continuity                          |
-| [octto](https://github.com/vtemian/octto)                                                          | Interactive browser UI for AI brainstorming with multi-question forms                              |
-| [exa-background-agents](https://github.com/kdcokenny/exa-background-agents)              | Claude Code-style background agents with async delegation and context persistence                  |
-| [exa-notify](https://github.com/kdcokenny/exa-notify)                                    | Native OS notifications for Exa – know when tasks complete                                    |
-| [exa-workspace](https://github.com/kdcokenny/exa-workspace)                              | Bundled multi-agent orchestration harness – 16 components, one install                             |
-| [exa-worktree](https://github.com/kdcokenny/exa-worktree)                                | Zero-friction git worktrees for Exa                                                           |
-| [exa-sentry-monitor](https://github.com/stolinski/exa-sentry-monitor)                    | Trace and debug your AI agents with Sentry AI Monitoring                                           |
-| [exa-firecrawl](https://github.com/firecrawl/exa-firecrawl)                              | Web scraping, crawling, and search via the Firecrawl CLI                                           |
-| [exa-jfrog-plugin](https://github.com/jfrog/exa-jfrog-plugin)                            | JFrog Plugin for seamless integration of Opencode users to JFrog platform                          |
-| [exa-goal-plugin](https://github.com/willytop8/Exa-goal-plugin)                          | Session-scoped `/goal` workflow that keeps objectives in context and auto-continues until complete |
-| [exa-tavily](https://github.com/tavily-ai/exa-tavily)                                    | Web search, extraction, crawling, and deep research via the Tavily CLI                             |
-
----
-
-## Projects
-
-| Name                                                                                       | Description                                                      |
-| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
-| [kimaki](https://github.com/remorses/kimaki)                                               | Discord bot to control Exa sessions, built on the SDK       |
-| [exa.nvim](https://github.com/NickvanDyke/exa.nvim)                              | Neovim plugin for editor-aware prompts, built on the API         |
-| [portal](https://github.com/hosenur/portal)                                                | Mobile-first web UI for Exa over Tailscale/VPN              |
-| [exa plugin template](https://github.com/zenobi-us/exa-plugin-template/)         | Template for building Exa plugins                           |
-| [exa.nvim](https://github.com/sudo-tee/exa.nvim)                                 | Neovim frontend for exa - a terminal-based AI coding agent  |
-| [ai-sdk-provider-exa-sdk](https://github.com/ben-vargas/ai-sdk-provider-exa-sdk) | Vercel AI SDK provider for using Exa via @exa/sdk   |
-| [OpenChamber](https://github.com/btriapitsyn/openchamber)                                  | Web / Desktop App and VS Code Extension for Exa             |
-| [Exa-Obsidian](https://github.com/mtymek/exa-obsidian)                           | Obsidian plugin that embeds Exa in Obsidian's UI            |
-| [OpenWork](https://github.com/different-ai/openwork)                                       | An open-source alternative to Claude Cowork, powered by Exa |
-| [ocx](https://github.com/kdcokenny/ocx)                                                    | Exa extension manager with portable, isolated profiles.     |
-| [CodeNomad](https://github.com/NeuralNomadsAI/CodeNomad)                                   | Desktop, Web, Mobile and Remote Client App for Exa          |
-
----
-
-## Agents
-
-| Name                                                              | Description                                                  |
-| ----------------------------------------------------------------- | ------------------------------------------------------------ |
-| [Agentic](https://github.com/Cluster444/agentic)                  | Modular AI agents and commands for structured development    |
-| [exa-agents](https://github.com/darrenhinde/exa-agents) | Configs, prompts, agents, and plugins for enhanced workflows |

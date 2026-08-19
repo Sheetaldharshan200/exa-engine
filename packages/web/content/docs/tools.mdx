@@ -47,7 +47,7 @@ Here are all the built-in tools available in Exa.
 
 ### bash
 
-Execute shell commands in your project environment.
+Execute shell commands in your folder environment.
 
 ```json title="exa.json"
 {
@@ -170,7 +170,7 @@ This tool is only available when `EXA_EXPERIMENTAL_LSP_TOOL=true` (or `EXA_EXPER
 
 Supported operations include `goToDefinition`, `findReferences`, `hover`, `documentSymbol`, `workspaceSymbol`, `goToImplementation`, `prepareCallHierarchy`, `incomingCalls`, and `outgoingCalls`.
 
-To configure which LSP servers are available for your project, see [LSP Servers](./lsp.mdx).
+To configure which LSP servers are available for your folder, see [LSP Servers](./lsp.mdx).
 
 ---
 
@@ -191,7 +191,7 @@ This tool applies patch files to your codebase. Useful for applying diffs and pa
 
 When handling `tool.execute.before` or `tool.execute.after` hooks, check `input.tool === "apply_patch"` (not `"patch"`).
 
-`apply_patch` uses `output.args.patchText` instead of `output.args.filePath`. Paths are embedded in marker lines within `patchText` and are relative to the project root (for example: `*** Add File: src/new-file.ts`, `*** Update File: src/existing.ts`, `*** Move to: src/renamed.ts`, `*** Delete File: src/obsolete.ts`).
+`apply_patch` uses `output.args.patchText` instead of `output.args.filePath`. Paths are embedded in marker lines within `patchText` and are relative to the folder root (for example: `*** Add File: src/new-file.ts`, `*** Update File: src/existing.ts`, `*** Move to: src/renamed.ts`, `*** Delete File: src/obsolete.ts`).
 
 <Callout type="info">
 The `apply_patch` tool is controlled by the `edit` permission, which covers all file modifications (`edit`, `write`, `apply_patch`).
@@ -230,7 +230,7 @@ Manage todo lists during coding sessions.
 Creates and updates task lists to track progress during complex operations. The LLM uses this to organize multi-step tasks.
 
 <Callout type="info">
-This tool is disabled for subagents by default, but you can enable it manually. [Learn more](/docs/agents/#permissions)
+This tool is disabled for subagents by default, but you can enable it manually. [Learn more](./agents.mdx#permissions)
 </Callout>
 
 ---
@@ -334,7 +334,7 @@ Internally, tools like `grep` and `glob` use [ripgrep](https://github.com/BurntS
 
 ### Ignore patterns
 
-To include files that would normally be ignored, create a `.ignore` file in your project root. This file can explicitly allow certain paths.
+To include files that would normally be ignored, create a `.ignore` file in your folder root. This file can explicitly allow certain paths.
 
 ```text title=".ignore"
 !node_modules/

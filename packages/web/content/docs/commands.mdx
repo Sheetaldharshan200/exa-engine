@@ -80,7 +80,7 @@ Now you can run this command in the TUI:
 You can also define commands using markdown files. Place them in:
 
 - Global: `~/.config/exa/commands/`
-- Per-project: `.exa/commands/`
+- Per-folder: `.exa/commands/`
 
 ```markdown title="~/.config/exa/commands/test.md"
 ---
@@ -191,7 +191,7 @@ Recent git commits:
 Review these changes and suggest any improvements.
 ```
 
-Commands run in your project's root directory and their output becomes part of the prompt.
+Commands run in your folder's root directory and their output becomes part of the prompt.
 
 ---
 
@@ -257,7 +257,7 @@ This is shown as the description in the TUI when you type in the command.
 ### Agent
 
 Use the `agent` config to optionally specify which [agent](./agents.mdx) should execute this command.
-If this is a [subagent](/docs/agents/#subagents) the command will trigger a subagent invocation by default.
+If this is a [subagent](./agents.mdx#subagents) the command will trigger a subagent invocation by default.
 To disable this behavior, set `subtask` to `false`.
 
 ```json title="exa.json"
@@ -276,7 +276,7 @@ This is an **optional** config option. If not specified, defaults to your curren
 
 ### Subtask
 
-Use the `subtask` boolean to force the command to trigger a [subagent](/docs/agents/#subagents) invocation.
+Use the `subtask` boolean to force the command to trigger a [subagent](./agents.mdx#subagents) invocation.
 This is useful if you want the command to not pollute your primary context and will **force** the agent to act as a subagent,
 even if `mode` is set to `primary` on the [agent](./agents.mdx) configuration.
 

@@ -95,12 +95,12 @@ The exa server exposes the following APIs.
 
 ---
 
-### Project
+### Folder
 
 | Method | Path               | Description             | Response                                      |
 | ------ | ------------------ | ----------------------- | --------------------------------------------- |
-| `GET`  | `/project`         | List all projects       | <a href={typesUrl}><code>Project[]</code></a> |
-| `GET`  | `/project/current` | Get the current project | <a href={typesUrl}><code>Project</code></a>   |
+| `GET`  | `/project`         | List all folders       | <a href={typesUrl}><code>Folder[]</code></a> |
+| `GET`  | `/project/current` | Get the current folder | <a href={typesUrl}><code>Folder</code></a>   |
 
 ---
 
@@ -109,7 +109,7 @@ The exa server exposes the following APIs.
 | Method | Path    | Description                          | Response                                    |
 | ------ | ------- | ------------------------------------ | ------------------------------------------- |
 | `GET`  | `/path` | Get the current path                 | <a href={typesUrl}><code>Path</code></a>    |
-| `GET`  | `/vcs`  | Get VCS info for the current project | <a href={typesUrl}><code>VcsInfo</code></a> |
+| `GET`  | `/vcs`  | Get VCS info for the current folder | <a href={typesUrl}><code>VcsInfo</code></a> |
 
 ---
 
@@ -203,7 +203,7 @@ The exa server exposes the following APIs.
 
 - `query` (required) — search string (fuzzy match)
 - `type` (optional) — limit results to `"file"` or `"directory"`
-- `directory` (optional) — override the project root for the search
+- `directory` (optional) — override the folder root for the search
 - `limit` (optional) — max results (1–200)
 - `dirs` (optional) — legacy flag (`"false"` returns only files)
 

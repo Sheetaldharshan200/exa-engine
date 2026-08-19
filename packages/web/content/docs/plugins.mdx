@@ -19,7 +19,7 @@ There are two ways to load plugins.
 
 Place JavaScript or TypeScript files in the plugin directory.
 
-- `.exa/plugins/` - Project-level plugins
+- `.exa/plugins/` - Folder-level plugins
 - `~/.config/exa/plugins/` - Global plugins
 
 Files in these directories are automatically loaded at startup.
@@ -56,9 +56,9 @@ Browse available plugins in the [ecosystem](./ecosystem.mdx#plugins).
 Plugins are loaded from all sources and all hooks run in sequence. The load order is:
 
 1. Global config (`~/.config/exa/exa.json`)
-2. Project config (`exa.json`)
+2. Folder config (`exa.json`)
 3. Global plugin directory (`~/.config/exa/plugins/`)
-4. Project plugin directory (`.exa/plugins/`)
+4. Folder plugin directory (`.exa/plugins/`)
 
 Duplicate npm packages with the same name and version are loaded once. However, a local plugin and an npm plugin with similar names are both loaded separately.
 
@@ -115,7 +115,7 @@ export const MyPlugin = async ({ project, client, $, directory, worktree }) => {
 
 The plugin function receives:
 
-- `project`: The current project information.
+- `project`: The current folder information.
 - `directory`: The current working directory.
 - `worktree`: The git worktree path.
 - `client`: An exa SDK client for interacting with the AI.

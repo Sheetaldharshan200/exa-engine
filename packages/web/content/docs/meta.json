@@ -36,6 +36,7 @@
     "windows-wsl",
     "references",
     "---Develop---",
+    "migrate",
     "sdk",
     "server",
     "plugins",

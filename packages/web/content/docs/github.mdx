@@ -17,7 +17,7 @@ Exa integrates with your GitHub workflow. Mention `/exa` in a comment, and Exa r
 
 ## Installation
 
-Run the following command in a project that is in a GitHub repo:
+Run the following command in a folder that is in a GitHub repo:
 
 ```bash
 exa github install
@@ -71,7 +71,7 @@ Or you can set it up manually.
 
 2. **Store the API keys in secrets**
 
-   In your organization or project **settings**, expand **Secrets and variables** on the left and select **Actions**. Add the API keys your chosen provider needs. `GITHUB_TOKEN` is provided by the runner itself — you do not create it.
+   In your organization or repository **settings**, expand **Secrets and variables** on the left and select **Actions**. Add the API keys your chosen provider needs. `GITHUB_TOKEN` is provided by the runner itself — you do not create it.
 
 ---
 
@@ -259,7 +259,7 @@ Override the default prompt to customize Exa's behavior for your workflow.
       - Suggest improvements
 ```
 
-This is useful for enforcing specific review criteria, coding standards, or focus areas relevant to your project.
+This is useful for enforcing specific review criteria, coding standards, or focus areas relevant to your folder.
 
 ---
 

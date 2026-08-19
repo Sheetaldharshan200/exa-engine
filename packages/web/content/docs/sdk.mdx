@@ -8,7 +8,7 @@ export const typesUrl = "https://github.com/Sheetaldharshan200/exa-engine/blob/m
 The exa JS/TS SDK provides a type-safe client for interacting with the server.
 Use it to build integrations and control exa programmatically.
 
-[Learn more](./server.mdx) about how the server works. For examples, check out the [projects](./ecosystem.mdx#projects) built by the community.
+[Learn more](./server.mdx) about how the server works. For examples, check out the [integrations](./ecosystem.mdx) built on it.
 
 ---
 
@@ -27,9 +27,9 @@ npm install @exa/sdk
 Create an instance of exa:
 
 ```javascript
-import { createOpencode } from "@exa/sdk"
+import { createExa } from "@exa/sdk"
 
-const { client } = await createOpencode()
+const { client } = await createExa()
 ```
 
 This starts both a server and a client
@@ -51,9 +51,9 @@ This starts both a server and a client
 You can pass a configuration object to customize behavior. The instance still picks up your `exa.json`, but you can override or add configuration inline:
 
 ```javascript
-import { createOpencode } from "@exa/sdk"
+import { createExa } from "@exa/sdk"
 
-const exa = await createOpencode({
+const exa = await createExa({
   hostname: "127.0.0.1",
   port: 4096,
   config: {
@@ -71,9 +71,9 @@ exa.server.close()
 If you already have a running instance of exa, you can create a client instance to connect to it:
 
 ```javascript
-import { createOpencodeClient } from "@exa/sdk"
+import { createExaClient } from "@exa/sdk"
 
-const client = createOpencodeClient({
+const client = createExaClient({
   baseUrl: "http://localhost:4096",
 })
 ```
@@ -238,12 +238,12 @@ const agents = await client.app.agents()
 
 ---
 
-### Project
+### Folder
 
 | Method              | Description         | Response                                      |
 | ------------------- | ------------------- | --------------------------------------------- |
-| `project.list()`    | List all projects   | <a href={typesUrl}><code>Project[]</code></a> |
-| `project.current()` | Get current project | <a href={typesUrl}><code>Project</code></a>   |
+| `project.list()`    | List all folders   | <a href={typesUrl}><code>Project[]</code></a> |
+| `project.current()` | Get current folder | <a href={typesUrl}><code>Project</code></a>   |
 
 ---
 
@@ -365,7 +365,7 @@ await client.session.prompt({
 `find.files` supports a few optional query fields:
 
 - `type`: `"file"` or `"directory"`
-- `directory`: override the project root for the search
+- `directory`: override the folder root for the search
 - `limit`: max results (1–200)
 
 ---

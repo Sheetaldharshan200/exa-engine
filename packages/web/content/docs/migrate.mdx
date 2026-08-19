@@ -1,0 +1,89 @@
+---
+title: Migrate from opencode
+description: Move an opencode setup — config, plugins, SDK code — to Exa.
+---
+
+Exa began as a fork of opencode, rebuilt around data work: a native Exasol driver, several databases in one session, opt-in writes, a built-in local model engine, and `exa web` serving the full Exasol Studio. If you already use opencode, almost everything you know carries over — the names change, the concepts do not.
+
+Exa does **not** read opencode's files automatically. The rename below is yours to make once; after that everything works as before.
+
+## Files and folders
+
+| opencode | Exa |
+| --- | --- |
+| `~/.config/opencode/opencode.json` | `~/.config/exa/exa.json` |
+| `.opencode/opencode.json` (per folder) | `.exa/exa.json` |
+| `.opencode/plugins/` | `.exa/plugins/` |
+| `.opencode/skills/` | `.exa/skills/` |
+| `.opencode/themes/` | `.exa/themes/` |
+| `~/.local/share/opencode` (data) | `~/.local/share/exa` |
+
+The config format itself is unchanged — copy the file, rename it, and point `$schema` at [Exa's schema](https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/schema/config.json). See [Config](./config.mdx) for every option.
+
+## Environment variables
+
+Every `OPENCODE_*` variable becomes `EXA_*`:
+
+| opencode | Exa |
+| --- | --- |
+| `OPENCODE_CONFIG` | `EXA_CONFIG` |
+| `OPENCODE_CONFIG_DIR` | `EXA_CONFIG_DIR` |
+| `OPENCODE_PERMISSION` | `EXA_PERMISSION` |
+| `OPENCODE_DISABLE_*` | `EXA_DISABLE_*` |
+
+## Plugins
+
+The plugin API is the same — hooks, events, `tool()` definitions. Change the package name:
+
+```ts
+// before
+import type { Plugin } from "@opencode-ai/plugin"
+// after
+import type { Plugin } from "@exa/plugin"
+```
+
+Plugin files move from `.opencode/plugins/` to `.exa/plugins/`. Everything in [Plugins](./plugins.mdx) and [Custom tools](./custom-tools.mdx) applies.
+
+## SDK
+
+Package and function names change; the API surface is the same:
+
+```ts
+// before
+import { createOpencode, createOpencodeClient } from "@opencode-ai/sdk"
+// after
+import { createExa, createExaClient } from "@exa/sdk"
+```
+
+See [SDK](./sdk.mdx) for the full client reference.
+
+## GitHub agent
+
+The workflow trigger is `/exa`, and the action authenticates with the workflow's own `GITHUB_TOKEN` — there is no GitHub App and no token-exchange service to sign up for:
+
+```yaml
+- uses: Sheetaldharshan200/exa-engine/github@main
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+See [GitHub](./github.mdx) for the full setup.
+
+## What carries over unchanged
+
+- **Agents** — `agent/*.md` definitions and the `agent` config block. [Agents](./agents.mdx)
+- **Commands** — custom `/commands`. [Commands](./commands.mdx)
+- **Skills** — `SKILL.md` folders, including Claude-compatible layouts. [Skills](./skills.mdx)
+- **Themes and keybinds** — same JSON formats. [Themes](./themes.mdx), [Keybinds](./keybinds.mdx)
+- **AGENTS.md** — read from the folder root exactly as before. [Rules](./rules.mdx)
+
+## What Exa adds
+
+- **Databases as a first-class citizen** — `exa connect`, several at once, writes refused until granted. [Databases](./databases.mdx)
+- **A built-in local model engine** — no Ollama required. [Local models](./local-models.mdx)
+- **`exa web`** — the full Exasol Studio in the browser, same engine, same connections. [Web](./web.mdx)
+- **`exa docs`** — this documentation, served locally from the binary.
+
+## What Exa removes
+
+There is no hosted share service, no Zen/Go subscription, and no cloud account: sharing needs your own server under `enterprise.url`, and every credential lives in your OS credential store.

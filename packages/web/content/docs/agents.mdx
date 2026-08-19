@@ -190,7 +190,7 @@ Configure agents in your `exa.json` config file:
 You can also define agents using markdown files. Place them in:
 
 - Global: `~/.config/exa/agents/`
-- Per-project: `.exa/agents/`
+- Per-folder: `.exa/agents/`
 
 ```markdown title="~/.config/exa/agents/review.md"
 ---
@@ -344,7 +344,7 @@ Specify a custom system prompt file for this agent with the `prompt` config. The
 }
 ```
 
-This path is relative to where the config file is located. So this works for both the global Exa config and the project specific config.
+This path is relative to where the config file is located. So this works for both the global Exa config and the folder specific config.
 
 ---
 
@@ -438,7 +438,7 @@ The available permission keys are:
 | `list`               | `list`                                                           |
 | `bash`               | `bash`                                                           |
 | `task`               | `task`                                                           |
-| `external_directory` | Any tool that reads or writes files outside the project worktree |
+| `external_directory` | Any tool that reads or writes files outside the folder worktree |
 | `todowrite`          | `todowrite`, `todoread`                                          |
 | `webfetch`           | `webfetch`                                                       |
 | `websearch`          | `websearch`                                                      |
@@ -707,7 +707,7 @@ exa agent create
 
 This interactive command will:
 
-1. Ask where to save the agent; global or project-specific.
+1. Ask where to save the agent; global or folder-specific.
 2. Description of what the agent should do.
 3. Generate an appropriate system prompt and identifier.
 4. Let you select which permissions the agent should be allowed (anything you don't select is denied).

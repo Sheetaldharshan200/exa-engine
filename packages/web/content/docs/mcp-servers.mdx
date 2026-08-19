@@ -403,7 +403,7 @@ Below are examples of some common MCP servers. You can submit a PR if you want t
 
 ### Sentry
 
-Add the [Sentry MCP server](https://mcp.sentry.dev) to interact with your Sentry projects and issues.
+Add the [Sentry MCP server](https://mcp.sentry.dev) to interact with your Sentry folders and issues.
 
 ```json title="exa.json"
 {
@@ -426,7 +426,7 @@ exa mcp auth sentry
 
 This will open a browser window to complete the OAuth flow and connect Exa to your Sentry account.
 
-Once authenticated, you can use Sentry tools in your prompts to query issues, projects, and error data.
+Once authenticated, you can use Sentry tools in your prompts to query issues, folders, and error data.
 
 ```txt
 Show me the latest unresolved issues in my project. use sentry
@@ -475,7 +475,7 @@ Add `use context7` to your prompts to use Context7 MCP server.
 Configure a Cloudflare Worker script to cache JSON API responses for five minutes. use context7
 ```
 
-Alternatively, you can add something like this to your [AGENTS.md](/docs/rules/).
+Alternatively, you can add something like this to your [AGENTS.md](./rules.mdx).
 
 ```md title="AGENTS.md"
 When you need to search docs, use `context7` tools.
@@ -505,7 +505,7 @@ Since we named our MCP server `gh_grep`, you can add `use the gh_grep tool` to y
 What's the right way to set a custom domain in an SST Astro component? use the gh_grep tool
 ```
 
-Alternatively, you can add something like this to your [AGENTS.md](/docs/rules/).
+Alternatively, you can add something like this to your [AGENTS.md](./rules.mdx).
 
 ```md title="AGENTS.md"
 If you are unsure how to do something, use `gh_grep` to search code examples from GitHub.

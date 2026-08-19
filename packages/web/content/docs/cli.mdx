@@ -144,7 +144,7 @@ Exa is powered by the provider list at [Models.dev](https://models.dev), so you 
 exa auth login
 ```
 
-When Exa starts up it loads the providers from the credentials file. And if there are any keys defined in your environments or a `.env` file in your project.
+When Exa starts up it loads the providers from the credentials file. And if there are any keys defined in your environments or a `.env` file in your folder.
 
 ##### Flags
 
@@ -312,7 +312,7 @@ exa models [provider]
 
 This command displays all models available across your configured providers in the format `provider/model`.
 
-This is useful for figuring out the exact model name to use in [your config](/docs/config/).
+This is useful for figuring out the exact model name to use in [your config](./config.mdx).
 
 You can optionally pass a provider ID to filter models by that provider.
 
@@ -458,7 +458,7 @@ exa stats
 | <nobr><code>{"--days"}</code></nobr>    | Show stats for the last N days (all time)                                   |
 | <nobr><code>{"--tools"}</code></nobr>   | Number of tools to show (all)                                               |
 | <nobr><code>{"--models"}</code></nobr>  | Show model usage breakdown (hidden by default). Pass a number to show top N |
-| <nobr><code>{"--project"}</code></nobr> | Filter by project (all projects, empty string: current project)             |
+| <nobr><code>{"--folder"}</code></nobr> | Filter by folder (all folders, empty string: current folder)             |
 
 ---
 

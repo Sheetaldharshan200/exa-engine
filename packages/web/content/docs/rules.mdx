@@ -3,7 +3,7 @@ title: Rules
 description: Set custom instructions for exa.
 ---
 
-You can provide custom instructions to exa by creating an `AGENTS.md` file. This is similar to Cursor's rules. It contains instructions that will be included in the LLM's context to customize its behavior for your specific project.
+You can provide custom instructions to exa by creating an `AGENTS.md` file. This is similar to Cursor's rules. It contains instructions that will be included in the LLM's context to customize its behavior for your specific folder.
 
 ---
 
@@ -12,17 +12,17 @@ You can provide custom instructions to exa by creating an `AGENTS.md` file. This
 To create a new `AGENTS.md` file, you can run the `/init` command in exa.
 
 <Callout type="info">
-You should commit your project's `AGENTS.md` file to Git.
+You should commit your folder's `AGENTS.md` file to Git.
 </Callout>
 
-`/init` scans the important files in your repo, may ask a couple of targeted questions when the codebase cannot answer them, and then creates or updates `AGENTS.md` with concise project-specific guidance.
+`/init` scans the important files in your repo, may ask a couple of targeted questions when the codebase cannot answer them, and then creates or updates `AGENTS.md` with concise folder-specific guidance.
 
 It focuses on the things future agent sessions are most likely to need:
 
 - build, lint, and test commands
 - command order and focused verification steps when they matter
 - architecture and repo structure that are not obvious from filenames alone
-- project-specific conventions, setup quirks, and operational gotchas
+- folder-specific conventions, setup quirks, and operational gotchas
 - references to existing instruction sources like Cursor or Copilot rules
 
 If you already have an `AGENTS.md`, `/init` will improve it in place instead of blindly replacing it.
@@ -56,7 +56,7 @@ This is an SST v3 monorepo with TypeScript. The project uses bun workspaces for 
 - Import shared modules using workspace names: `@my-app/core/example`
 ```
 
-We are adding project-specific instructions here and this will be shared across your team.
+We are adding folder-specific instructions here and this will be shared across your team.
 
 ---
 
@@ -64,9 +64,9 @@ We are adding project-specific instructions here and this will be shared across 
 
 exa also supports reading the `AGENTS.md` file from multiple locations. And this serves different purposes.
 
-### Project
+### Folder
 
-Place an `AGENTS.md` in your project root for project-specific rules. These only apply when you are working in this directory or its sub-directories.
+Place an `AGENTS.md` in your folder root for folder-specific rules. These only apply when you are working in this directory or its sub-directories.
 
 ### Global
 
@@ -78,9 +78,9 @@ Since this isn't committed to Git or shared with your team, we recommend using t
 
 For users migrating from Claude Code, Exa supports Claude Code's file conventions as fallbacks:
 
-- **Project rules**: `CLAUDE.md` in your project directory (used if no `AGENTS.md` exists)
+- **Folder rules**: `CLAUDE.md` in your folder directory (used if no `AGENTS.md` exists)
 - **Global rules**: `~/.claude/CLAUDE.md` (used if no `~/.config/exa/AGENTS.md` exists)
-- **Skills**: `~/.claude/skills/` — see [Agent Skills](/docs/skills/) for details
+- **Skills**: `~/.claude/skills/` — see [Agent Skills](./skills.mdx) for details
 
 To disable Claude Code compatibility, set one of these environment variables:
 
@@ -179,10 +179,10 @@ Read the following file immediately as it's relevant to all workflows: @rules/ge
 This approach allows you to:
 
 - Create modular, reusable rule files
-- Share rules across projects via symlinks or git submodules
+- Share rules across folders via symlinks or git submodules
 - Keep AGENTS.md concise while referencing detailed guidelines
 - Ensure exa loads files only when needed for the specific task
 
 <Callout type="info">
-For monorepos or projects with shared standards, using `exa.json` with glob patterns (like `packages/*/AGENTS.md`) is more maintainable than manual instructions.
+For monorepos or folders with shared standards, using `exa.json` with glob patterns (like `packages/*/AGENTS.md`) is more maintainable than manual instructions.
 </Callout>

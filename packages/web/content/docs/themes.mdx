@@ -83,7 +83,7 @@ Themes are loaded from multiple directories in the following order where later d
 
 1. **Built-in themes** - These are embedded in the binary
 2. **User config directory** - Defined in `~/.config/exa/themes/*.json` or `$XDG_CONFIG_HOME/exa/themes/*.json`
-3. **Project root directory** - Defined in the `<project-root>/.exa/themes/*.json`
+3. **Folder root directory** - Defined in the `<project-root>/.exa/themes/*.json`
 4. **Current working directory** - Defined in `./.exa/themes/*.json`
 
 If multiple directories contain a theme with the same name, the theme from the directory with higher priority will be used.
@@ -101,7 +101,7 @@ mkdir -p ~/.config/exa/themes
 vim ~/.config/exa/themes/my-theme.json
 ```
 
-And for project-specific themes.
+And for folder-specific themes.
 
 ```bash
 mkdir -p .exa/themes
