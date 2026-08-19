@@ -239,7 +239,11 @@ const layer = Layer.effect(
             add: [
               {
                 name: "@exa/plugin",
-                version: InstallationLocal ? undefined : InstallationVersion,
+                // The @exa scope on npm is not ours; the package publishes as
+                // exa-engine-plugin and installs here under its internal name
+                // via an npm alias, so plugin files import "@exa/plugin" as
+                // documented.
+                version: InstallationLocal ? undefined : `npm:exa-engine-plugin@${InstallationVersion}`,
               },
             ],
           })

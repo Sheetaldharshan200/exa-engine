@@ -42,6 +42,16 @@ import type { Plugin } from "@opencode-ai/plugin"
 import type { Plugin } from "@exa/plugin"
 ```
 
+For local plugin files nothing needs installing — Exa provides `@exa/plugin` in your config directory automatically (published as `exa-engine-plugin`, installed under the internal name via an npm alias). A plugin published to npm declares it the same way:
+
+```json title="package.json"
+{
+  "dependencies": {
+    "@exa/plugin": "npm:exa-engine-plugin@latest"
+  }
+}
+```
+
 Plugin files move from `.opencode/plugins/` to `.exa/plugins/`. Everything in [Plugins](./plugins.mdx) and [Custom tools](./custom-tools.mdx) applies.
 
 ## SDK
@@ -53,6 +63,12 @@ Package and function names change; the API surface is the same:
 import { createOpencode, createOpencodeClient } from "@opencode-ai/sdk"
 // after
 import { createExa, createExaClient } from "@exa/sdk"
+```
+
+The package is on npm as `exa-engine-sdk`; install it under the internal alias and the imports above work verbatim:
+
+```bash
+npm install @exa/sdk@npm:exa-engine-sdk
 ```
 
 See [SDK](./sdk.mdx) for the full client reference.

@@ -78,13 +78,72 @@ const tasks = Object.entries(binaries).map(async ([name]) => {
 await Promise.all(tasks)
 await publish(`./dist/${pkg.name}`, `${pkg.name}-ai`, version)
 
+// ── SDK and plugin libraries ─────────────────────────────────────────────────
+// Internal imports say "@exa/sdk" and "@exa/plugin", but the @exa scope on npm
+// is not ours to claim, so the packages publish under exa-engine-* names.
+// Consumers install them as aliases — `npm i @exa/sdk@npm:exa-engine-sdk` —
+// which keeps every documented import working verbatim, and the runtime
+// installs the plugin package the same way for plugin authors (config.ts).
+async function publishLibrary(sourceDir: string, publishedName: string, dependencies: Record<string, string>) {
+  const src = await Bun.file(`../../${sourceDir}/package.json`).json()
+  await $`bunx tsc -p ${sourceDir}`.cwd("../..")
+  const stage = `./dist/${publishedName}`
+  await $`rm -rf ${stage}`
+  await $`mkdir -p ${stage}`
+  await $`cp -R ../../${sourceDir}/dist ${stage}/dist`
+  await Bun.file(`${stage}/LICENSE`).write(await Bun.file("../../LICENSE").text())
+
+  // The source exports map points at src/*.ts for workspace use; the published
+  // one points at the compiled output with its declarations.
+  const exports = Object.fromEntries(
+    Object.entries(src.exports as Record<string, string>).map(([key, value]) => {
+      const base = value.replace(/^\.\/src\//, "./dist/").replace(/\.ts$/, "")
+      return [key, { types: `${base}.d.ts`, default: `${base}.js` }]
+    }),
+  )
+
+  await Bun.file(`${stage}/package.json`).write(
+    JSON.stringify(
+      {
+        name: publishedName,
+        version,
+        type: "module",
+        license: src.license,
+        description: src.description,
+        repository: { type: "git", url: "git+https://github.com/Sheetaldharshan200/exa-engine.git" },
+        exports,
+        files: ["dist"],
+        dependencies,
+      },
+      null,
+      2,
+    ),
+  )
+  await publish(stage, publishedName, version)
+}
+
+await publishLibrary("packages/sdk/js", "exa-engine-sdk", {
+  "cross-spawn": "7.0.6",
+})
+await publishLibrary("packages/plugin", "exa-engine-plugin", {
+  "@ai-sdk/provider": "3.0.8",
+  // Alias: the compiled output imports "@exa/sdk", published as exa-engine-sdk.
+  "@exa/sdk": `npm:exa-engine-sdk@${version}`,
+  effect: "4.0.0-beta.83",
+  zod: "4.1.8",
+})
+
 const image = "ghcr.io/sheetaldharshan200/exa-engine"
 const platforms = "linux/amd64,linux/arm64"
 const tags = [`${image}:${version}`, `${image}:${Script.channel}`]
 const tagFlags = tags.flatMap((t) => ["-t", t])
 
 // registries
-if (!Script.preview) {
+// Each distribution channel needs its own credential (a docker login for
+// GHCR, an SSH key for the AUR, a homebrew-tap repository). They are opted
+// into individually so a missing credential skips its channel with a notice
+// instead of failing the whole publish after npm already succeeded.
+if (!Script.preview && process.env["EXA_PUBLISH_DOCKER"] === "1") {
   await $`docker buildx build --platform ${platforms} ${tagFlags} --push .`
   // Calculate SHA values
   const arm64Sha = await $`sha256sum ./dist/exa-linux-arm64.tar.gz | cut -d' ' -f1`.text().then((x) => x.trim())
@@ -124,7 +183,7 @@ if (!Script.preview) {
     "",
   ].join("\n")
 
-  for (const [pkg, pkgbuild] of [["exa-bin", binaryPkgbuild]]) {
+  for (const [pkg, pkgbuild] of process.env["EXA_PUBLISH_AUR"] === "1" ? [["exa-bin", binaryPkgbuild]] : []) {
     for (let i = 0; i < 30; i++) {
       try {
         await $`rm -rf ./dist/aur-${pkg}`
@@ -197,9 +256,9 @@ if (!Script.preview) {
   ].join("\n")
 
   const token = process.env.GITHUB_TOKEN
-  if (!token) {
-    console.error("GITHUB_TOKEN is required to update homebrew tap")
-    process.exit(1)
+  if (process.env["EXA_PUBLISH_HOMEBREW"] !== "1" || !token) {
+    console.log("skipping homebrew tap update (set EXA_PUBLISH_HOMEBREW=1 with a GITHUB_TOKEN, and create the homebrew-tap repo)")
+    process.exit(0)
   }
   const tap = `https://x-access-token:${token}@github.com/Sheetaldharshan200/homebrew-tap.git`
   await $`rm -rf ./dist/homebrew-tap`

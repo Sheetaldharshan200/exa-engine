@@ -91,9 +91,11 @@ jobs:
           export EXA_VERSION="${GITHUB_REF_NAME#v}"
           bun ./packages/exa/script/build.ts
 
-      # npm/bun/pnpm installs: publish the exa-ai wrapper and its per-platform
-      # binary packages. Additive — the curl/irm installers work without it —
-      # so a missing token skips with a notice rather than failing the release.
+      # npm/bun/pnpm installs: publish the exa-ai wrapper, its per-platform
+      # binary packages, and the exa-engine-sdk / exa-engine-plugin libraries
+      # (installed by consumers and by the runtime as @exa/* aliases).
+      # Additive — the curl/irm installers work without it — so a missing
+      # token skips with a notice rather than failing the release.
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
