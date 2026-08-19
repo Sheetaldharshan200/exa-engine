@@ -3,6 +3,7 @@ import { UI } from "../ui"
 import { effectCmd } from "../effect-cmd"
 import { withNetworkOptions, resolveNetworkOptions } from "../network"
 import { Flag } from "@exa/core/flag/flag"
+import { unsecuredServerWarning } from "../server-warning"
 import open from "open"
 import { networkInterfaces } from "os"
 
@@ -37,10 +38,12 @@ export const WebCommand = effectCmd({
   instance: false,
   handler: Effect.fn("Cli.web")(function* (args) {
     const { Server } = yield* Effect.promise(() => import("../../server/server"))
-    if (!Flag.EXA_SERVER_PASSWORD) {
-      UI.println(UI.Style.TEXT_WARNING_BOLD + "!  EXA_SERVER_PASSWORD is not set; server is unsecured.")
-    }
     const opts = yield* resolveNetworkOptions(args)
+    if (!Flag.EXA_SERVER_PASSWORD) {
+      for (const line of unsecuredServerWarning(opts.hostname, "web")) {
+        UI.println(UI.Style.TEXT_WARNING_BOLD + line)
+      }
+    }
     const server = yield* Effect.promise(() => Server.listen(opts))
     UI.empty()
     UI.println(UI.logo("  "))
