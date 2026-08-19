@@ -37,13 +37,21 @@ html > body[data-scroll-locked] {
   background-color: var(--color-fd-background);
 }
 
-/* Section labels: quiet small caps so pages, not headers, carry the weight. */
-#nd-sidebar p {
-  text-transform: uppercase;
-  font-size: 10.5px;
-  letter-spacing: 0.09em;
-  font-weight: 600;
+/* Group headers: real headers — big, bold, full-color, chevron at the far
+ * edge. Each section is a dropdown (a collapsible folder), so the header is
+ * the control and should look like one. */
+#nd-sidebar button[aria-expanded] {
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--color-fd-foreground);
+  margin-top: 0.875rem;
+}
+#nd-sidebar button[aria-expanded] > svg:last-child {
+  margin-inline-start: auto;
   color: var(--color-fd-muted-foreground);
+}
+#nd-sidebar button[aria-expanded]:hover {
+  color: var(--color-fd-primary);
 }
 
 /* Items: rounded rows; the active page sits on a green-tinted pill. */

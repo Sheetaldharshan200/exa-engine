@@ -255,7 +255,7 @@ All managed preference keys appear in the resolved config and cannot be overridd
 
 The config schema is generated from the code on every release and published at [**`schema/config.json`**](https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/schema/config.json). Point `$schema` at it for editor autocomplete and validation.
 
-TUI settings live in `tui.json` next to your config; the keys are documented in [TUI](./tui.mdx) and [Keybinds](./keybinds.mdx).
+TUI settings live in `tui.json` next to your config; the keys are documented in [TUI](../usage/tui.mdx) and [Keybinds](./keybinds.mdx).
 
 Your editor should be able to validate and autocomplete based on the schema.
 
@@ -290,7 +290,7 @@ Use `EXA_TUI_CONFIG` to point to a custom TUI config file.
 
 When `cursor.style` is `"default"`, the terminal default cursor is restored, so `cursor.blinking` has no effect.
 
-Set `attention.enabled` to turn on TUI desktop notifications and sounds. See [TUI attention](./tui.mdx#attention).
+Set `attention.enabled` to turn on TUI desktop notifications and sounds. See [TUI attention](../usage/tui.mdx#attention).
 
 Legacy `theme`, `keybinds`, and `tui` keys in `exa.json` are deprecated and automatically migrated when possible.
 
@@ -321,7 +321,7 @@ Available options:
 - `mdnsDomain` - Custom domain name for mDNS service. Defaults to `exa.local`. Useful for running multiple instances on the same network.
 - `cors` - Additional origins to allow for CORS when using the HTTP server from a browser-based client. Values must be full origins (scheme + host + optional port), eg `https://app.example.com`.
 
-[Learn more about the server here](./server.mdx).
+[Learn more about the server here](../develop/server.mdx).
 
 ---
 
@@ -793,7 +793,7 @@ You can configure MCP servers you want to use through the `mcp` option.
 
 ### Plugins
 
-[Plugins](./plugins.mdx) extend Exa with custom tools, hooks, and integrations.
+[Plugins](../develop/plugins.mdx) extend Exa with custom tools, hooks, and integrations.
 
 Place plugin files in `.exa/plugins/` or `~/.config/exa/plugins/`. You can also load plugins from npm through the `plugin` option.
 
@@ -804,7 +804,7 @@ Place plugin files in `.exa/plugins/` or `~/.config/exa/plugins/`. You can also 
 }
 ```
 
-[Learn more here](./plugins.mdx).
+[Learn more here](../develop/plugins.mdx).
 
 ---
 

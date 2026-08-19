@@ -18,7 +18,7 @@ Exa does **not** read opencode's files automatically. The rename below is yours 
 | `.opencode/themes/` | `.exa/themes/` |
 | `~/.local/share/opencode` (data) | `~/.local/share/exa` |
 
-The config format itself is unchanged — copy the file, rename it, and point `$schema` at [Exa's schema](https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/schema/config.json). See [Config](./config.mdx) for every option.
+The config format itself is unchanged — copy the file, rename it, and point `$schema` at [Exa's schema](https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/schema/config.json). See [Config](../configure/config.mdx) for every option.
 
 ## Environment variables
 
@@ -52,7 +52,7 @@ For local plugin files nothing needs installing — Exa provides `@exa/plugin` i
 }
 ```
 
-Plugin files move from `.opencode/plugins/` to `.exa/plugins/`. Everything in [Plugins](./plugins.mdx) and [Custom tools](./custom-tools.mdx) applies.
+Plugin files move from `.opencode/plugins/` to `.exa/plugins/`. Everything in [Plugins](./plugins.mdx) and [Custom tools](../configure/custom-tools.mdx) applies.
 
 ## SDK
 
@@ -83,21 +83,21 @@ The workflow trigger is `/exa`, and the action authenticates with the workflow's
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-See [GitHub](./github.mdx) for the full setup.
+See [GitHub](../usage/github.mdx) for the full setup.
 
 ## What carries over unchanged
 
-- **Agents** — `agent/*.md` definitions and the `agent` config block. [Agents](./agents.mdx)
-- **Commands** — custom `/commands`. [Commands](./commands.mdx)
-- **Skills** — `SKILL.md` folders, including Claude-compatible layouts. [Skills](./skills.mdx)
-- **Themes and keybinds** — same JSON formats. [Themes](./themes.mdx), [Keybinds](./keybinds.mdx)
-- **AGENTS.md** — read from the folder root exactly as before. [Rules](./rules.mdx)
+- **Agents** — `agent/*.md` definitions and the `agent` config block. [Agents](../configure/agents.mdx)
+- **Commands** — custom `/commands`. [Commands](../configure/commands.mdx)
+- **Skills** — `SKILL.md` folders, including Claude-compatible layouts. [Skills](../configure/skills.mdx)
+- **Themes and keybinds** — same JSON formats. [Themes](../configure/themes.mdx), [Keybinds](../configure/keybinds.mdx)
+- **AGENTS.md** — read from the folder root exactly as before. [Rules](../configure/rules.mdx)
 
 ## What Exa adds
 
-- **Databases as a first-class citizen** — `exa connect`, several at once, writes refused until granted. [Databases](./databases.mdx)
-- **A built-in local model engine** — no Ollama required. [Local models](./local-models.mdx)
-- **`exa web`** — the full Exasol Studio in the browser, same engine, same connections. [Web](./web.mdx)
+- **Databases as a first-class citizen** — `exa connect`, several at once, writes refused until granted. [Databases](../data/databases.mdx)
+- **A built-in local model engine** — no Ollama required. [Local models](../data/local-models.mdx)
+- **`exa web`** — the full Exasol Studio in the browser, same engine, same connections. [Web](../usage/web.mdx)
 - **`exa docs`** — this documentation, served locally from the binary.
 
 ## What Exa removes

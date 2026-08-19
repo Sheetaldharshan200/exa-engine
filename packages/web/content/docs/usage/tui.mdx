@@ -40,7 +40,7 @@ How is auth handled in @packages/functions/src/api/index.ts?
 
 The content of the file is added to the conversation automatically.
 
-Configured [references](./references.mdx) also appear in `@` autocomplete. Type `@alias` to add the reference root as context, or type `@alias/` to autocomplete files inside that reference.
+Configured [references](../reference/references.mdx) also appear in `@` autocomplete. Type `@alias` to add the reference root as context, or type `@alias/` to autocomplete files inside that reference.
 
 ```text
 Compare our setup with @docs/README.md
@@ -68,7 +68,7 @@ When using the Exa TUI, you can type `/` followed by a command name to quickly e
 /help
 ```
 
-Most commands also have keyboard shortcuts using `ctrl+x` as the default leader key. [Learn more](./keybinds.mdx).
+Most commands also have keyboard shortcuts using `ctrl+x` as the default leader key. [Learn more](../configure/keybinds.mdx).
 
 Here are all available slash commands:
 
@@ -154,7 +154,7 @@ Show the help dialog.
 
 ### init
 
-Guided setup for creating or updating `AGENTS.md`. [Learn more](./rules.mdx).
+Guided setup for creating or updating `AGENTS.md`. [Learn more](../configure/rules.mdx).
 
 ```bash
 /init
@@ -219,7 +219,7 @@ List and switch between sessions. _Aliases_: `/resume`, `/continue`
 
 ### share
 
-Share current session. Requires a share server configured under `enterprise.url` — see [Sharing](./config.mdx#sharing).
+Share current session. Requires a share server configured under `enterprise.url` — see [Sharing](../configure/config.mdx#sharing).
 
 ```bash
 /share
@@ -391,8 +391,8 @@ This is separate from `exa.json`, which configures server/runtime behavior.
 
 ### Options
 
-- `theme` - Sets your UI theme. [Learn more](./themes.mdx).
-- `keybinds` - Customizes keyboard shortcuts. [Learn more](./keybinds.mdx).
+- `theme` - Sets your UI theme. [Learn more](../configure/themes.mdx).
+- `keybinds` - Customizes keyboard shortcuts. [Learn more](../configure/keybinds.mdx).
 - `leader_timeout` - Controls how long Exa waits after the leader key. Defaults to `2000`.
 - `scroll_acceleration.enabled` - Enable macOS-style scroll acceleration for smooth, natural scrolling. When enabled, scroll speed increases with rapid scrolling gestures and stays precise for slower movements. **This setting takes precedence over `scroll_speed` and overrides it when enabled.**
 - `scroll_speed` - Controls how fast the TUI scrolls when using scroll commands (minimum: `0.001`, supports decimal values). Defaults to `3`. **Note: This is ignored if `scroll_acceleration.enabled` is set to `true`.**

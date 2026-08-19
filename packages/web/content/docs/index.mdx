@@ -20,7 +20,7 @@ To use Exa in your terminal, you'll need:
    - [Ghostty](https://ghostty.org), Linux and macOS
    - [Kitty](https://sw.kovidgoyal.net/kitty/), Linux and macOS
 
-2. A model: an API key for a cloud provider, a GitHub Copilot account, or none at all — Exa can [run models on your machine](./local-models.mdx).
+2. A model: an API key for a cloud provider, a GitHub Copilot account, or none at all — Exa can [run models on your machine](./data/local-models.mdx).
 
 ---
 
@@ -71,7 +71,7 @@ You can also install it with a Node.js package manager:
 Or grab a binary from the [Releases](https://github.com/Sheetaldharshan200/exa-engine/releases) page.
 
 <Callout type="info" title="Windows">
-For the best experience on Windows, we recommend [Windows Subsystem for Linux (WSL)](./windows-wsl.mdx) — the native build works, but WSL gets full feature parity.
+For the best experience on Windows, we recommend [Windows Subsystem for Linux (WSL)](./reference/windows-wsl.mdx) — the native build works, but WSL gets full feature parity.
 </Callout>
 
 ---
@@ -89,7 +89,7 @@ Exa works with any LLM provider. Run the `/connect` command in the TUI and pick 
 - **Exa engine (local)** — pick a curated model and Exa downloads and serves it on your machine. No account at all.
 - **Ollama** — if it is running locally, its models are already in the list.
 
-[Learn more about providers](./providers.mdx#directory) and [local models](./local-models.mdx).
+[Learn more about providers](./configure/providers.mdx#directory) and [local models](./data/local-models.mdx).
 
 ---
 
@@ -101,7 +101,7 @@ Exa's difference is what happens next: connect a database.
 exa connect
 ```
 
-With no arguments it finds what is already running — or installs Exasol Personal locally in one step. Connect several databases and query them all from one session; see [Databases](./databases.mdx).
+With no arguments it finds what is already running — or installs Exasol Personal locally in one step. Connect several databases and query them all from one session; see [Databases](./data/databases.mdx).
 
 In the TUI, `/connect-db` lists what is connected and switches the default.
 
@@ -290,7 +290,7 @@ Everything above works in the browser too. Start the web app and open the printe
 exa web
 ```
 
-This serves the full Exasol Studio — your connections, schemas, query editor, and dashboards — backed by the same engine as the TUI. Set `EXA_SERVER_PASSWORD` before exposing it beyond your machine. [Learn more](./web.mdx).
+This serves the full Exasol Studio — your connections, schemas, query editor, and dashboards — backed by the same engine as the TUI. Set `EXA_SERVER_PASSWORD` before exposing it beyond your machine. [Learn more](./usage/web.mdx).
 
 ---
 
@@ -298,4 +298,4 @@ This serves the full Exasol Studio — your connections, schemas, query editor, 
 
 And that's it! You are now a pro at using Exa.
 
-To make it your own, we recommend [picking a theme](./themes.mdx), [customizing the keybinds](./keybinds.mdx), [configuring code formatters](./formatters.mdx), [creating custom commands](./commands.mdx), or playing around with the [Exa config](./config.mdx).
+To make it your own, we recommend [picking a theme](./configure/themes.mdx), [customizing the keybinds](./configure/keybinds.mdx), [configuring code formatters](./configure/formatters.mdx), [creating custom commands](./configure/commands.mdx), or playing around with the [Exa config](./configure/config.mdx).

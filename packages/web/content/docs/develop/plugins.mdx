@@ -47,7 +47,7 @@ Browse available plugins in the [ecosystem](./ecosystem.mdx#plugins).
 
 **npm plugins** are installed automatically using Bun at startup. Packages and their dependencies are cached in `~/.cache/exa/node_modules/`.
 
-**Local plugins** are loaded directly from the plugin directory. To use external packages, you must create a `package.json` within your config directory (see [Dependencies](#dependencies)), or publish the plugin to npm and [add it to your config](./config.mdx#plugins).
+**Local plugins** are loaded directly from the plugin directory. To use external packages, you must create a `package.json` within your config directory (see [Dependencies](#dependencies)), or publish the plugin to npm and [add it to your config](../configure/config.mdx#plugins).
 
 **The `@exa/plugin` package** is provided for you: Exa installs it into your config directory automatically (published on npm as `exa-engine-plugin`, aliased to its internal name), so local plugin files can `import { tool } from "@exa/plugin"` with no setup. A plugin you publish to npm should declare the dependency as an alias:
 
