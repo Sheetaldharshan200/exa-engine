@@ -22,32 +22,18 @@ const baselineFlag = process.argv.includes("--baseline")
 const skipInstall = process.argv.includes("--skip-install")
 const sourcemapsFlag = process.argv.includes("--sourcemaps")
 const plugin = createSolidTransformPlugin()
-// The web UI package is optional: skip embedding when it is not present
-// (this build ships the CLI/engine only).
-//
-// EXA_WEB_UI_DIST names an ALREADY BUILT bundle to embed instead. That is how
-// Exasol Studio's own web build gets in: it lives in a different repository
-// and is built by its own toolchain, so this build embeds the output rather
-// than trying to build it. The exa server answers Studio's /ipc commands, so
-// the bundle it serves is the real app rather than the mock.
-// Trimmed, and empty treated as unset: a skipped CI step sets the variable to
-// an empty string rather than leaving it out, and `??` would have accepted
-// that as a path — globbing "" instead of falling back to packages/app.
+// The web UI is Exasol Studio's build, produced in its own repository and
+// handed in as an already-built bundle via EXA_WEB_UI_DIST (the release
+// workflow clones and builds it). Without it the binary simply has no web UI
+// — there is no second UI to fall back to, by design: maintaining a fallback
+// interface nobody ships is how the two drift apart.
 const prebuiltWebUi = process.env["EXA_WEB_UI_DIST"]?.trim() || undefined
-const webUiDir = path.join(import.meta.dirname, "../../app")
-const skipEmbedWebUi =
-  process.argv.includes("--skip-embed-web-ui") || (!prebuiltWebUi && !existsSync(webUiDir))
+const skipEmbedWebUi = process.argv.includes("--skip-embed-web-ui") || !prebuiltWebUi
 
 const createEmbeddedWebUIBundle = async () => {
-  const appDir = path.join(import.meta.dirname, "../../app")
-  const dist = prebuiltWebUi ?? path.join(appDir, "dist")
-  if (prebuiltWebUi) {
-    if (!existsSync(dist)) throw new Error(`EXA_WEB_UI_DIST does not exist: ${dist}`)
-    console.log(`Embedding prebuilt Web UI from ${dist}`)
-  } else {
-    console.log(`Building Web UI to embed in the binary`)
-    await $`EXA_CHANNEL=${Script.channel} bun run --cwd ${appDir} build`
-  }
+  const dist = prebuiltWebUi!
+  if (!existsSync(dist)) throw new Error(`EXA_WEB_UI_DIST does not exist: ${dist}`)
+  console.log(`Embedding prebuilt Web UI from ${dist}`)
   const files = (await Array.fromAsync(new Bun.Glob("**/*").scan({ cwd: dist })))
     .map((file) => file.replaceAll("\\", "/"))
     .filter((file) => !file.endsWith(".map"))

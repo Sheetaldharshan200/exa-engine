@@ -42,13 +42,12 @@ jobs:
       # the output to the build script, so each exa release carries whatever
       # Studio was at that moment.
       #
-      # Deliberately non-fatal. Without STUDIO_REPO_TOKEN — a fork, or a run
-      # before the secret is set — this is skipped and the build falls back to
-      # packages/app. A release that ships the previous UI is a far better
-      # outcome than a release that does not happen.
+      # REQUIRED, deliberately. It used to fall back to a second bundled UI
+      # (packages/app); with that gone, a release without this step would ship
+      # binaries with no web UI at all — a failed release that names the
+      # missing token is strictly better than that shipping silently.
       - name: Build Exasol Studio's web UI
         id: studio
-        continue-on-error: true
         env:
           STUDIO_REPO: ${{ vars.STUDIO_REPO || 'Sheetaldharshan200/Exasol-studio' }}
           STUDIO_REF: ${{ vars.STUDIO_REF || 'main' }}
@@ -56,8 +55,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${STUDIO_REPO_TOKEN:-}" ]; then
-            echo "::notice::STUDIO_REPO_TOKEN is not set — embedding packages/app instead of Studio's UI"
-            exit 0
+            echo "::error::STUDIO_REPO_TOKEN is not set. Add a fine-grained PAT with Contents:read on ${STUDIO_REPO} under Settings > Secrets and variables > Actions."
+            exit 1
           fi
           git clone --depth 1 --branch "$STUDIO_REF" \
             "https://x-access-token:${STUDIO_REPO_TOKEN}@github.com/${STUDIO_REPO}.git" /tmp/studio
@@ -77,8 +76,6 @@ jobs:
           GH_REPO: ${{ github.repository }}
           # v1.18.12-exa.1 -> 1.18.12-exa.1 (build script prefixes the v)
           EXA_RELEASE: "1"
-          # Empty when the step above was skipped or failed, which makes the
-          # build script fall back to packages/app.
           EXA_WEB_UI_DIST: ${{ steps.studio.outputs.dist }}
         run: |
           export EXA_VERSION="${GITHUB_REF_NAME#v}"
