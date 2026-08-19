@@ -1,6 +1,19 @@
 @import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/vitepress.css';
 @import 'fumadocs-ui/css/preset.css';
+
+/*
+ * Exasol brand on the vitepress base: the X-mark's green (#5FC33B) as the
+ * primary, darkened on light ground so links and the active-item rail keep
+ * their contrast, bright on dark ground where it can afford to glow.
+ */
+:root {
+  --color-fd-primary: oklch(0.55 0.16 138);
+}
+.dark {
+  --color-fd-primary: oklch(0.78 0.2 138);
+  --color-fd-background: oklch(0.16 0.012 240);
+}
 
 html {
   scrollbar-gutter: stable;
@@ -9,12 +22,4 @@ html {
 html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
-}
-
-/* exa: the prompt-green accent the TUI uses, on both grounds. */
-:root {
-  --color-fd-primary: oklch(0.55 0.15 163);
-}
-.dark {
-  --color-fd-primary: oklch(0.78 0.16 163);
 }

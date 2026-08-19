@@ -105,11 +105,23 @@ export function resolveDocsFile(requestPath: string, docs: Record<string, string
   return fallback ? { file: fallback, status: 404 } : undefined
 }
 
+/** The docs site is a Next.js static export whose hydration lives in inline
+ *  bootstrap scripts. The Studio UI's hash-based CSP would block them all —
+ *  no theme toggle, no scroll tracking, no search — so docs responses carry
+ *  their own policy: local-only, but inline scripts allowed. */
+const DOCS_CSP =
+  "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'"
+
 export function serveDocsEffect(requestPath: string, fs: FSUtil.Interface, docs: Record<string, string>) {
   const resolved = resolveDocsFile(requestPath, docs)
   if (!resolved) return Effect.succeed(notFound())
   return fs.readFile(resolved.file).pipe(
-    Effect.map((body) => embeddedUIResponse(resolved.file, body, resolved.status)),
+    Effect.map((body) => {
+      const mime = FSUtil.mimeType(resolved.file)
+      const headers = new Headers({ "content-type": mime })
+      if (mime.startsWith("text/html")) headers.set("content-security-policy", DOCS_CSP)
+      return HttpServerResponse.raw(body, { headers, status: resolved.status })
+    }),
     Effect.catchReason("PlatformError", "NotFound", () => Effect.succeed(notFound())),
   )
 }
