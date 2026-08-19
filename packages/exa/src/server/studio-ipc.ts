@@ -20,6 +20,7 @@
  */
 import { probe, createDriver, listConnections, saveConnection, forgetConnection, loadPassword } from "../database/connection"
 import { connectionId } from "../database/registry"
+import * as vault from "./studio-vault"
 
 export type IpcResult = { ok: true; value: unknown } | { ok: false; status: number; error: string }
 
@@ -353,6 +354,25 @@ export async function handleIpc(command: string, args: Record<string, unknown>):
       case "sql_history_clear":
       case "cancel_query":
         return { ok: true, value: null }
+
+      // Master-password vault — Studio's first-run flow will not open the app
+      // without it, so these are implemented for real (see studio-vault.ts).
+      case "vault_status":
+        return { ok: true, value: vault.status() }
+      case "vault_setup":
+        return { ok: true, value: vault.setup(String(arg("password", ""))) }
+      case "vault_unlock":
+        return { ok: true, value: vault.unlock(String(arg("password", ""))) }
+      case "vault_lock":
+        vault.lock()
+        return { ok: true, value: null }
+      case "vault_recover":
+        return { ok: true, value: vault.recover(String(arg("code", "")), String(arg("newPassword", ""))) }
+      case "vault_change_password":
+        vault.changePassword(String(arg("oldPassword", "")), String(arg("newPassword", "")))
+        return { ok: true, value: null }
+      case "vault_regenerate_recovery":
+        return { ok: true, value: vault.regenerateRecovery() }
 
       default:
         if (REQUIRES_DESKTOP.has(command)) {
