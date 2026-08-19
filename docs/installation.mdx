@@ -1,0 +1,54 @@
+---
+title: Installation
+description: Every way to install exa, and how updates work.
+order: 2
+---
+
+# Installation
+
+## macOS / Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.sh | sh
+```
+
+Installs the latest release to `~/.local/bin/exa`.
+
+## Windows
+
+```powershell
+irm https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.ps1 | iex
+```
+
+Installs to `%LOCALAPPDATA%\Programs\exa` and adds it to your user PATH.
+
+## npm, bun, pnpm, yarn
+
+```bash
+npm  install -g exa-ai
+bun  add    -g exa-ai
+pnpm add    -g exa-ai   # pnpm blocks postinstall by default:
+                        # cd $(pnpm root -g)/exa-ai && node postinstall.mjs
+yarn global add exa-ai
+```
+
+The `exa-ai` package is a thin wrapper: a per-platform binary package is
+selected at install time, so what runs is the same native binary the curl
+installer ships.
+
+## Updating
+
+```bash
+exa upgrade
+```
+
+exa detects how it was installed — curl, npm, brew — and updates through
+the same channel. Releases are published on
+[GitHub](https://github.com/Sheetaldharshan200/exa-engine/releases).
+
+## Uninstalling
+
+Remove the binary (`~/.local/bin/exa` or the npm package), and optionally
+the data directories: `~/.local/share/exa`, `~/.config/exa`,
+`~/.cache/exa`. The shared connection registry lives in
+`~/.exasol/connections.json` — leave it if Exasol Studio also uses it.

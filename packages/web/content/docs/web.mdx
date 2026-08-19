@@ -1,0 +1,137 @@
+---
+title: Web
+description: Using Exa in your browser.
+---
+
+`exa web` serves the full **Exasol Studio** in your browser — the same product as the desktop app, backed by the exa engine on your machine. Your connected databases, schema browser, query editor, dashboards, and the AI agent are all there, working against real data through the connections you set up with `exa connect`.
+
+One engine, two doors: use `exa` for the terminal and `exa web` for everyone who prefers a browser — both share the same connections, sessions, and configuration.
+
+## Getting Started
+
+Start the web interface by running:
+
+```bash
+exa web
+```
+
+This starts a local server on `127.0.0.1` with a random available port and automatically opens Exasol Studio in your default browser.
+
+<Callout type="warn">
+If `EXA_SERVER_PASSWORD` is not set, the server will be unsecured. This is fine for local use but should be set for network access.
+</Callout>
+
+<Callout type="info" title="Windows Users">
+For the best experience, run `exa web` from [WSL](./windows-wsl.mdx) rather than PowerShell. This ensures proper file system access and terminal integration.
+</Callout>
+
+---
+
+## Configuration
+
+You can configure the web server using command line flags or in your [config file](./config.mdx).
+
+### Port
+
+By default, Exa picks an available port. You can specify a port:
+
+```bash
+exa web --port 4096
+```
+
+### Hostname
+
+By default, the server binds to `127.0.0.1` (localhost only). To make Exa accessible on your network:
+
+```bash
+exa web --hostname 0.0.0.0
+```
+
+When using `0.0.0.0`, Exa will display both local and network addresses:
+
+```
+  Local access:       http://localhost:4096
+  Network access:     http://192.168.1.100:4096
+```
+
+### mDNS Discovery
+
+Enable mDNS to make your server discoverable on the local network:
+
+```bash
+exa web --mdns
+```
+
+This automatically sets the hostname to `0.0.0.0` and advertises the server as `exa.local`.
+
+You can customize the mDNS domain name to run multiple instances on the same network:
+
+```bash
+exa web --mdns --mdns-domain myproject.local
+```
+
+### CORS
+
+To allow additional domains for CORS (useful for custom frontends):
+
+```bash
+exa web --cors https://example.com
+```
+
+### Authentication
+
+To protect access, set a password using the `EXA_SERVER_PASSWORD` environment variable:
+
+```bash
+EXA_SERVER_PASSWORD=secret exa web
+```
+
+The username defaults to `exa` but can be changed with `EXA_SERVER_USERNAME`.
+
+---
+
+## What you get
+
+The browser app is Exasol Studio, not a separate web UI:
+
+- **Databases** — every connection from `~/.exasol/connections.json` (shared with the desktop app and the CLI), with the schema browser and table details.
+- **SQL editor** — run statements against any connected database and inspect results.
+- **AI agent** — the same agent as the TUI, with the same database tools and the same write-protection: writes stay refused until granted with `exa ops grant`.
+- **Marketplace and add-ons** — anything that does not need the desktop runtime.
+
+A few operations that require the desktop runtime (managing the local database's lifecycle, desktop-only integrations) are named as such in the UI rather than failing silently.
+
+---
+
+## Attaching a Terminal
+
+You can attach a terminal TUI to a running web server:
+
+```bash
+# Start the web server
+exa web --port 4096
+
+# In another terminal, attach the TUI
+exa attach http://localhost:4096
+```
+
+This allows you to use both the web interface and terminal simultaneously, sharing the same sessions and state.
+
+---
+
+## Config File
+
+You can also configure server settings in your `exa.json` config file:
+
+```json
+{
+  "server": {
+    "port": 4096,
+    "hostname": "0.0.0.0",
+    "mdns": true,
+    "cors": ["https://example.com"]
+  }
+}
+```
+
+Command line flags take precedence over config file settings.

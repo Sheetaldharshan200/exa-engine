@@ -1,0 +1,36 @@
+---
+title: Exa
+description: The Exasol data agent — in your terminal, your browser, and your editor.
+order: 1
+---
+
+# Exa
+
+Exa is Exasol's data agent. It connects to your databases with a **bundled
+driver** — no Python, no MCP server, no drivers to install — and answers
+questions by actually querying them: schemas, joins, metrics, dashboards.
+
+One binary, three surfaces:
+
+| Command | What you get |
+| --- | --- |
+| `exa` | The terminal agent (TUI) — chat with your data where you work |
+| `exa web` | Exasol Studio in your browser — the full visual workbench, served locally |
+| `exa docs` | This documentation, served locally |
+
+Everything runs on **your machine**. The server binds to `127.0.0.1` by
+default, your credentials live in the operating system's credential store,
+and reads are always allowed while writes are refused unless you grant that
+operation class.
+
+## Two minutes to a working agent
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.sh | sh
+exa            # connect a model provider, connect a database, ask
+```
+
+The first run offers to reuse a running Exasol, install Exasol Personal
+locally (~170 MB, nothing to configure), or connect to an existing one —
+and if the launcher deployed the database, exa reads the generated
+credentials from disk, so there is no password to copy.

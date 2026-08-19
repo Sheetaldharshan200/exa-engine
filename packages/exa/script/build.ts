@@ -33,7 +33,7 @@ const skipEmbedWebUi = process.argv.includes("--skip-embed-web-ui") || !prebuilt
 // The documentation site lives in this repo (packages/web) and is embedded the
 // same way, served under /docs and opened by `exa docs`. Defaults to the
 // in-repo build output so a local `astro build` is picked up automatically.
-const docsDefault = path.join(dir, "../web/dist")
+const docsDefault = path.join(dir, "../web/out")
 const prebuiltDocs = process.env["EXA_DOCS_DIST"]?.trim() || (existsSync(docsDefault) ? docsDefault : undefined)
 
 const createEmbeddedBundle = async (dist: string, label: string) => {

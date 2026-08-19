@@ -98,7 +98,8 @@ export function serveEmbeddedUIEffect(
  */
 export function resolveDocsFile(requestPath: string, docs: Record<string, string>) {
   const key = decodeURIComponent(requestPath).replace(/^\/docs\/?/, "").replace(/\/$/, "")
-  const resolved = docs[key] ?? docs[key === "" ? "index.html" : `${key}/index.html`]
+  const resolved =
+    docs[key] ?? (key === "" ? docs["index.html"] : (docs[`${key}.html`] ?? docs[`${key}/index.html`]))
   if (resolved) return { file: resolved, status: 200 }
   const fallback = docs["404.html"]
   return fallback ? { file: fallback, status: 404 } : undefined

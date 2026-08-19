@@ -77,8 +77,8 @@ jobs:
         run: |
           set -euo pipefail
           cd packages/web
-          bunx astro build
-          test -s dist/index.html
+          bun run build
+          test -s out/index.html
 
       - name: Build all targets and upload assets
         env:

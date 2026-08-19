@@ -1,0 +1,744 @@
+---
+title: CLI
+description: Exa CLI options and commands.
+---
+
+
+The Exa CLI by default starts the [TUI](./tui.mdx) when run without any arguments.
+
+```bash
+exa
+```
+
+But it also accepts commands as documented on this page. This allows you to interact with Exa programmatically.
+
+```bash
+exa run "Explain how closures work in JavaScript"
+```
+
+---
+
+### tui
+
+Start the Exa terminal user interface.
+
+```bash
+exa [project]
+```
+
+#### Flags
+
+| Flag                                        | Short | Description                                                             |
+| ------------------------------------------- | ----- | ----------------------------------------------------------------------- |
+| <nobr><code>{"--continue"}</code></nobr>    | `-c`  | Continue the last session                                               |
+| <nobr><code>{"--session"}</code></nobr>     | `-s`  | Session ID to continue                                                  |
+| <nobr><code>{"--fork"}</code></nobr>        |       | Fork the session when continuing (use with `--continue` or `--session`) |
+| <nobr><code>{"--prompt"}</code></nobr>      |       | Prompt to use                                                           |
+| <nobr><code>{"--model"}</code></nobr>       | `-m`  | Model to use in the form of provider/model                              |
+| <nobr><code>{"--agent"}</code></nobr>       |       | Agent to use                                                            |
+| <nobr><code>{"--auto"}</code></nobr>        |       | Auto-approve permissions that are not explicitly denied                 |
+| <nobr><code>{"--port"}</code></nobr>        |       | Port to listen on                                                       |
+| <nobr><code>{"--hostname"}</code></nobr>    |       | Hostname to listen on                                                   |
+| <nobr><code>{"--mdns"}</code></nobr>        |       | Enable mDNS discovery                                                   |
+| <nobr><code>{"--mdns-domain"}</code></nobr> |       | Custom mDNS domain name                                                 |
+| <nobr><code>{"--cors"}</code></nobr>        |       | Additional browser origin(s) to allow CORS                              |
+
+---
+
+## Commands
+
+The Exa CLI also has the following commands.
+
+---
+
+### agent
+
+Manage agents for Exa.
+
+```bash
+exa agent [command]
+```
+
+---
+
+#### create
+
+Create a new agent with custom configuration.
+
+```bash
+exa agent create
+```
+
+This command will guide you through creating a new agent with a custom system prompt and permission configuration. Anything you don't allow is denied in the generated agent's frontmatter.
+
+#### Flags
+
+| Flag                                        | Short | Description                                                                                                                                                                                                                |
+| ------------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <nobr><code>{"--path"}</code></nobr>        |       | Directory to write the agent file to (defaults to global or `.exa/agent` based on the prompt)                                                                                                                         |
+| <nobr><code>{"--description"}</code></nobr> |       | What the agent should do                                                                                                                                                                                                   |
+| <nobr><code>{"--mode"}</code></nobr>        |       | Agent mode: `all`, `primary`, or `subagent`                                                                                                                                                                                |
+| <nobr><code>{"--permissions"}</code></nobr> |       | Comma-separated list of permissions to allow (default: all). Available: `bash`, `read`, `edit`, `glob`, `grep`, `webfetch`, `task`, `todowrite`, `websearch`, `lsp`, `skill`. Anything omitted is denied. Alias: `--tools` |
+| <nobr><code>{"--model"}</code></nobr>       | `-m`  | Model to use, in `provider/model` format                                                                                                                                                                                   |
+
+Passing all of `--path`, `--description`, `--mode`, and `--permissions` runs the command non-interactively.
+
+---
+
+#### list
+
+List all available agents.
+
+```bash
+exa agent list
+```
+
+---
+
+### attach
+
+Attach a terminal to an already running Exa backend server started via `serve` or `web` commands.
+
+```bash
+exa attach [url]
+```
+
+This allows using the TUI with a remote Exa backend. For example:
+
+```bash
+# Start the backend server for web/mobile access
+exa web --port 4096 --hostname 0.0.0.0
+
+# In another terminal, attach the TUI to the running backend
+exa attach http://10.20.30.40:4096
+```
+
+#### Flags
+
+| Flag                                     | Short | Description                                                                |
+| ---------------------------------------- | ----- | -------------------------------------------------------------------------- |
+| <nobr><code>{"--dir"}</code></nobr>      |       | Working directory to start TUI in                                          |
+| <nobr><code>{"--continue"}</code></nobr> | `-c`  | Continue the last session                                                  |
+| <nobr><code>{"--session"}</code></nobr>  | `-s`  | Session ID to continue                                                     |
+| <nobr><code>{"--fork"}</code></nobr>     |       | Fork the session when continuing (use with `--continue` or `--session`)    |
+| <nobr><code>{"--password"}</code></nobr> | `-p`  | Basic auth password (defaults to `EXA_SERVER_PASSWORD`)               |
+| <nobr><code>{"--username"}</code></nobr> | `-u`  | Basic auth username (defaults to `EXA_SERVER_USERNAME` or `exa`) |
+
+---
+
+### auth
+
+Command to manage credentials and login for providers.
+
+```bash
+exa auth [command]
+```
+
+---
+
+#### login
+
+Exa is powered by the provider list at [Models.dev](https://models.dev), so you can use `exa auth login` to configure API keys for any provider you'd like to use. This is stored in `~/.local/share/exa/auth.json`.
+
+```bash
+exa auth login
+```
+
+When Exa starts up it loads the providers from the credentials file. And if there are any keys defined in your environments or a `.env` file in your project.
+
+##### Flags
+
+| Flag                                     | Short | Description                                          |
+| ---------------------------------------- | ----- | ---------------------------------------------------- |
+| <nobr><code>{"--provider"}</code></nobr> | `-p`  | Provider ID or name to log in to                     |
+| <nobr><code>{"--method"}</code></nobr>   | `-m`  | Login method label to use, skipping method selection |
+
+---
+
+#### list
+
+Lists all the authenticated providers as stored in the credentials file.
+
+```bash
+exa auth list
+```
+
+Or the short version.
+
+```bash
+exa auth ls
+```
+
+---
+
+#### logout
+
+Logs you out of a provider by clearing it from the credentials file.
+
+```bash
+exa auth logout
+```
+
+---
+
+### github
+
+Manage the GitHub agent for repository automation.
+
+```bash
+exa github [command]
+```
+
+---
+
+#### install
+
+Install the GitHub agent in your repository.
+
+```bash
+exa github install
+```
+
+This sets up the necessary GitHub Actions workflow and guides you through the configuration process. [Learn more](./github.mdx).
+
+---
+
+#### run
+
+Run the GitHub agent. This is typically used in GitHub Actions.
+
+```bash
+exa github run
+```
+
+##### Flags
+
+| Flag                                  | Description                            |
+| ------------------------------------- | -------------------------------------- |
+| <nobr><code>{"--event"}</code></nobr> | GitHub mock event to run the agent for |
+| <nobr><code>{"--token"}</code></nobr> | GitHub personal access token           |
+
+---
+
+### mcp
+
+Manage Model Context Protocol servers.
+
+```bash
+exa mcp [command]
+```
+
+---
+
+#### add
+
+Add an MCP server to your configuration.
+
+```bash
+exa mcp add
+```
+
+This command will guide you through adding either a local or remote MCP server.
+
+---
+
+#### list
+
+List all configured MCP servers and their connection status.
+
+```bash
+exa mcp list
+```
+
+Or use the short version.
+
+```bash
+exa mcp ls
+```
+
+---
+
+#### auth
+
+Authenticate with an OAuth-enabled MCP server.
+
+```bash
+exa mcp auth [name]
+```
+
+If you don't provide a server name, you'll be prompted to select from available OAuth-capable servers.
+
+You can also list OAuth-capable servers and their authentication status.
+
+```bash
+exa mcp auth list
+```
+
+Or use the short version.
+
+```bash
+exa mcp auth ls
+```
+
+---
+
+#### logout
+
+Remove OAuth credentials for an MCP server.
+
+```bash
+exa mcp logout [name]
+```
+
+---
+
+#### debug
+
+Debug OAuth connection issues for an MCP server.
+
+```bash
+exa mcp debug <name>
+```
+
+---
+
+### models
+
+List all available models from configured providers.
+
+```bash
+exa models [provider]
+```
+
+This command displays all models available across your configured providers in the format `provider/model`.
+
+This is useful for figuring out the exact model name to use in [your config](/docs/config/).
+
+You can optionally pass a provider ID to filter models by that provider.
+
+```bash
+exa models anthropic
+```
+
+#### Flags
+
+| Flag                                    | Description                                                  |
+| --------------------------------------- | ------------------------------------------------------------ |
+| <nobr><code>{"--refresh"}</code></nobr> | Refresh the models cache from models.dev                     |
+| <nobr><code>{"--verbose"}</code></nobr> | Use more verbose model output (includes metadata like costs) |
+
+Use the `--refresh` flag to update the cached model list. This is useful when new models have been added to a provider and you want to see them in Exa.
+
+```bash
+exa models --refresh
+```
+
+---
+
+### run
+
+Run exa in non-interactive mode by passing a prompt directly.
+
+```bash
+exa run [message..]
+```
+
+This is useful for scripting, automation, or when you want a quick answer without launching the full TUI. For example.
+
+```bash
+exa run Explain the use of context in Go
+```
+
+You can also attach to a running `exa serve` instance to avoid MCP server cold boot times on every run:
+
+```bash
+# Start a headless server in one terminal
+exa serve
+
+# In another terminal, run commands that attach to it
+exa run --attach http://localhost:4096 "Explain async/await in JavaScript"
+```
+
+#### Flags
+
+| Flag                                     | Short | Description                                                                |
+| ---------------------------------------- | ----- | -------------------------------------------------------------------------- |
+| <nobr><code>{"--command"}</code></nobr>  |       | The command to run, use message for args                                   |
+| <nobr><code>{"--continue"}</code></nobr> | `-c`  | Continue the last session                                                  |
+| <nobr><code>{"--session"}</code></nobr>  | `-s`  | Session ID to continue                                                     |
+| <nobr><code>{"--fork"}</code></nobr>     |       | Fork the session when continuing (use with `--continue` or `--session`)    |
+| <nobr><code>{"--share"}</code></nobr>    |       | Share the session                                                          |
+| <nobr><code>{"--model"}</code></nobr>    | `-m`  | Model to use in the form of provider/model                                 |
+| <nobr><code>{"--agent"}</code></nobr>    |       | Agent to use                                                               |
+| <nobr><code>{"--file"}</code></nobr>     | `-f`  | File(s) to attach to message                                               |
+| <nobr><code>{"--format"}</code></nobr>   |       | Format: default (formatted) or json (raw JSON events)                      |
+| <nobr><code>{"--title"}</code></nobr>    |       | Title for the session (uses truncated prompt if no value provided)         |
+| <nobr><code>{"--attach"}</code></nobr>   |       | Attach to a running exa server (e.g., http://localhost:4096)          |
+| <nobr><code>{"--password"}</code></nobr> | `-p`  | Basic auth password (defaults to `EXA_SERVER_PASSWORD`)               |
+| <nobr><code>{"--username"}</code></nobr> | `-u`  | Basic auth username (defaults to `EXA_SERVER_USERNAME` or `exa`) |
+| <nobr><code>{"--dir"}</code></nobr>      |       | Directory to run in, or path on the remote server when attaching           |
+| <nobr><code>{"--port"}</code></nobr>     |       | Port for the local server (defaults to random port)                        |
+| <nobr><code>{"--variant"}</code></nobr>  |       | Model variant (provider-specific reasoning effort)                         |
+| <nobr><code>{"--thinking"}</code></nobr> |       | Show thinking blocks                                                       |
+| <nobr><code>{"--auto"}</code></nobr>     |       | Auto-approve permissions that are not explicitly denied                    |
+
+---
+
+### serve
+
+Start a headless Exa server for API access. Check out the [server docs](./server.mdx) for the full HTTP interface.
+
+```bash
+exa serve
+```
+
+This starts an HTTP server that provides API access to exa functionality without the TUI interface. Set `EXA_SERVER_PASSWORD` to enable HTTP basic auth (username defaults to `exa`).
+
+#### Flags
+
+| Flag                                        | Description                                |
+| ------------------------------------------- | ------------------------------------------ |
+| <nobr><code>{"--port"}</code></nobr>        | Port to listen on                          |
+| <nobr><code>{"--hostname"}</code></nobr>    | Hostname to listen on                      |
+| <nobr><code>{"--mdns"}</code></nobr>        | Enable mDNS discovery                      |
+| <nobr><code>{"--mdns-domain"}</code></nobr> | Custom mDNS domain name                    |
+| <nobr><code>{"--cors"}</code></nobr>        | Additional browser origin(s) to allow CORS |
+
+---
+
+### session
+
+Manage Exa sessions.
+
+```bash
+exa session [command]
+```
+
+---
+
+#### list
+
+List all Exa sessions.
+
+```bash
+exa session list
+```
+
+##### Flags
+
+| Flag                                      | Short | Description                          |
+| ----------------------------------------- | ----- | ------------------------------------ |
+| <nobr><code>{"--max-count"}</code></nobr> | `-n`  | Limit to N most recent sessions      |
+| <nobr><code>{"--format"}</code></nobr>    |       | Output format: table or json (table) |
+
+---
+
+#### delete
+
+Delete an Exa session.
+
+```bash
+exa session delete <sessionID>
+```
+
+---
+
+### stats
+
+Show token usage and cost statistics for your Exa sessions.
+
+```bash
+exa stats
+```
+
+#### Flags
+
+| Flag                                    | Description                                                                 |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| <nobr><code>{"--days"}</code></nobr>    | Show stats for the last N days (all time)                                   |
+| <nobr><code>{"--tools"}</code></nobr>   | Number of tools to show (all)                                               |
+| <nobr><code>{"--models"}</code></nobr>  | Show model usage breakdown (hidden by default). Pass a number to show top N |
+| <nobr><code>{"--project"}</code></nobr> | Filter by project (all projects, empty string: current project)             |
+
+---
+
+### export
+
+Export session data as JSON.
+
+```bash
+exa export [sessionID]
+```
+
+If you don't provide a session ID, you'll be prompted to select from available sessions.
+
+#### Flags
+
+| Flag                                     | Description                           |
+| ---------------------------------------- | ------------------------------------- |
+| <nobr><code>{"--sanitize"}</code></nobr> | Redact sensitive transcript/file data |
+
+---
+
+### import
+
+Import session data from a JSON file or Exa share URL.
+
+```bash
+exa import <file>
+```
+
+You can import from a local file or an Exa share URL.
+
+```bash
+exa import session.json
+exa import https://opncd.ai/s/abc123
+```
+
+---
+
+### web
+
+Serve Exasol Studio in your browser.
+
+```bash
+exa web
+```
+
+This starts an HTTP server and opens the full Exasol Studio web app — your databases, schema browser, SQL editor, and the AI agent, backed by the same engine as the TUI. Set `EXA_SERVER_PASSWORD` to enable HTTP basic auth (username defaults to `exa`). [Learn more](./web.mdx).
+
+#### Flags
+
+| Flag                                        | Description                                |
+| ------------------------------------------- | ------------------------------------------ |
+| <nobr><code>{"--port"}</code></nobr>        | Port to listen on                          |
+| <nobr><code>{"--hostname"}</code></nobr>    | Hostname to listen on                      |
+| <nobr><code>{"--mdns"}</code></nobr>        | Enable mDNS discovery                      |
+| <nobr><code>{"--mdns-domain"}</code></nobr> | Custom mDNS domain name                    |
+| <nobr><code>{"--cors"}</code></nobr>        | Additional browser origin(s) to allow CORS |
+
+---
+
+### docs
+
+Open the documentation in your browser.
+
+```bash
+exa docs
+```
+
+The docs ship inside the binary, so they match your installed version exactly and work offline. They are also served at `/docs` on any running `exa web` or `exa serve` server.
+
+---
+
+### acp
+
+Start an ACP (Agent Client Protocol) server.
+
+```bash
+exa acp
+```
+
+This command starts an ACP server that communicates via stdin/stdout using nd-JSON.
+
+#### Flags
+
+| Flag                                        | Description                                |
+| ------------------------------------------- | ------------------------------------------ |
+| <nobr><code>{"--cwd"}</code></nobr>         | Working directory                          |
+| <nobr><code>{"--port"}</code></nobr>        | Port to listen on                          |
+| <nobr><code>{"--hostname"}</code></nobr>    | Hostname to listen on                      |
+| <nobr><code>{"--mdns"}</code></nobr>        | Enable mDNS discovery                      |
+| <nobr><code>{"--mdns-domain"}</code></nobr> | Custom mDNS domain name                    |
+| <nobr><code>{"--cors"}</code></nobr>        | Additional browser origin(s) to allow CORS |
+
+---
+
+### plugin
+
+Install a plugin and update your config.
+
+```bash
+exa plugin <module>
+```
+
+Or use the alias.
+
+```bash
+exa plug <module>
+```
+
+#### Flags
+
+| Flag                                   | Short | Description                     |
+| -------------------------------------- | ----- | ------------------------------- |
+| <nobr><code>{"--global"}</code></nobr> | `-g`  | Install in global config        |
+| <nobr><code>{"--force"}</code></nobr>  | `-f`  | Replace existing plugin version |
+
+---
+
+### pr
+
+Fetch and checkout a GitHub PR branch, then run Exa.
+
+```bash
+exa pr <number>
+```
+
+---
+
+### db
+
+Database tools.
+
+```bash
+exa db [query]
+```
+
+#### Flags
+
+| Flag                                   | Description                    |
+| -------------------------------------- | ------------------------------ |
+| <nobr><code>{"--format"}</code></nobr> | Output format: `json` or `tsv` |
+
+---
+
+#### path
+
+Print the database path.
+
+```bash
+exa db path
+```
+
+---
+
+### debug
+
+Debugging and troubleshooting tools.
+
+```bash
+exa debug [command]
+```
+
+---
+
+### uninstall
+
+Uninstall Exa and remove all related files.
+
+```bash
+exa uninstall
+```
+
+#### Flags
+
+| Flag                                        | Short | Description                                 |
+| ------------------------------------------- | ----- | ------------------------------------------- |
+| <nobr><code>{"--keep-config"}</code></nobr> | `-c`  | Keep configuration files                    |
+| <nobr><code>{"--keep-data"}</code></nobr>   | `-d`  | Keep session data and snapshots             |
+| <nobr><code>{"--dry-run"}</code></nobr>     |       | Show what would be removed without removing |
+| <nobr><code>{"--force"}</code></nobr>       | `-f`  | Skip confirmation prompts                   |
+
+---
+
+### upgrade
+
+Updates exa to the latest version or a specific version.
+
+```bash
+exa upgrade [target]
+```
+
+To upgrade to the latest version.
+
+```bash
+exa upgrade
+```
+
+To upgrade to a specific version.
+
+```bash
+exa upgrade v0.1.48
+```
+
+#### Flags
+
+| Flag                                   | Short | Description                                                       |
+| -------------------------------------- | ----- | ----------------------------------------------------------------- |
+| <nobr><code>{"--method"}</code></nobr> | `-m`  | The installation method that was used; curl, npm, pnpm, bun, brew |
+
+---
+
+## Global Flags
+
+The exa CLI takes the following global flags.
+
+| Flag                                       | Short | Description                          |
+| ------------------------------------------ | ----- | ------------------------------------ |
+| <nobr><code>{"--help"}</code></nobr>       | `-h`  | Display help                         |
+| <nobr><code>{"--version"}</code></nobr>    | `-v`  | Print version number                 |
+| <nobr><code>{"--print-logs"}</code></nobr> |       | Print logs to stderr                 |
+| <nobr><code>{"--log-level"}</code></nobr>  |       | Log level (DEBUG, INFO, WARN, ERROR) |
+| <nobr><code>{"--pure"}</code></nobr>       |       | Run without external plugins         |
+
+---
+
+## Environment variables
+
+Exa can be configured using environment variables.
+
+| Variable                              | Type    | Description                                       |
+| ------------------------------------- | ------- | ------------------------------------------------- |
+| `EXA_AUTO_SHARE`                 | boolean | Automatically share sessions                      |
+| `EXA_GIT_BASH_PATH`              | string  | Path to Git Bash executable on Windows            |
+| `EXA_CONFIG`                     | string  | Path to config file                               |
+| `EXA_TUI_CONFIG`                 | string  | Path to TUI config file                           |
+| `EXA_CONFIG_DIR`                 | string  | Path to config directory                          |
+| `EXA_CONFIG_CONTENT`             | string  | Inline json config content                        |
+| `EXA_DISABLE_AUTOUPDATE`         | boolean | Disable automatic update checks                   |
+| `EXA_DISABLE_PRUNE`              | boolean | Disable pruning of old data                       |
+| `EXA_DISABLE_TERMINAL_TITLE`     | boolean | Disable automatic terminal title updates          |
+| `EXA_PERMISSION`                 | string  | Inlined json permissions config                   |
+| `EXA_DISABLE_DEFAULT_PLUGINS`    | boolean | Disable default plugins                           |
+| `EXA_DISABLE_LSP_DOWNLOAD`       | boolean | Disable automatic LSP server downloads            |
+| `EXA_ENABLE_EXPERIMENTAL_MODELS` | boolean | Enable experimental models                        |
+| `EXA_DISABLE_AUTOCOMPACT`        | boolean | Disable automatic context compaction              |
+| `EXA_DISABLE_CLAUDE_CODE`        | boolean | Disable reading from `.claude` (prompt + skills)  |
+| `EXA_DISABLE_CLAUDE_CODE_PROMPT` | boolean | Disable reading `~/.claude/CLAUDE.md`             |
+| `EXA_DISABLE_CLAUDE_CODE_SKILLS` | boolean | Disable loading `.claude/skills`                  |
+| `EXA_DISABLE_MODELS_FETCH`       | boolean | Disable fetching models from remote sources       |
+| `EXA_DISABLE_MOUSE`              | boolean | Disable mouse capture in the TUI                  |
+| `EXA_FAKE_VCS`                   | string  | Fake VCS provider for testing purposes            |
+| `EXA_CLIENT`                     | string  | Client identifier (defaults to `cli`)             |
+| `EXA_ENABLE_EXA`                 | boolean | Enable Exa web search tools                       |
+| `EXA_SERVER_PASSWORD`            | string  | Enable basic auth for `serve`/`web`               |
+| `EXA_SERVER_USERNAME`            | string  | Override basic auth username (default `exa`) |
+| `EXA_MODELS_URL`                 | string  | Custom URL for fetching models configuration      |
+
+---
+
+### Experimental
+
+These environment variables enable experimental features that may change or be removed.
+
+| Variable                                        | Type    | Description                             |
+| ----------------------------------------------- | ------- | --------------------------------------- |
+| `EXA_EXPERIMENTAL`                         | boolean | Enable the experimental umbrella flag   |
+| `EXA_EXPERIMENTAL_ICON_DISCOVERY`          | boolean | Enable icon discovery                   |
+| `EXA_EXPERIMENTAL_DISABLE_COPY_ON_SELECT`  | boolean | Disable copy on select in TUI           |
+| `EXA_EXPERIMENTAL_BASH_DEFAULT_TIMEOUT_MS` | number  | Default timeout for bash commands in ms |
+| `EXA_EXPERIMENTAL_OUTPUT_TOKEN_MAX`        | number  | Max output tokens for LLM responses     |
+| `EXA_EXPERIMENTAL_FILEWATCHER`             | boolean | Enable file watcher for entire dir      |
+| `EXA_EXPERIMENTAL_OXFMT`                   | boolean | Enable oxfmt formatter                  |
+| `EXA_EXPERIMENTAL_LSP_TOOL`                | boolean | Enable experimental LSP tool            |
+| `EXA_EXPERIMENTAL_DISABLE_FILEWATCHER`     | boolean | Disable file watcher                    |
+| `EXA_EXPERIMENTAL_EXA`                     | boolean | Enable experimental Exa features        |
+| `EXA_EXPERIMENTAL_LSP_TY`                  | boolean | Enable TY LSP for python files          |
+| `EXA_EXPERIMENTAL_PLAN_MODE`               | boolean | Enable plan mode                        |
+| `EXA_EXPERIMENTAL_BACKGROUND_SUBAGENTS`    | boolean | Enable background subagent tasks        |
+| `EXA_EXPERIMENTAL_EVENT_SYSTEM`            | boolean | Enable experimental event system        |
+| `EXA_EXPERIMENTAL_NATIVE_LLM`              | boolean | Enable native LLM request path          |
+| `EXA_EXPERIMENTAL_PARALLEL`                | boolean | Enable parallel web search execution    |
+| `EXA_EXPERIMENTAL_SCOUT`                   | boolean | Enable Scout subagent                   |
+| `EXA_EXPERIMENTAL_WORKSPACES`              | boolean | Enable workspace support                |
