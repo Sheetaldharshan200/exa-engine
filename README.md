@@ -17,14 +17,27 @@ macOS and Linux:
 curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.sh | sh
 ```
 
-Windows: download the archive for your platform from the
-[releases page](https://github.com/Sheetaldharshan200/exa/releases) and put
-`exa.exe` on your `PATH`.
+Windows (PowerShell):
 
-Then start it:
+```powershell
+irm https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.ps1 | iex
+```
+
+Or with a Node.js package manager:
 
 ```sh
-exa
+npm install -g exa-ai      # or: bun install -g exa-ai / pnpm add -g exa-ai / yarn global add exa-ai
+```
+
+Binaries for every platform are on the
+[releases page](https://github.com/Sheetaldharshan200/exa-engine/releases).
+
+Then pick your door — same product, same engine, same connections:
+
+```sh
+exa        # the terminal agent
+exa web    # the full Exasol Studio in your browser — for everyone else and every AI client
+exa docs   # the documentation, served locally
 ```
 
 ## What it does
@@ -57,6 +70,9 @@ found — with the query it ran always visible.
 | `exa ops [list\|grant\|revoke] <class…>` | SQL operations the agent may run |
 | `exa persona [list\|set\|clear] <name>` | Who answers are written for |
 | `exa models` | List available models |
+| `exa web` | Serve Exasol Studio in the browser |
+| `exa docs` | Open the documentation |
+| `exa connect` | Connect a database (or install one) |
 | `exa serve` | Run the engine as a local HTTP server |
 
 Inside a session, `/sandbox`, `/ops` and `/persona` open the same controls,
