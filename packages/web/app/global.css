@@ -23,3 +23,34 @@ html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
 }
+
+/*
+ * Sidebar: one ground with the page — the vitepress preset gives it a tinted
+ * panel of its own, which reads as a dirty second surface next to our
+ * backgrounds. A hairline keeps the boundary legible without a color change.
+ */
+#nd-sidebar {
+  background-color: var(--color-fd-background);
+  border-color: var(--color-fd-border);
+}
+.dark #nd-sidebar {
+  background-color: var(--color-fd-background);
+}
+
+/* Section labels: quiet small caps so pages, not headers, carry the weight. */
+#nd-sidebar p {
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  font-weight: 600;
+  color: var(--color-fd-muted-foreground);
+}
+
+/* Items: rounded rows; the active page sits on a green-tinted pill. */
+#nd-sidebar a[data-active] {
+  border-radius: 0.5rem;
+}
+#nd-sidebar a[data-active='true'] {
+  background-color: color-mix(in oklab, var(--color-fd-primary) 12%, transparent);
+  font-weight: 500;
+}

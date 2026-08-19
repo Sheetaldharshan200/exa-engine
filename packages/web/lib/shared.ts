@@ -1,4 +1,4 @@
-export const appName = 'exa';
+export const appName = 'Exa';
 // Docs pages live at the root of the app; the /docs prefix comes from
 // next.config's basePath, which the exa server serves them under.
 export const docsRoute = '/';
