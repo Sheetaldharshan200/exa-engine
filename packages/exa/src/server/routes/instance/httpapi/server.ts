@@ -1,6 +1,6 @@
 import { Config as EffectConfig, Context, Effect, Layer } from "effect"
 import { HttpApiBuilder, OpenApi } from "effect/unstable/httpapi"
-import { HttpClient, HttpMiddleware, HttpRouter, HttpServer, HttpServerResponse } from "effect/unstable/http"
+import { HttpClient, HttpMiddleware, HttpRouter, HttpServer, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
 import * as Socket from "effect/unstable/socket/Socket"
 import { FSUtil } from "@exa/core/fs-util"
 import * as Observability from "@exa/core/observability"
@@ -222,6 +222,27 @@ const studioIpcRoute = HttpRouter.use((router) =>
   }),
 ).pipe(Layer.provide(authOnlyRouterLayer))
 
+/**
+ * The documentation site, embedded at build time (see EXA_DOCS_DIST in the
+ * build script) and served under /docs — the same pages `exa docs` opens.
+ * Mounted before the catch-all so the Studio UI never swallows a docs path.
+ */
+const docsRoute = HttpRouter.use((router) =>
+  Effect.gen(function* () {
+    const fs = yield* FSUtil.Service
+    const serve = (request: HttpServerRequest.HttpServerRequest) =>
+      Effect.gen(function* () {
+        const { embeddedDocs, serveDocsEffect } = yield* Effect.promise(() => import("@/server/shared/ui"))
+        const docs = yield* Effect.promise(() => embeddedDocs())
+        if (!docs) return HttpServerResponse.text("Documentation is not available in this build.", { status: 404 })
+        return yield* serveDocsEffect(new URL(request.url, "http://localhost").pathname, fs, docs)
+      })
+    // The wildcard also declares the bare "/docs" path in this router, so a
+    // separate exact registration would collide with it.
+    yield* router.add("GET", "/docs/*", serve)
+  }),
+).pipe(Layer.provide(authOnlyRouterLayer))
+
 const uiRoute = HttpRouter.use((router) =>
   Effect.gen(function* () {
     const fs = yield* FSUtil.Service
@@ -312,6 +333,7 @@ export function createRoutes(
     serverRoutes,
     docRoute,
     studioIpcRoute,
+    docsRoute,
     uiRoute,
   ).pipe(
     Layer.provide([

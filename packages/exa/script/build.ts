@@ -30,10 +30,15 @@ const plugin = createSolidTransformPlugin()
 const prebuiltWebUi = process.env["EXA_WEB_UI_DIST"]?.trim() || undefined
 const skipEmbedWebUi = process.argv.includes("--skip-embed-web-ui") || !prebuiltWebUi
 
-const createEmbeddedWebUIBundle = async () => {
-  const dist = prebuiltWebUi!
-  if (!existsSync(dist)) throw new Error(`EXA_WEB_UI_DIST does not exist: ${dist}`)
-  console.log(`Embedding prebuilt Web UI from ${dist}`)
+// The documentation site lives in this repo (packages/web) and is embedded the
+// same way, served under /docs and opened by `exa docs`. Defaults to the
+// in-repo build output so a local `astro build` is picked up automatically.
+const docsDefault = path.join(dir, "../web/dist")
+const prebuiltDocs = process.env["EXA_DOCS_DIST"]?.trim() || (existsSync(docsDefault) ? docsDefault : undefined)
+
+const createEmbeddedBundle = async (dist: string, label: string) => {
+  if (!existsSync(dist)) throw new Error(`${label} does not exist: ${dist}`)
+  console.log(`Embedding prebuilt ${label} from ${dist}`)
   const files = (await Array.fromAsync(new Bun.Glob("**/*").scan({ cwd: dist })))
     .map((file) => file.replaceAll("\\", "/"))
     .filter((file) => !file.endsWith(".map"))
@@ -53,7 +58,8 @@ const createEmbeddedWebUIBundle = async () => {
   ].join("\n")
 }
 
-const embeddedFileMap = skipEmbedWebUi ? null : await createEmbeddedWebUIBundle()
+const embeddedFileMap = skipEmbedWebUi ? null : await createEmbeddedBundle(prebuiltWebUi!, "EXA_WEB_UI_DIST")
+const embeddedDocsMap = prebuiltDocs ? await createEmbeddedBundle(prebuiltDocs, "EXA_DOCS_DIST") : null
 const treeSitterWorker = await Bun.file(fileURLToPath(import.meta.resolve("@opentui/core/parser.worker"))).text()
 
 const allTargets: {
@@ -188,12 +194,14 @@ for (const item of targets) {
     files: {
       [treeSitterWorkerPath]: treeSitterWorker,
       ...(embeddedFileMap ? { "exa-web-ui.gen.ts": embeddedFileMap } : {}),
+      ...(embeddedDocsMap ? { "exa-docs.gen.ts": embeddedDocsMap } : {}),
     },
     entrypoints: [
       "./src/index.ts",
       workerPath,
       treeSitterWorkerPath,
       ...(embeddedFileMap ? ["exa-web-ui.gen.ts"] : []),
+      ...(embeddedDocsMap ? ["exa-docs.gen.ts"] : []),
     ],
     define: {
       FFF_LIBC: JSON.stringify(item.abi === "musl" ? "musl" : "gnu"),

@@ -1,0 +1,62 @@
+---
+title: Databases
+description: Connect Exasol databases and work across several at once.
+---
+
+Exa ships with a native Exasol driver — pure JavaScript over Exasol's
+WebSocket API — so connecting a database needs no Python, no MCP server,
+and no drivers to install.
+
+## Connecting
+
+```bash
+exa connect                          # guided: reuse, install, or connect
+exa connect exasol://sys@host:8563   # direct, prompts for the password
+```
+
+With no arguments, `exa connect` looks for what is already running: an
+Exasol Personal deployment, Exasol Studio's managed database, or a starter
+kit. If the launcher deployed the database, exa reads the generated
+credentials from disk — there is no password to copy. It can also install
+Exasol Personal locally (~170&nbsp;MB, nothing to configure).
+
+In a session, `/connect-db` shows every connected database, marks the
+default, and switches it.
+
+## Where connections live
+
+Connection metadata goes to `~/.exasol/connections.json`, **shared with
+Exasol Studio** — a database connected in one appears in the other.
+Passwords never touch that file: they live in the operating system's
+credential store (Keychain, Secret Service, Credential Manager).
+
+## Several databases in one session
+
+Every database tool takes an optional `database` argument, and
+`exasol_databases` lists what is connected. Ask a question that names a
+system and the agent picks the right one; ambiguity is refused rather than
+guessed, because a plausible number from the wrong database is the worst
+answer available.
+
+```bash
+exa connect --add                    # add another database
+exa connect --default sales-prod     # what unqualified questions use
+exa connect --list                   # everything, with the default marked
+```
+
+Exasol cannot join across separate databases: to combine sources the agent
+queries each and combines the results, attributing each number to where it
+came from.
+
+## Writes are opt-in
+
+Reads are always allowed. Anything that writes or changes structure is
+**refused in code** — not by prompt — unless you grant that operation
+class:
+
+```bash
+exa ops grant insert       # or update, delete, create, drop…
+exa ops                    # what is currently granted
+```
+
+The `/ops` command does the same inside a session.

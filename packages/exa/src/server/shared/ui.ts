@@ -54,17 +54,27 @@ export function embeddedUI(disableEmbeddedWebUi: boolean) {
     import("exa-web-ui.gen.ts").then((module) => module.default as Record<string, string>).catch(() => null))
 }
 
+let embeddedDocsPromise: Promise<Record<string, string> | null> | undefined
+
+/** The documentation site (packages/web, built statically), embedded at build
+ *  time the same way the Studio UI is. Absent in dev builds. */
+export function embeddedDocs() {
+  return (embeddedDocsPromise ??=
+    // @ts-expect-error - generated file at build time
+    import("exa-docs.gen.ts").then((module) => module.default as Record<string, string>).catch(() => null))
+}
+
 function notFound() {
   return HttpServerResponse.jsonUnsafe({ error: "Not Found" }, { status: 404 })
 }
 
-function embeddedUIResponse(file: string, body: Uint8Array) {
+function embeddedUIResponse(file: string, body: Uint8Array, status = 200) {
   const mime = FSUtil.mimeType(file)
   const headers = new Headers({ "content-type": mime })
   if (mime.startsWith("text/html")) {
     headers.set("content-security-policy", cspForHtml(new TextDecoder().decode(body)))
   }
-  return HttpServerResponse.raw(body, { headers })
+  return HttpServerResponse.raw(body, { headers, status })
 }
 
 export function serveEmbeddedUIEffect(
@@ -77,6 +87,28 @@ export function serveEmbeddedUIEffect(
 
   return fs.readFile(file).pipe(
     Effect.map((body) => embeddedUIResponse(file, body)),
+    Effect.catchReason("PlatformError", "NotFound", () => Effect.succeed(notFound())),
+  )
+}
+
+/**
+ * Serve one docs page. Unlike the Studio UI this is a multi-page site, so an
+ * unknown path gets the site's own 404 page rather than index.html — falling
+ * back to the homepage would make every typo silently show the intro.
+ */
+export function resolveDocsFile(requestPath: string, docs: Record<string, string>) {
+  const key = decodeURIComponent(requestPath).replace(/^\/docs\/?/, "").replace(/\/$/, "")
+  const resolved = docs[key] ?? docs[key === "" ? "index.html" : `${key}/index.html`]
+  if (resolved) return { file: resolved, status: 200 }
+  const fallback = docs["404.html"]
+  return fallback ? { file: fallback, status: 404 } : undefined
+}
+
+export function serveDocsEffect(requestPath: string, fs: FSUtil.Interface, docs: Record<string, string>) {
+  const resolved = resolveDocsFile(requestPath, docs)
+  if (!resolved) return Effect.succeed(notFound())
+  return fs.readFile(resolved.file).pipe(
+    Effect.map((body) => embeddedUIResponse(resolved.file, body, resolved.status)),
     Effect.catchReason("PlatformError", "NotFound", () => Effect.succeed(notFound())),
   )
 }

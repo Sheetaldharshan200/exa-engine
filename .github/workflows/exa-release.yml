@@ -70,6 +70,16 @@ jobs:
           echo "dist=/tmp/studio/apps/desktop/dist" >> "$GITHUB_OUTPUT"
           echo "::notice::embedding Studio's web UI from ${STUDIO_REPO}@${STUDIO_REF}"
 
+      # The documentation site (packages/web) is embedded into the binary and
+      # served under /docs — `exa docs` opens it. build.ts picks the dist up
+      # from packages/web/dist automatically.
+      - name: Build documentation site
+        run: |
+          set -euo pipefail
+          cd packages/web
+          bunx astro build
+          test -s dist/index.html
+
       - name: Build all targets and upload assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -80,6 +90,23 @@ jobs:
         run: |
           export EXA_VERSION="${GITHUB_REF_NAME#v}"
           bun ./packages/exa/script/build.ts
+
+      # npm/bun/pnpm installs: publish the exa-ai wrapper and its per-platform
+      # binary packages. Additive — the curl/irm installers work without it —
+      # so a missing token skips with a notice rather than failing the release.
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::notice::NPM_TOKEN is not set — skipping npm publish (curl/irm installs are unaffected)"
+            exit 0
+          fi
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          export EXA_VERSION="${GITHUB_REF_NAME#v}"
+          bun ./packages/exa/script/publish.ts
 
       - name: Verify published assets
         env:
