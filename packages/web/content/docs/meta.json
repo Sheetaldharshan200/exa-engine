@@ -6,6 +6,7 @@
     "data",
     "configure",
     "reference",
-    "develop"
+    "develop",
+    "migration"
   ]
 }
