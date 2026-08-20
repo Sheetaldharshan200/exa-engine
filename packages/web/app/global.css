@@ -54,11 +54,23 @@ html > body[data-scroll-locked] {
   color: var(--color-fd-primary);
 }
 
-/* Items: rounded rows; the active page sits on a green-tinted pill. */
+/* Items: rounded rows. The active page gets a quiet neutral box and a green
+ * rail — the brand marks the position, the surface stays calm. */
 #nd-sidebar a[data-active] {
   border-radius: 0.5rem;
 }
 #nd-sidebar a[data-active='true'] {
-  background-color: color-mix(in oklab, var(--color-fd-primary) 12%, transparent);
+  background-color: var(--color-fd-accent);
+  color: var(--color-fd-accent-foreground);
   font-weight: 500;
+}
+#nd-sidebar a[data-active='true']::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--color-fd-primary);
 }

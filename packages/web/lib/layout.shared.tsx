@@ -29,6 +29,10 @@ export function baseOptions(): BaseLayoutProps {
         </>
       ),
     },
+    links: [
+      { text: 'Documentation', url: '/', active: 'nested-url' },
+      { text: 'Releases', url: `https://github.com/${gitConfig.user}/${gitConfig.repo}/releases`, external: true },
+    ],
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
     // The three-way segmented pill: light / dark / follow-the-system.
     themeSwitch: { mode: 'light-dark-system' },

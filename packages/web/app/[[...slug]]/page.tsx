@@ -5,7 +5,7 @@ import {
   DocsPage,
   DocsTitle,
   MarkdownCopyButton,
-} from 'fumadocs-ui/layouts/docs/page';
+} from 'fumadocs-ui/layouts/notebook/page';
 import { PageOpenMenu } from '@/components/page-actions';
 import { notFound } from 'next/navigation';
 import { getMDXComponents } from '@/components/mdx';
