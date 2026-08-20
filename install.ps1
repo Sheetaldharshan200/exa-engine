@@ -20,9 +20,13 @@ Invoke-WebRequest $Url -OutFile $Zip -UseBasicParsing
 Expand-Archive -Path $Zip -DestinationPath $Dir -Force
 Remove-Item $Zip -Force
 
-# The archive contains bin\exa.exe; expose the bin directory on the user PATH.
-$Bin = Join-Path $Dir "bin"
-if (-not (Test-Path (Join-Path $Bin "exa.exe"))) { throw "exa.exe not found after extraction — the release layout changed." }
+# The archive contains exa.exe at its root; expose that directory on the user PATH.
+$Bin = $Dir
+if (-not (Test-Path (Join-Path $Bin "exa.exe"))) {
+  # tolerate a bin\ layout should a future release move it
+  $Bin = Join-Path $Dir "bin"
+  if (-not (Test-Path (Join-Path $Bin "exa.exe"))) { throw "exa.exe not found after extraction — the release layout changed." }
+}
 $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($UserPath -notlike "*$Bin*") {
   [Environment]::SetEnvironmentVariable("Path", "$UserPath;$Bin", "User")
