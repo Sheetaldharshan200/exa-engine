@@ -55,3 +55,6 @@ export function createExaClient(config?: Config & { directory?: string }) {
   client.interceptors.error.use(wrapClientError)
   return new ExaClient({ client })
 }
+
+/** Back-compat alias for tooling built against @opencode-ai/sdk. */
+export const createOpencodeClient = createExaClient

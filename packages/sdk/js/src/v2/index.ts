@@ -21,3 +21,6 @@ export async function createExa(options?: ServerOptions) {
     server,
   }
 }
+
+/** Back-compat alias for tooling built against @opencode-ai/sdk. */
+export const createOpencode = createExa

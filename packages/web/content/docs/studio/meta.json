@@ -1,6 +1,6 @@
 {
-  "title": "Exasol Studio",
-  "description": "The desktop and web app for your Exasol databases",
+  "title": "Exasol Studio \u00b7 IDE",
+  "description": "The desktop & web app for your databases",
   "root": true,
   "pages": [
     "index",

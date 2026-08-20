@@ -113,6 +113,14 @@ const DOCS_CSP =
   "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'"
 
 export function serveDocsEffect(requestPath: string, fs: FSUtil.Interface, docs: Record<string, string>) {
+  // The site has no root page by design: `exa docs` lands on the Exa
+  // notebook, Studio's docs button lands on /docs/studio directly.
+  const bare = decodeURIComponent(requestPath).replace(/\/$/, "")
+  if (bare === "/docs" || bare === "") {
+    return Effect.succeed(
+      HttpServerResponse.raw(new Uint8Array(), { status: 307, headers: new Headers({ location: "/docs/exa" }) }),
+    )
+  }
   const resolved = resolveDocsFile(requestPath, docs)
   if (!resolved) return Effect.succeed(notFound())
   return fs.readFile(resolved.file).pipe(

@@ -71,14 +71,20 @@ jobs:
           echo "::notice::embedding Studio's web UI from ${STUDIO_REPO}@${STUDIO_REF}"
 
       # The documentation site (packages/web) is embedded into the binary and
-      # served under /docs — `exa docs` opens it. build.ts picks the dist up
-      # from packages/web/dist automatically.
+      # served under /docs — `exa docs` opens it. The Studio notebook's source
+      # of truth is the Studio repository (docs/site), synced from the clone
+      # made above; the in-repo copy is the offline fallback.
       - name: Build documentation site
         run: |
           set -euo pipefail
+          if [ -d /tmp/studio/docs/site ]; then
+            rsync -a --delete /tmp/studio/docs/site/ packages/web/content/docs/studio/
+            rm -f packages/web/content/docs/studio/README.md
+            echo "::notice::Studio docs synced from the Studio repository"
+          fi
           cd packages/web
           bun run build
-          test -s out/index.html
+          test -s out/exa.html
 
       - name: Build all targets and upload assets
         env:

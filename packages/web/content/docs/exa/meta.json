@@ -1,6 +1,6 @@
 {
-  "title": "Exa",
-  "description": "The data agent \u2014 TUI, engine, and exa web",
+  "title": "Exa \u00b7 AI engine",
+  "description": "The data agent \u2014 TUI, CLI, engine, exa web",
   "root": true,
   "pages": [
     "index",

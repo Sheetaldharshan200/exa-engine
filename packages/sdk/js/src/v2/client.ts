@@ -91,3 +91,11 @@ export function createExaClient(config?: Config & { directory?: string; experime
   client.interceptors.error.use(wrapClientError)
   return new ExaClient({ client })
 }
+
+/**
+ * Back-compat alias: tooling built against @opencode-ai/sdk (assistant-ui's
+ * opencode runtime, community integrations) imports this name. Keeping it
+ * lets exa-engine-sdk substitute that package via an npm alias with zero
+ * code changes downstream.
+ */
+export const createOpencodeClient = createExaClient
