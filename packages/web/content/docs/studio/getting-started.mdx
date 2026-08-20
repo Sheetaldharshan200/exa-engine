@@ -1,0 +1,29 @@
+---
+title: Getting started
+description: Install Exasol Studio, or serve it from the exa engine.
+---
+
+## Desktop app
+
+Download the build for your platform from the [releases page](https://github.com/Sheetaldharshan200/Exasol-studio/releases) — macOS (dmg), Windows (exe/msi), and Linux (AppImage/deb/rpm).
+
+First run walks you through two things:
+
+1. **A master password** — Studio's vault, protecting secrets at rest. Write down the five recovery codes it shows once; see [Security](./security.mdx).
+2. **A database** — connect an existing Exasol, or let Studio install **Exasol Personal** locally: a full Exasol database on your machine, managed from the Marketplace, no configuration.
+
+When Personal is your only database, Studio connects to it automatically on launch — zero-setup. The moment you add your own connections, nothing connects without a click.
+
+## In the browser instead
+
+If you use the [exa CLI](../exa/index.mdx), Studio is already in it:
+
+```bash
+exa web
+```
+
+That serves this same application from the engine, against the same shared connections. A few desktop-only abilities (managing the local database's lifecycle, filesystem access, terminals) are named as such in the UI rather than failing silently.
+
+## Staying current
+
+Studio's runtime pieces — the exa engine, Exasol Personal, ExaPump — update from their source repositories' releases through **Managed Components** in the Marketplace. Nothing is pinned; every install resolves the latest release, digest-verified.

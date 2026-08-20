@@ -1,0 +1,16 @@
+{
+  "title": "Exasol Studio",
+  "description": "The desktop and web app for your Exasol databases",
+  "root": true,
+  "pages": [
+    "index",
+    "getting-started",
+    "connections",
+    "sql-editor",
+    "dashboards",
+    "assistant",
+    "marketplace",
+    "security",
+    "ai-clients"
+  ]
+}

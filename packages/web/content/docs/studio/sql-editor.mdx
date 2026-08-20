@@ -1,0 +1,23 @@
+---
+title: SQL editor
+description: Run statements, inspect results, and see how queries executed.
+---
+
+The workbench pairs the schema browser with a SQL editor: write statements, run a selection or a whole script (statements split correctly outside quotes), and get one result grid per statement with per-statement errors — a failing statement doesn't hide the ones that succeeded.
+
+## Results
+
+The grid shows rows with the executed statement, row counts, and timing. Alongside it:
+
+- **Filter results** — search within the returned rows.
+- **Export CSV** — save the grid as a file.
+- **Cell value** — click a cell to inspect its full value in a side panel.
+- **Query statistics** — time, rows, columns, throughput at a glance.
+
+## Query performance
+
+Exasol has no `EXPLAIN` — the honest source is profiling. The **Query Performance** view reads the statement's execution parts from Exasol's profiling data (`EXA_USER_PROFILE_LAST_DAY`) and renders the plan Studio can prove: per-part timings, row counts, and where the time actually went.
+
+## DDL keeps the catalog honest
+
+After a successful `CREATE`/`ALTER`/`DROP`, Studio refreshes what depends on it — the schema browser, and if [Semantic Views](./marketplace.mdx#semantic-views) are installed on that database, their model is revalidated in the background and any breakage (a dropped column a model still binds) surfaces as a notice naming the issue.

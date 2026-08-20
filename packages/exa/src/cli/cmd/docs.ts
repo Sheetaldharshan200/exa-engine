@@ -12,9 +12,16 @@ import open from "open"
  * same pages are available on any running `exa web` server under /docs.
  */
 export const DocsCommand = effectCmd({
-  command: "docs",
-  builder: (yargs) => withNetworkOptions(yargs),
-  describe: "open the exa documentation in your browser",
+  command: "docs [section]",
+  builder: (yargs) =>
+    withNetworkOptions(
+      yargs.positional("section", {
+        type: "string",
+        choices: ["exa", "studio"] as const,
+        describe: "which notebook to open (exa or studio); both are one tab apart",
+      }),
+    ),
+  describe: "open the exa or Exasol Studio documentation in your browser",
   instance: false,
   handler: Effect.fn("Cli.docs")(function* (args) {
     const { embeddedDocs } = yield* Effect.promise(() => import("../../server/shared/ui"))
@@ -27,7 +34,8 @@ export const DocsCommand = effectCmd({
     const { Server } = yield* Effect.promise(() => import("../../server/server"))
     const opts = yield* resolveNetworkOptions(args)
     const server = yield* Effect.promise(() => Server.listen(opts))
-    const url = `http://${opts.hostname === "0.0.0.0" ? "localhost" : opts.hostname}:${server.port}/docs`
+    const section = args.section === "studio" ? "/studio" : args.section === "exa" ? "/exa" : ""
+    const url = `http://${opts.hostname === "0.0.0.0" ? "localhost" : opts.hostname}:${server.port}/docs${section}`
 
     UI.empty()
     UI.println(UI.logo("  "))

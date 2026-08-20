@@ -1,0 +1,26 @@
+---
+title: Exasol Studio
+description: One app for your Exasol databases — schema, SQL, dashboards, and an AI agent.
+---
+
+**Exasol Studio** is the graphical home for your Exasol databases: a schema browser, a SQL editor with performance insight, dashboards, a marketplace of add-ons, and an AI assistant — all speaking natively to Exasol.
+
+It is one product with two doors, and this documentation covers both:
+
+- **Desktop app** — the full experience, including managing a local **Exasol Personal** database on your machine.
+- **`exa web`** — the same Studio served in your browser by the [exa engine](../exa/index.mdx), sharing the same connections. See [Web](../exa/usage/web.mdx).
+
+<Callout type="info" title="Studio and exa are one stack">
+Connections live in a registry both programs share (`~/.exasol/connections.json`, passwords in the OS credential store). Connect a database in either and it appears in both. The agent inside Studio is the exa engine itself.
+</Callout>
+
+## Where to start
+
+- [Getting started](./getting-started.mdx) — install, first run, the local database.
+- [Connections](./connections.mdx) — connect Exasol databases, shared with the CLI.
+- [SQL editor](./sql-editor.mdx) — run statements, inspect results and query performance.
+- [Dashboards](./dashboards.mdx) — pin results into live dashboards.
+- [AI assistant](./assistant.mdx) — the built-in agent, its engine, and its guardrails.
+- [Marketplace](./marketplace.mdx) — Exasol Personal, ExaPump, Semantic Views and friends.
+- [Security](./security.mdx) — the master-password vault and where secrets live.
+- [AI clients](./ai-clients.mdx) — connect Claude, Cursor and others to your databases over MCP.

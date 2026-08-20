@@ -1,0 +1,20 @@
+---
+title: AI assistant
+description: The exa engine inside Studio — grounded, guarded, local-capable.
+---
+
+The assistant panel is the [exa engine](../exa/index.mdx) running as Studio's sidecar. Everything documented for exa's agent applies — providers, models, permissions — managed from Studio's UI.
+
+## Grounded in your databases
+
+Every open connection is registered with the agent, so it lists schemas and describes tables before writing SQL, across all of them at once. Credentials are decrypted natively and held in the sidecar's memory only — the browser side never sees a password.
+
+## Providers and models
+
+The model picker manages engine credentials directly: sign in to **Anthropic (Claude Pro/Max subscription)**, **GitHub Copilot**, **OpenAI (ChatGPT)**, paste an API key for 75+ providers, or run models locally — Studio and exa share one [local engine](../exa/data/local-models.mdx) on one port, so a machine running both serves one model, not two.
+
+The engine installs from its repository's **latest release** through Managed Components — the assistant's abilities track the engine, not the Studio version.
+
+## Guardrails
+
+The seeded Studio agent is scoped to data work: coding tools are disabled, reads are always allowed, and anything that writes to a database is refused unless granted — the same `ops` model as [exa](../exa/data/databases.mdx#writes-are-opt-in). Web access follows the engine's permission rules.

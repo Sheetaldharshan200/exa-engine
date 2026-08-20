@@ -1,0 +1,19 @@
+---
+title: Marketplace
+description: Managed components and add-ons, resolved live from their source repositories.
+---
+
+The Marketplace installs and updates the pieces around Studio. Nothing is pinned or bundled stale: every component resolves the **latest release of its own repository** at install time, verified against the release's published digests. A component that cannot be verified is refused, not guessed at.
+
+## Managed components
+
+- **Exasol Personal** — the local database. Deploy, start, stop, back up, destroy.
+- **exa engine** — the AI sidecar; see [AI assistant](./assistant.mdx).
+- **ExaPump** — bulk data movement (CSV/Parquet upload, `exapump` CLI).
+- **MCP server** — the read-only gateway for [external AI clients](./ai-clients.mdx).
+
+## Semantic Views
+
+Semantic Views install **per database**, not into Studio: pick the target from the card's database selector — the local database or any connected profile — and the installer creates the framework (`SYS_SEMANTIC` model tables, validation procedures) in that database. The card shows *installed in \<database\>* so there is no ambiguity about where it lives.
+
+After schema changes made through Studio, active models are revalidated automatically and issues are surfaced by name — see [SQL editor](./sql-editor.mdx#ddl-keeps-the-catalog-honest).

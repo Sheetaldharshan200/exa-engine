@@ -1,0 +1,16 @@
+---
+title: AI clients
+description: Give Claude, Cursor, and other MCP clients read-only access to your databases.
+---
+
+Studio bundles an MCP server so external AI clients can query your Exasol databases — **read-only, enforced by the database**, not by trust: the gateway signs in as a dedicated user that can read every schema but cannot write.
+
+## One gateway, every database
+
+The `exasol-studio` MCP entry speaks for **all connected databases** at once — a client asks what is available and names the database per query. When Exasol Personal is the only database, it is the automatic target.
+
+## Connecting a client
+
+The Marketplace's AI-clients panel detects installed clients — Claude Desktop, Claude Code, Cursor, VS Code Copilot, Codex, Gemini CLI — and writes their MCP configuration for you (with a backup of the file it edits). Restart the client and the `exasol-studio` server appears in its tool list.
+
+Prefer the agent inside Studio when you want guardrails beyond read-only — [the assistant](./assistant.mdx) adds grounded schema discovery and the opt-in write model on top.

@@ -1,0 +1,14 @@
+{
+  "title": "Exa",
+  "description": "The data agent \u2014 TUI, engine, and exa web",
+  "root": true,
+  "pages": [
+    "index",
+    "usage",
+    "data",
+    "configure",
+    "reference",
+    "develop",
+    "migration"
+  ]
+}
