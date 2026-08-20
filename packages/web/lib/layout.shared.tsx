@@ -30,5 +30,7 @@ export function baseOptions(): BaseLayoutProps {
       ),
     },
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
+    // The three-way segmented pill: light / dark / follow-the-system.
+    themeSwitch: { mode: 'light-dark-system' },
   };
 }
