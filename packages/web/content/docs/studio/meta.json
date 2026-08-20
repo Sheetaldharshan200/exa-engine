@@ -5,11 +5,12 @@
   "pages": [
     "index",
     "getting-started",
+    "workbench",
     "connections",
-    "sql-editor",
     "dashboards",
     "assistant",
     "marketplace",
+    "settings",
     "security",
     "ai-clients"
   ]

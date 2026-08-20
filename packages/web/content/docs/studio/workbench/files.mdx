@@ -1,0 +1,22 @@
+---
+title: Files & data import
+description: The workspace folder, file previews, and loading data with ExaPump.
+---
+
+## The workspace
+
+The Files panel browses `~/ExasolStudio` as a tree: new file, search, reload, hidden-files toggle. SQL and text files open as editor tabs; **CSV, TSV, and Parquet open as a read-only preview grid** with *Edit as text* when you need the raw bytes.
+
+## Loading data
+
+**Load \<file\> into Exasol** (on any data file) opens the Load Data dialog, powered by [ExaPump](../marketplace.mdx):
+
+1. Target schema and table (guessed from the filename), delimiter for CSV/TSV.
+2. **Dry run** previews what would happen — nothing is written.
+3. **Load** streams the file in with a live, color-coded log. A missing table is created from the file's shape.
+
+If ExaPump isn't installed the dialog says so plainly and points at the Marketplace — no silent fallback.
+
+## BucketFS
+
+For full and cloud Exasol deployments, the BucketFS browser lists bucket contents, downloads files, uploads local files to a chosen path, and can scaffold the `CREATE JAVA ADAPTER SCRIPT` for a driver jar you just uploaded — the setup path for [virtual schemas](../connections/virtual-schemas.mdx).

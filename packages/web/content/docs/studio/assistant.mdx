@@ -1,20 +1,48 @@
 ---
 title: AI assistant
-description: The exa engine inside Studio — grounded, guarded, local-capable.
+description: The exa engine inside Studio — modes, context, commands, and guardrails.
 ---
 
-The assistant panel is the [exa engine](../exa/index.mdx) running as Studio's sidecar. Everything documented for exa's agent applies — providers, models, permissions — managed from Studio's UI.
+The assistant is the [exa engine](../exa/index.mdx) running as Studio's sidecar — one agent, two surfaces: a dockable right panel and a full-tab view (Expand / Dock / Hide). The engine installs itself silently and updates from its repository's latest release.
 
-## Grounded in your databases
+## Modes, grants, personas
 
-Every open connection is registered with the agent, so it lists schemas and describes tables before writing SQL, across all of them at once. Credentials are decrypted natively and held in the sidecar's memory only — the browser side never sees a password.
+- **Modes**: **Agent** (all tools), **Plan** (read-only, proposes before changing), **Chat** (conversation only — also what keeps small local models usable).
+- **SQL operation grants**: reads are always allowed; Insert, Update, Delete, Create, Alter, Drop, Access control, and Administration are explicit, persisted toggles behind the shield control. The engine refuses anything not granted.
+- **Personas** tune the answer's depth and format — Data Analyst, BI Analyst, Data Scientist, Finance Analyst, Data Engineer, DBA, Executive — or adaptive.
+- **Internet toggle**: sandboxed by default; enabling web access restarts the engine with webfetch/websearch in the tool list and verifies the enforcement.
 
-## Providers and models
+## Grounded context
 
-The model picker manages engine credentials directly: sign in to **Anthropic (Claude Pro/Max subscription)**, **GitHub Copilot**, **OpenAI (ChatGPT)**, paste an API key for 75+ providers, or run models locally — Studio and exa share one [local engine](../exa/data/local-models.mdx) on one port, so a machine running both serves one model, not two.
+Every open connection is registered with the agent, so it can speak for all your databases at once. Attach context precisely with `@`:
 
-The engine installs from its repository's **latest release** through Managed Components — the assistant's abilities track the engine, not the Studio version.
+`@query` (the active editor SQL) · `@results` (the last result set) · `@table` and `@schema` (pick from the catalog) · `@connection` · `@history` (recent statements). Attachments appear as removable chips; files and photos attach with `+`, and a paste over 4000 characters becomes a file automatically.
 
-## Guardrails
+## Slash commands
 
-The seeded Studio agent is scoped to data work: coding tools are disabled, reads are always allowed, and anything that writes to a database is refused unless granted — the same `ops` model as [exa](../exa/data/databases.mdx#writes-are-opt-in). Web access follows the engine's permission rules.
+Prompt commands `/generate`, `/explain`, `/optimize`, `/fix`, `/review`; local commands `/new`, `/clear`, `/sessions`, `/resume`, `/connect`, `/mcp`, `/models`, `/compact`, `/summarize`, `/details`, `/undo`, `/redo`, `/export`, `/share`, `/help`.
+
+## Shell commands
+
+Exactly like the TUI: start a message with `!` and the rest runs as a **shell command** through the engine session — the output arrives in the conversation as a normal turn.
+
+```text
+!ls ~/ExasolStudio
+!exapump --version
+```
+
+## From reply to editor
+
+SQL blocks in replies carry an **Apply** button that lands the statement in your active query tab. The editor's own [AI actions](./workbench/sql-editor.mdx#ai-actions) (optimize, fix, edit-with-instruction) run through the same agent with inline diff review. Agent-produced HTML opens as sandboxed **artifact tabs** with a download button and a gallery of past artifacts.
+
+## Models and providers
+
+The model picker manages the engine's credentials directly: **Anthropic (Claude Pro/Max subscription)**, **GitHub Copilot**, **OpenAI (ChatGPT)** sign-ins, API keys for 75+ providers, and **local models** — Studio and the exa CLI share one [local engine](../exa/data/local-models.mdx) on one port. Reasoning effort ("default effort" variant) is set per model.
+
+## Extending with MCP
+
+The **MCP servers** rail adds connectors that bring tools *into* the agent — Jira & Confluence, GitHub, Excel workbooks, local files, Postgres, SQLite, or a custom server — each with credential fields, a runs-as preview, connect/reconnect, and an audit log. (The opposite direction — external AI clients reaching *your databases* — is [AI clients](./ai-clients.mdx).)
+
+## Permissions
+
+When a tool needs approval, a bar pins above the composer: *Exa asks to use \<tool\>* — Allow once, Always, or Reject. Sessions are listed date-grouped with rename/archive/delete, and any conversation exports as Markdown.

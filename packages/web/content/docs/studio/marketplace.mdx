@@ -1,19 +1,35 @@
 ---
 title: Marketplace
-description: Managed components and add-ons, resolved live from their source repositories.
+description: Every component, resolved live from its source repository — nothing pinned.
 ---
 
-The Marketplace installs and updates the pieces around Studio. Nothing is pinned or bundled stale: every component resolves the **latest release of its own repository** at install time, verified against the release's published digests. A component that cannot be verified is refused, not guessed at.
+The Marketplace installs and updates everything around Studio. The rule is absolute: every component resolves the **latest release of its own repository** at install time, digest-verified — a component that cannot be verified is refused. Each card carries a **Docs ↗** button to its GitHub page.
 
-## Managed components
+## The catalog
 
-- **Exasol Personal** — the local database. Deploy, start, stop, back up, destroy.
-- **exa engine** — the AI sidecar; see [AI assistant](./assistant.mdx).
-- **ExaPump** — bulk data movement (CSV/Parquet upload, `exapump` CLI).
-- **MCP server** — the read-only gateway for [external AI clients](./ai-clients.mdx).
+| Component | What it is |
+| --- | --- |
+| Exasol Personal — Local | The local database: install, live running/stopped badge, **Manage (start/stop)**, backup |
+| ExaPump | Bulk data movement CLI (drives [Load Data](./workbench/files.mdx)) |
+| Semantic Views | Installs **per database** — pick the target, the badge reads *installed in \<db\>* |
+| JSON Tables | Document ingest engine (prebuilt, via uv) |
+| Exasol MCP Server | The read-only gateway used by [AI clients](./ai-clients.mdx) |
+| PyExasol / SQLAlchemy Exasol | Python drivers in a managed environment — *Install & use here* |
+| JDBC / ODBC drivers | Managed runtime installs |
+| TS/JS, Go, ADO.NET, R, WebSocket API | Reference drivers — *Get* links to their repos |
+| Exasol AI Lab | Notebook environment (uv) |
+| Exasol Agent Skills | Bundled skills, verified and synced from exasol-labs |
 
-## Semantic Views
+**Kits** bundle these into starter packs — Local AI Stack, Student/Learning, Data Explorer, Data Scientist, AI/Agent Builder — with per-item state and one-click install of what's missing.
 
-Semantic Views install **per database**, not into Studio: pick the target from the card's database selector — the local database or any connected profile — and the installer creates the framework (`SYS_SEMANTIC` model tables, validation procedures) in that database. The card shows *installed in \<database\>* so there is no ambiguity about where it lives.
+## Installing, honestly
 
-After schema changes made through Studio, active models are revalidated automatically and issues are surfaced by name — see [SQL editor](./sql-editor.mdx#ddl-keeps-the-catalog-honest).
+The install console shows **the exact steps in plain language before anything runs**, then real progress (byte-level for binaries), collapsible color-coded logs, and an explicit success or failure. Parallel installs queue in a bottom-right toast.
+
+## Updates
+
+The Updates tab compares each installed component against its repository's latest release: **Update to \<tag\>** with a live streamed log, or *All installed components are up to date*. The local database has its own control panel (start, stop, status, info, destroy) and **Back up** action.
+
+## Semantic Views, dynamically honest
+
+After schema-changing DDL run through Studio, active semantic models revalidate in the background — a dropped column that a model still binds surfaces as a notice naming the exact issue. See [SQL editor](./workbench/sql-editor.mdx).

@@ -1,0 +1,44 @@
+---
+title: SQL editor
+description: Four run modes, schema-aware completion, AI actions, and honest execution controls.
+---
+
+The editor is Monaco — the VS Code editor — tuned for Exasol SQL.
+
+## Running SQL
+
+Four run modes, each with its own shortcut; a text selection always narrows the target:
+
+| Action | Shortcut |
+| --- | --- |
+| Execute script (statement by statement) | `⌘⏎` |
+| Execute the current statement | `⌘.` |
+| Execute the whole buffer as one statement | `⌘⇧⏎` |
+| Explain plan | `⌘⌥⏎` |
+
+**Stop** cancels the running query with `KILL STATEMENT` — the session survives. A **Max rows** dropdown caps fetches, and the **Transactions** menu holds Auto-commit, Commit, and Rollback.
+
+The **execution settings** menu controls script behavior: strip comments before executing, stop on error / on SQL warning / on no rows, and error position/statement markers in the margin.
+
+## Completion that reads your database
+
+Autocompletion is fed live from the real catalog — `SYS.EXA_ALL_COLUMNS` plus your scripts and UDFs from `EXA_ALL_SCRIPTS` — refreshed on connect, after every run, and periodically. On top of that:
+
+- **Snippets**: `IMPORT FROM CSV AT`, `EXPORT INTO CSV AT`, `CREATE VIRTUAL SCHEMA`, `CREATE CONNECTION`, `MERGE INTO`, and `udf` templates for Lua, Python 3, Java, and R (including SET…EMITS).
+- **UDF-body completion** inside `--/ … /` blocks: per-language keywords plus the Exasol UDF API (`ctx.emit`, `exa.meta`, `ctx.getDouble`, …).
+- Statement-number badges in the margin match the result tabs (toggleable in Settings).
+
+## AI actions
+
+Right-click (or the lightbulb) on a selection:
+
+- **Explain the plan** (`⌘⇧E`) and **Explain what this does**
+- **Optimize**, **Fix errors**, and **Edit with instruction…** — each opens an inline diff over your SQL with **Accept / Decline**; nothing changes without review.
+
+## Navigation
+
+`⌘P` opens Quick Access (go to line, symbols, commands); `⌘⇧P` the command palette. The editor status bar shows line/column, live statement count, and chips (spaces, encoding, line endings) that jump straight to their Settings page.
+
+## Saving
+
+Save into the current file or **Save as** into the `~/ExasolStudio` workspace folder; a dirty-state dot marks unsaved tabs. Previous/next arrows step through your [SQL history](./history-terminal.mdx) without losing the live draft.

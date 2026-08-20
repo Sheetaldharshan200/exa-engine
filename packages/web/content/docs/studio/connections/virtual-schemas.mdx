@@ -1,0 +1,22 @@
+---
+title: Virtual schemas
+description: Query other systems from Exasol — the wizard, dialects, and drivers.
+---
+
+A virtual schema makes a foreign system queryable as if its tables lived in Exasol. Studio's wizard (sidebar → *New virtual schema*, or the floating button in the visualizer) does the whole ceremony.
+
+<Callout type="warn" title="Needs a full or cloud Exasol">
+Virtual schemas run adapter scripts from BucketFS, which Exasol Personal (local, macOS-native) does not provide. Use a full deployment, the Docker-based Nano, or a cloud Exasol.
+</Callout>
+
+## Sources
+
+**18 JDBC dialects** — PostgreSQL, MySQL, Oracle, SQL Server, Snowflake, BigQuery, Redshift, Databricks, IBM Db2, SAP HANA, Hive, Impala, Athena, Aurora, Teradata, Sybase ASE, Exasol-to-Exasol, and generic JDBC — plus **5 document sources**: S3, DynamoDB, Elasticsearch, Google Cloud Storage, Azure Blob/Data Lake.
+
+## What the wizard handles
+
+- A per-dialect **driver card**: driver class, Maven coordinates, the BucketFS path it must land in, copyable install steps, and links to the user guide and driver download.
+- The pieces of the DDL: adapter script (detected automatically), an existing or new `CONNECTION` (JDBC URL prefilled per dialect), remote schema and catalog.
+- A live **Generated DDL** pane — you see exactly what will run before **Create virtual schema** runs it.
+
+Driver jars get to BucketFS via the [BucketFS browser](../workbench/files.mdx#bucketfs), which can also scaffold the adapter script for a jar you just uploaded.

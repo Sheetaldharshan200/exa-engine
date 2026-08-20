@@ -1,0 +1,19 @@
+---
+title: Object details
+description: Inspect and safely edit tables, views, schemas, and users.
+---
+
+**Open details** on any object gives a tabbed inspector:
+
+- **Tables/views**: Info, Columns, Keys & Constraints, Grants, Size, DDL. Size shows raw GiB (uncompressed), MEM GiB (compressed), row count, created and last-commit times; Grants reads the privilege views; DDL renders a complete generated `CREATE TABLE` with its constraints. *Open data* is always one click.
+- **Schemas**: Info, Objects (counts), Grants, Size.
+- **Users**: Info, Granted Roles, System Privileges, Object Privileges, Owned Schemas.
+
+## Editing, the two-button way
+
+Every editor follows the same contract — **Review SQL** (the exact statements open as text), then **Confirm & Save**; **Revert** discards. Nothing runs unread:
+
+- **Properties**: rename, comment, and (for users) a new password.
+- **Structure** (columns): add, rename, change type (presets or custom), toggle nullable, toggle primary-key membership, drop.
+- **Keys**: add primary/unique/foreign keys (name, columns, referenced table + columns), drop constraints.
+- **User access**: grant/revoke roles, system privileges, and object privileges (a schema, a table, or a whole schema).

@@ -1,0 +1,22 @@
+---
+title: Health, logs & backups
+description: Operating a database from Studio — monitoring, logs, and both kinds of backup.
+---
+
+Three tabs on every connection cover day-2 operations.
+
+## Health
+
+Overview, Storage, and System-events sections over 1h/6h/24h ranges: database size (raw vs in-memory GiB), temp DB RAM, load/CPU, disk I/O, and KPI tiles — read from Exasol's statistics views.
+
+## Logs
+
+Three sources — **Statements** (the statistics views), **Sessions**, and **Events** (startups, backups, …) — with search, an errors-only filter, time ranges, and live auto-refresh (5/15/60&nbsp;s, pausable). *Refresh now* flushes statistics first so you see the truth, not the cache.
+
+## Backups
+
+Two independent mechanisms, honestly separated:
+
+**Studio backups (logical)** — every user table exported to CSV plus reconstructed DDL under `~/ExasolStudioBackups`. *Back up now*, a list of saved backup folders, and full history. **Schedules** run daily/weekly/monthly at a chosen time and timezone; Studio ticks while running and catches up missed occurrences on launch, with a notification.
+
+**Cluster backups (native)** — for deployments with the Admin API (ConfD): connect with host/port/user, then *Backup now* (level and expiration), abort, native schedules, and the archive-volume table with per-backup **Restore** (type-to-confirm) and delete. A *Databases* card lists cluster databases with start/stop.
