@@ -43,7 +43,7 @@ export const WebCommand = effectCmd({
       const { vaultFile } = yield* Effect.promise(() => import("../../server/studio-vault"))
       const { existsSync } = yield* Effect.promise(() => import("node:fs"))
       if (existsSync(vaultFile())) {
-        UI.println(UI.Style.TEXT_INFO_BOLD + '  Protected by your master password — sign in as "exa" with it.')
+        UI.println(UI.Style.TEXT_INFO_BOLD + '  Protected by your master password — the app asks for it once when you open the page.')
       } else {
         for (const line of unsecuredServerWarning(opts.hostname, "web")) {
           UI.println(UI.Style.TEXT_WARNING_BOLD + line)
