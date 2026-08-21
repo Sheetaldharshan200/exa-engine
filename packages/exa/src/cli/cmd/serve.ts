@@ -15,7 +15,13 @@ export const ServeCommand = effectCmd({
     const { Server } = yield* Effect.promise(() => import("../../server/server"))
     const opts = yield* resolveNetworkOptions(args)
     if (!Flag.EXA_SERVER_PASSWORD) {
-      for (const line of unsecuredServerWarning(opts.hostname, "serve")) console.log(line)
+      const { vaultFile } = yield* Effect.promise(() => import("../../server/studio-vault"))
+      const { existsSync } = yield* Effect.promise(() => import("node:fs"))
+      if (existsSync(vaultFile())) {
+        console.log("Protected by your master password — the app asks for it once when you open the page.")
+      } else {
+        for (const line of unsecuredServerWarning(opts.hostname, "serve")) console.log(line)
+      }
     }
     const server = yield* Effect.promise(() => Server.listen(opts))
     console.log(`exa server listening on http://${server.hostname}:${server.port}`)
