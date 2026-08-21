@@ -16,5 +16,6 @@ export function unsecuredServerWarning(hostname: string, command: "serve" | "web
       ? "!  No password set — anything running on this machine can use this server."
       : "!  No password set — ANYONE on your network can use this server.",
     `   Secure it:  EXA_SERVER_PASSWORD=<choose-a-password> exa ${command}`,
+    `   The browser then asks to sign in: username "exa", password the one you chose.`,
   ]
 }
