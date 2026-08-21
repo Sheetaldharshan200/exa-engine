@@ -3,6 +3,9 @@ export * as ServerAuth from "./auth"
 import { ConfigService } from "@/effect/config-service"
 import { Flag } from "@exa/core/flag/flag"
 import { Config as EffectConfig, Context, Option, Redacted } from "effect"
+import { existsSync } from "node:fs"
+import { createHash } from "node:crypto"
+import * as StudioVault from "./studio-vault"
 
 export type Credentials = {
   password?: string
@@ -21,16 +24,54 @@ export class Config extends ConfigService.Service<Config>()("@exa/ServerAuthConf
 
 export type Info = Context.Service.Shape<typeof Config>
 
+// ── The master-password vault doubles as the server's credential ────────────
+//
+// One password, one sign-in: when no EXA_SERVER_PASSWORD is set but the web
+// vault exists, HTTP basic auth verifies against the vault instead — and a
+// successful sign-in also unlocks the vault in memory, so the app opens
+// without asking for the same password a second time. An explicit
+// EXA_SERVER_PASSWORD always wins (the operator chose it).
+
+let vaultProbe: { at: number; configured: boolean } | undefined
+/** Accepted passwords this process, by digest — scrypt runs once per browser
+ *  session, not once per asset request. Only successes are cached. */
+const accepted = new Set<string>()
+
+function vaultConfigured(): boolean {
+  const now = Date.now()
+  if (vaultProbe && now - vaultProbe.at < 5_000) return vaultProbe.configured
+  let configured = false
+  try {
+    configured = existsSync(StudioVault.vaultFile())
+  } catch {
+    configured = false
+  }
+  vaultProbe = { at: now, configured }
+  return configured
+}
+
+function vaultAccepts(password: string): boolean {
+  const digest = createHash("sha256").update(password).digest("hex")
+  if (accepted.has(digest)) return true
+  try {
+    StudioVault.unlock(password) // throws on a wrong password; also unlocks the app
+    accepted.add(digest)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function required(config: Info) {
-  return Option.isSome(config.password) && config.password.value !== ""
+  if (Option.isSome(config.password) && config.password.value !== "") return true
+  return vaultConfigured()
 }
 
 export function authorized(credentials: DecodedCredentials, config: Info) {
-  return (
-    Option.isSome(config.password) &&
-    credentials.username === config.username &&
-    Redacted.value(credentials.password) === config.password.value
-  )
+  if (Option.isSome(config.password)) {
+    return credentials.username === config.username && Redacted.value(credentials.password) === config.password.value
+  }
+  return credentials.username === config.username && vaultAccepts(Redacted.value(credentials.password))
 }
 
 export function header(credentials?: Credentials) {

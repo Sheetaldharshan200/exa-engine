@@ -40,8 +40,14 @@ export const WebCommand = effectCmd({
     const { Server } = yield* Effect.promise(() => import("../../server/server"))
     const opts = yield* resolveNetworkOptions(args)
     if (!Flag.EXA_SERVER_PASSWORD) {
-      for (const line of unsecuredServerWarning(opts.hostname, "web")) {
-        UI.println(UI.Style.TEXT_WARNING_BOLD + line)
+      const { vaultFile } = yield* Effect.promise(() => import("../../server/studio-vault"))
+      const { existsSync } = yield* Effect.promise(() => import("node:fs"))
+      if (existsSync(vaultFile())) {
+        UI.println(UI.Style.TEXT_INFO_BOLD + '  Protected by your master password — sign in as "exa" with it.')
+      } else {
+        for (const line of unsecuredServerWarning(opts.hostname, "web")) {
+          UI.println(UI.Style.TEXT_WARNING_BOLD + line)
+        }
       }
     }
     const server = yield* Effect.promise(() => Server.listen(opts))

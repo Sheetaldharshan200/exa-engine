@@ -80,13 +80,15 @@ exa web --cors https://example.com
 
 ### Authentication
 
-To protect access, set a password using the `EXA_SERVER_PASSWORD` environment variable:
+Once you set a **master password** on first run, it protects the server too: the browser asks you to sign in — username `exa`, password your master password — and that one sign-in also unlocks the app, so you enter it exactly once.
+
+To use a separate server password instead, set `EXA_SERVER_PASSWORD`; an explicit password always wins over the vault:
 
 ```bash
 EXA_SERVER_PASSWORD=secret exa web
 ```
 
-The username defaults to `exa` but can be changed with `EXA_SERVER_USERNAME`.
+The username defaults to `exa` but can be changed with `EXA_SERVER_USERNAME`. Only a server with neither a master password nor `EXA_SERVER_PASSWORD` is unsecured — and says so at startup.
 
 ---
 
