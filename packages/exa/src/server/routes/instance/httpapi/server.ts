@@ -216,6 +216,16 @@ const studioIpcRoute = HttpRouter.use((router) =>
         if (!result.ok) {
           return HttpServerResponse.jsonUnsafe({ error: result.error }, { status: result.status })
         }
+        // A successful unlock IS the sign-in: issue the session the auth
+        // middleware accepts, so the app's own password screen is the only
+        // door the browser ever shows.
+        if (command === "vault_unlock" || command === "vault_setup" || command === "vault_recover") {
+          const { ServerAuth } = yield* Effect.promise(() => import("@/server/auth"))
+          const token = ServerAuth.issueSession()
+          return HttpServerResponse.jsonUnsafe(result.value ?? null, {
+            headers: new Headers({ "set-cookie": `exa_session=${token}; Path=/; HttpOnly; SameSite=Lax` }),
+          })
+        }
         return HttpServerResponse.jsonUnsafe(result.value ?? null)
       }),
     )

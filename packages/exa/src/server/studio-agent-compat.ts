@@ -106,8 +106,18 @@ const dashboards = {
 
 export type CompatResult = { status: number; body: Json } | undefined
 
+import { ServerAuth } from "./auth"
+
+// In-process self-calls must pass the server's own auth (vault sessions or an
+// env password). A minted session token covers both without any secret in
+// transit beyond loopback.
+let selfSession: string | undefined
+
 async function engineFetch(base: string, path: string, init?: RequestInit): Promise<any> {
-  const res = await fetch(`${base}${path}`, init)
+  selfSession ??= ServerAuth.issueSession()
+  const headers = new Headers(init?.headers)
+  headers.set("cookie", `exa_session=${selfSession}`)
+  const res = await fetch(`${base}${path}`, { ...init, headers })
   if (!res.ok) throw new Error(`engine ${res.status} on ${path}`)
   const text = await res.text()
   return text ? JSON.parse(text) : null

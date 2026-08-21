@@ -3,7 +3,7 @@ import { Effect, Encoding, Layer, Redacted } from "effect"
 import { HttpEffect, HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http"
 import { HttpApiError, HttpApiMiddleware } from "effect/unstable/httpapi"
 import { hasPtyConnectTicketURL } from "@/server/shared/pty-ticket"
-import { isPublicUIPath } from "@/server/shared/public-ui"
+import { isPublicUIPath, isVaultPublicPath } from "@/server/shared/public-ui"
 export {
   Authorization as ServerAuthorization,
   authorizationLayer as serverAuthorizationLayer,
@@ -44,10 +44,17 @@ function validateCredential<A, E, R>(
 ) {
   return Effect.gen(function* () {
     if (!ServerAuth.required(config)) return yield* effect
+    const request = yield* HttpServerRequest.HttpServerRequest
+    if (ServerAuth.sessionValid(ServerAuth.sessionFromCookie(request.headers["cookie"]))) return yield* effect
     if (!ServerAuth.authorized(credential, config)) {
-      yield* HttpEffect.appendPreResponseHandler((_request, response) =>
-        Effect.succeed(HttpServerResponse.setHeader(response, "www-authenticate", WWW_AUTHENTICATE)),
-      )
+      // In vault mode the app's own unlock screen is the door — the
+      // www-authenticate header would summon the browser's native dialog on
+      // top of it, so it is only sent when an explicit env password rules.
+      if (!ServerAuth.usingVaultAuth(config)) {
+        yield* HttpEffect.appendPreResponseHandler((_request, response) =>
+          Effect.succeed(HttpServerResponse.setHeader(response, "www-authenticate", WWW_AUTHENTICATE)),
+        )
+      }
       return yield* new HttpApiError.Unauthorized({})
     }
     return yield* effect
@@ -92,7 +99,9 @@ function validateRawCredential<A, E, R>(
     return Effect.succeed(
       HttpServerResponse.empty({
         status: UNAUTHORIZED,
-        headers: { "www-authenticate": WWW_AUTHENTICATE },
+        // See validateCredential: no browser dialog on top of the app's own
+        // unlock screen in vault mode.
+        headers: ServerAuth.usingVaultAuth(config) ? {} : { "www-authenticate": WWW_AUTHENTICATE },
       }),
     )
   return effect
@@ -108,6 +117,8 @@ export const authorizationRouterMiddleware = HttpRouter.middleware()(
         const request = yield* HttpServerRequest.HttpServerRequest
         const url = new URL(request.url, "http://localhost")
         if (isPublicUIPath(request.method, url.pathname)) return yield* effect
+        if (ServerAuth.usingVaultAuth(config) && isVaultPublicPath(request.method, url.pathname)) return yield* effect
+        if (ServerAuth.sessionValid(ServerAuth.sessionFromCookie(request.headers["cookie"]))) return yield* effect
         return yield* credentialFromURL(url, request).pipe(
           Effect.flatMap((credential) => validateRawCredential(effect, credential, config)),
         )

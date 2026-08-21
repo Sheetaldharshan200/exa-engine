@@ -4,7 +4,7 @@ import { ConfigService } from "@/effect/config-service"
 import { Flag } from "@exa/core/flag/flag"
 import { Config as EffectConfig, Context, Option, Redacted } from "effect"
 import { existsSync } from "node:fs"
-import { createHash } from "node:crypto"
+import { createHash, randomBytes } from "node:crypto"
 import * as StudioVault from "./studio-vault"
 
 export type Credentials = {
@@ -60,6 +60,37 @@ function vaultAccepts(password: string): boolean {
   } catch {
     return false
   }
+}
+
+/** True when protection comes from the vault (no explicit env password). */
+export function usingVaultAuth(config: Info) {
+  return !(Option.isSome(config.password) && config.password.value !== "") && vaultConfigured()
+}
+
+// ── Browser sessions (vault mode) ────────────────────────────────────────────
+// The app's own unlock screen is the door: a successful vault unlock issues a
+// session token cookie, so the browser never sees the native basic-auth
+// dialog. Tokens live in process memory — a server restart signs everyone out,
+// which is exactly what a restart should do.
+const sessions = new Set<string>()
+
+export function issueSession(): string {
+  const token = randomBytes(32).toString("base64url")
+  sessions.add(token)
+  return token
+}
+
+export function sessionValid(token: string | undefined): boolean {
+  return token !== undefined && sessions.has(token)
+}
+
+export function sessionFromCookie(cookieHeader: string | undefined): string | undefined {
+  if (!cookieHeader) return undefined
+  for (const part of cookieHeader.split(";")) {
+    const [name, ...rest] = part.trim().split("=")
+    if (name === "exa_session") return rest.join("=")
+  }
+  return undefined
 }
 
 export function required(config: Info) {
