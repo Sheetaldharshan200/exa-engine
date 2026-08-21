@@ -243,6 +243,30 @@ const docsRoute = HttpRouter.use((router) =>
   }),
 ).pipe(Layer.provide(authOnlyRouterLayer))
 
+/**
+ * The agent-sidecar API Studio's assistant panel expects (/v1/engine/*).
+ * In `exa web` this server IS the engine, so it answers the sidecar's
+ * contract itself — see studio-agent-compat.ts.
+ */
+const agentCompatRoute = HttpRouter.use((router) =>
+  Effect.gen(function* () {
+    const serve = (request: HttpServerRequest.HttpServerRequest) =>
+      Effect.gen(function* () {
+        const { handleAgentCompat } = yield* Effect.promise(() => import("@/server/studio-agent-compat"))
+        const url = new URL(request.url, "http://localhost")
+        const port = Number((request.headers["host"] ?? "").split(":")[1] ?? "80")
+        const body = yield* request.json.pipe(
+          Effect.map((value) => (value && typeof value === "object" ? (value as Record<string, unknown>) : {})),
+          Effect.orElseSucceed(() => ({}) as Record<string, unknown>),
+        )
+        const result = yield* Effect.promise(() => handleAgentCompat(request.method, url.pathname, body, { port }))
+        if (!result) return HttpServerResponse.jsonUnsafe({ error: "not found" }, { status: 404 })
+        return HttpServerResponse.jsonUnsafe(result.body, { status: result.status })
+      })
+    yield* router.add("*", "/v1/*", serve)
+  }),
+).pipe(Layer.provide(authOnlyRouterLayer))
+
 const uiRoute = HttpRouter.use((router) =>
   Effect.gen(function* () {
     const fs = yield* FSUtil.Service
@@ -333,6 +357,7 @@ export function createRoutes(
     serverRoutes,
     docRoute,
     studioIpcRoute,
+    agentCompatRoute,
     docsRoute,
     uiRoute,
   ).pipe(

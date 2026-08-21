@@ -20,6 +20,35 @@
  */
 import { probe, createDriver, listConnections, saveConnection, forgetConnection, loadPassword } from "../database/connection"
 import { connectionId } from "../database/registry"
+import os from "node:os"
+import path from "node:path"
+import fs from "node:fs/promises"
+
+/** Tiny JSON stores for the web build's app/connection settings. */
+function jsonStore(file: string) {
+  const full = path.join(os.homedir(), ".exasol", file)
+  return {
+    async get(): Promise<Record<string, any>> {
+      try {
+        return JSON.parse(await fs.readFile(full, "utf8"))
+      } catch {
+        return {}
+      }
+    },
+    async write(value: Record<string, unknown>) {
+      await fs.mkdir(path.dirname(full), { recursive: true })
+      await fs.writeFile(full, JSON.stringify(value, null, 2))
+    },
+    async set(patch: Record<string, unknown>) {
+      const current = await this.get()
+      const next = { ...current, ...patch }
+      await this.write(next)
+      return next
+    },
+  }
+}
+const webSettings = () => jsonStore("web-settings.json")
+const webConnSettings = () => jsonStore("web-connection-settings.json")
 import * as vault from "./studio-vault"
 
 export type IpcResult = { ok: true; value: unknown } | { ok: false; status: number; error: string }
@@ -138,6 +167,7 @@ const REQUIRES_DESKTOP = new Set([
   "bucketfs_list", "bucketfs_upload", "bucketfs_download",
   "fs_list_dir", "fs_read_text", "fs_read_table", "fs_delete", "fs_search", "fs_home_roots", "fs_workspace_dir",
   "exasol_local_ctl", "engine_install", "engine_status", "engine_uninstall_cli", "engine_install_cli",
+  "git_status", "git_log", "git_stage", "git_unstage", "git_commit", "git_push", "git_pull", "git_fetch", "git_init", "git_diff", "git_branches", "git_checkout", "git_discard", "git_set_remote",
   "backup_local_database", "exapump_upload", "exapump_available",
   "term_create", "term_write", "term_resize", "term_kill",
 ])
@@ -227,9 +257,97 @@ export async function handleIpc(command: string, args: Record<string, unknown>):
         }
       }
 
-      case "connect":
+      // The UI adopts the returned server info directly (it reads
+      // .databaseName on it), so connect must answer with the real thing —
+      // a null here blank-screened the whole web app.
+      case "connect": {
+        const target = await targetFor(String(arg("profileId", "")))
+        const result = await probe(target)
+        if (!result.ok) return { ok: false, status: 400, error: result.error }
+        return {
+          ok: true,
+          value: {
+            databaseName: "EXA_DB",
+            version: result.version,
+            currentUser: target.user,
+            currentSchema: target.schema ?? null,
+            sessionId: connectionId(target.host, target.port, target.user),
+            nodes: null,
+          },
+        }
+      }
       case "disconnect":
         return { ok: true, value: null }
+
+      // Web-side app settings: a real little store, so the Settings window
+      // works in the browser too.
+      case "get_app_settings":
+        return { ok: true, value: await webSettings().get() }
+      case "set_app_settings": {
+        const patch = arg<Record<string, unknown>>("patch", {})
+        return { ok: true, value: await webSettings().set(patch) }
+      }
+      case "connection_settings_get":
+        return { ok: true, value: (await webConnSettings().get())[String(arg("profileId", ""))] ?? {} }
+      case "connection_settings_set": {
+        const store = webConnSettings()
+        const all = await store.get()
+        all[String(arg("profileId", ""))] = arg("settings", {})
+        await store.write(all)
+        return { ok: true, value: all[String(arg("profileId", ""))] }
+      }
+
+      // This server IS the exa CLI — installed by definition.
+      case "engine_cli_status":
+        return { ok: true, value: { installed: true, path: process.execPath } }
+
+      // The sidebar's Exasol Personal card. The CLI installs into the shared
+      // default deployment; report its real state so web stays in sync.
+      case "personal_local_status": {
+        const home = os.homedir()
+        const deploymentFile = path.join(home, ".exasol", "personal", "deployments", "default", "deployment.json")
+        let installed = false
+        let port = 8563
+        try {
+          const deployment = JSON.parse(await fs.readFile(deploymentFile, "utf8"))
+          installed = true
+          port = Number(deployment?.connection?.dbPort ?? 8563)
+        } catch {
+          // not installed
+        }
+        const net = await import("node:net")
+        const running = installed
+          ? await new Promise<boolean>((resolve) => {
+              const socket = net.connect({ host: "127.0.0.1", port }, () => {
+                socket.end()
+                resolve(true)
+              })
+              socket.on("error", () => resolve(false))
+              setTimeout(() => {
+                socket.destroy()
+                resolve(false)
+              }, 1_500)
+            })
+          : false
+        const profile = (await listConnections()).find(
+          (c) => (c.host === "127.0.0.1" || c.host === "localhost") && c.port === port,
+        )
+        return {
+          ok: true,
+          value: {
+            state: running ? "ready" : installed ? "stopped" : "idle",
+            step: running ? "ready" : installed ? "stopped" : "not installed",
+            message: running
+              ? "Exasol Personal is running."
+              : installed
+                ? "Exasol Personal is installed but not running — start it with `exa connect` or from the desktop app."
+                : "Not installed on this machine.",
+            localReady: running,
+            profileId: profile?.id ?? null,
+            components: {},
+          },
+        }
+      }
 
       case "list_open_connections":
         return { ok: true, value: (await profiles()).filter((p) => p.hasCredential).map((p) => p.id) }

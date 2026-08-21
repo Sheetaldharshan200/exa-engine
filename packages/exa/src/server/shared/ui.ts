@@ -13,17 +13,25 @@ export const UI_UPSTREAM = process.env["EXA_WEB_UI_UPSTREAM"]
   ? new URL(process.env["EXA_WEB_UI_UPSTREAM"])
   : undefined
 
-export const csp = (hash = "") =>
-  `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'${hash ? ` 'sha256-${hash}'` : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; media-src 'self' data:; connect-src * data: blob:`
+export const csp = (hashes: string[] = []) =>
+  `default-src 'self'; script-src 'self' 'wasm-unsafe-eval'${hashes.map((h) => ` 'sha256-${h}'`).join("")}; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; media-src 'self' data:; connect-src * data: blob:`
 export const DEFAULT_CSP = csp()
 
-export function themePreloadHash(body: string) {
-  return body.match(/<script\b(?![^>]*\bsrc\s*=)[^>]*\bid=(['"])oc-theme-preload-script\1[^>]*>([\s\S]*?)<\/script>/i)
+/** Every inline script in the page, so ALL of them get CSP hashes. The old
+ *  version only hashed a script with one specific id — Studio's theme-preload
+ *  script has no id, was blocked, and the app booted without its theme (and
+ *  with a console full of violations). */
+export function inlineScripts(body: string): string[] {
+  const out: string[] = []
+  const re = /<script\b(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi
+  for (let match = re.exec(body); match; match = re.exec(body)) {
+    if (match[1]!.trim()) out.push(match[1]!)
+  }
+  return out
 }
 
 export function cspForHtml(body: string) {
-  const match = themePreloadHash(body)
-  return csp(match ? createHash("sha256").update(match[2]).digest("base64") : "")
+  return csp(inlineScripts(body).map((code) => createHash("sha256").update(code).digest("base64")))
 }
 
 function requestBody(request: HttpServerRequest.HttpServerRequest) {
