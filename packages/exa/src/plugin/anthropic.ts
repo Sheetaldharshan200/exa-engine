@@ -113,23 +113,52 @@ export function mergedBeta(existing: string | null | undefined): string {
 }
 
 /**
- * Make a /v1/messages body acceptable to subscription inference: the first
- * system block must be Claude Code's identity line. The real system prompt
- * stays intact right behind it.
+ * Make a /v1/messages body acceptable to subscription inference.
+ *
+ * Two rules, both learned the hard way against the live API:
+ * - The system prompt must be Claude Code's identity line — ONLY that line.
+ *   Anthropic classifies each subscription request; a foreign agent prompt in
+ *   `system` (bisected live: exa's identity plus a Claude-Code-style <env>
+ *   block was enough) flips the request to the metered "extra usage" pool,
+ *   which on Team seats is typically unfunded — surfacing as "You're out of
+ *   extra usage" even with quota to spare.
+ * - The real system prompt still has to reach the model, so it rides as a
+ *   leading <system>-tagged user turn instead. Verified: the same request
+ *   that 400s with the prompt in `system` passes with it moved here.
  */
 export function spoofSystem(body: unknown): unknown {
   if (typeof body !== "object" || body === null) return body
   const request = body as Record<string, unknown>
   const spoof = { type: "text", text: SPOOF_SYSTEM }
   const system = request["system"]
-  if (system === undefined) return { ...request, system: [spoof] }
-  if (typeof system === "string") return { ...request, system: [spoof, { type: "text", text: system }] }
-  if (Array.isArray(system)) {
-    const first = system[0] as { text?: string } | undefined
-    if (first?.text === SPOOF_SYSTEM) return request
-    return { ...request, system: [spoof, ...system] }
+  const messages = Array.isArray(request["messages"]) ? (request["messages"] as unknown[]) : []
+
+  // Collect the real prompt out of whatever shape `system` arrived in,
+  // dropping any spoof line already present (idempotency on retries).
+  const blocks: { type?: string; text?: string; cache_control?: unknown }[] =
+    system === undefined ? [] : typeof system === "string" ? [{ type: "text", text: system }] : Array.isArray(system) ? (system as never[]) : []
+  const real = blocks.filter((b) => b?.text && b.text !== SPOOF_SYSTEM)
+
+  if (real.length === 0) return { ...request, system: [spoof] }
+
+  const promptText = `<system>\n${real.map((b) => b.text).join("\n\n")}\n</system>`
+  const first = messages[0] as { role?: string; content?: unknown } | undefined
+  const firstText =
+    first?.role === "user" && Array.isArray(first.content)
+      ? ((first.content[0] as { text?: string } | undefined)?.text ?? "")
+      : typeof first?.content === "string"
+        ? first.content
+        : ""
+  const alreadyMoved = firstText.startsWith("<system>")
+  const carrier = {
+    role: "user",
+    content: [{ type: "text", text: promptText, ...(real[0]?.cache_control ? { cache_control: real[0].cache_control } : {}) }],
   }
-  return request
+  return {
+    ...request,
+    system: [spoof],
+    messages: alreadyMoved ? messages : [carrier, ...messages],
+  }
 }
 
 export async function AnthropicAuthPlugin(input: PluginInput): Promise<Hooks> {

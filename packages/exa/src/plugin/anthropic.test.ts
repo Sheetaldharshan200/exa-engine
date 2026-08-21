@@ -65,34 +65,54 @@ describe("mergedBeta", () => {
 })
 
 describe("spoofSystem", () => {
-  // Subscription inference requires the first system block to be Claude
-  // Code's identity line — without it the API refuses the request outright.
-  test("prepends the identity to an existing system array", () => {
-    const out = spoofSystem({ system: [{ type: "text", text: "You are exa." }], messages: [] }) as {
-      system: { text: string }[]
-    }
-    expect(out.system[0]!.text).toBe(SPOOF)
-    expect(out.system[1]!.text).toBe("You are exa.")
+  type Out = { system: { text: string }[]; messages: { role: string; content: { type: string; text: string }[] }[] }
+
+  // Anthropic classifies subscription requests by their system prompt: a
+  // foreign agent prompt there flips the request into the metered "extra
+  // usage" pool (bisected live against the API). So `system` must carry ONLY
+  // Claude Code's identity, with the real prompt riding as a user turn.
+  test("system carries only the identity; the real prompt becomes a user turn", () => {
+    const out = spoofSystem({ system: [{ type: "text", text: "You are exa." }], messages: [{ role: "user", content: "hi" }] }) as Out
+    expect(out.system.map((s) => s.text)).toEqual([SPOOF])
+    expect(out.messages[0]!.role).toBe("user")
+    expect(out.messages[0]!.content[0]!.text).toBe("<system>\nYou are exa.\n</system>")
+    expect(out.messages[1]).toEqual({ role: "user", content: "hi" } as never)
   })
 
-  test("converts a string system prompt without losing it", () => {
-    const out = spoofSystem({ system: "You are exa." }) as { system: { text: string }[] }
-    expect(out.system.map((s) => s.text)).toEqual([SPOOF, "You are exa."])
+  test("a string system prompt moves the same way", () => {
+    const out = spoofSystem({ system: "You are exa.", messages: [] }) as Out
+    expect(out.system.map((s) => s.text)).toEqual([SPOOF])
+    expect(out.messages[0]!.content[0]!.text).toContain("You are exa.")
   })
 
-  test("adds a system array when the request has none", () => {
-    const out = spoofSystem({ messages: [] }) as { system: { type: string; text: string }[] }
-    expect(out.system).toEqual([{ type: "text", text: SPOOF }])
+  test("multiple system blocks are joined in order", () => {
+    const out = spoofSystem({ system: [{ type: "text", text: "A" }, { type: "text", text: "B" }], messages: [] }) as Out
+    expect(out.messages[0]!.content[0]!.text).toBe("<system>\nA\n\nB\n</system>")
   })
 
-  test("is idempotent — a retried request is not double-prefixed", () => {
-    const once = spoofSystem({ system: [{ type: "text", text: "You are exa." }] })
-    const twice = spoofSystem(once) as { system: unknown[] }
-    expect(twice.system).toHaveLength(2)
+  test("adds the identity when the request has no system at all", () => {
+    const out = spoofSystem({ messages: [] }) as Out
+    expect(out.system.map((s) => s.text)).toEqual([SPOOF])
+    expect(out.messages).toEqual([])
+  })
+
+  test("is idempotent — a retried request is not double-wrapped", () => {
+    const once = spoofSystem({ system: [{ type: "text", text: "You are exa." }], messages: [{ role: "user", content: "hi" }] })
+    const twice = spoofSystem(once) as Out
+    expect(twice.system.map((s) => s.text)).toEqual([SPOOF])
+    expect(twice.messages).toHaveLength(2)
+  })
+
+  test("a cache_control on the original system block survives the move", () => {
+    const out = spoofSystem({
+      system: [{ type: "text", text: "You are exa.", cache_control: { type: "ephemeral" } }],
+      messages: [],
+    }) as { messages: { content: { cache_control?: { type: string } }[] }[] }
+    expect(out.messages[0]!.content[0]!.cache_control).toEqual({ type: "ephemeral" })
   })
 
   test("leaves everything else in the request untouched", () => {
-    const out = spoofSystem({ system: "x", model: "claude-sonnet-4-5", max_tokens: 32000 }) as Record<string, unknown>
+    const out = spoofSystem({ system: "x", messages: [], model: "claude-sonnet-4-5", max_tokens: 32000 }) as Record<string, unknown>
     expect(out["model"]).toBe("claude-sonnet-4-5")
     expect(out["max_tokens"]).toBe(32000)
   })
