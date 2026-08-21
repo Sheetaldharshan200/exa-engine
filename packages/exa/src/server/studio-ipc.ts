@@ -331,7 +331,9 @@ export async function handleIpc(command: string, args: Record<string, unknown>):
       case "fs_home_roots": {
         const home = os.homedir()
         const roots = []
-        for (const name of ["ExasolStudio", "Desktop", "Documents", "Downloads"]) {
+        // The workspace (ExasolStudio) is the panel's own top section —
+        // repeating it here rendered a duplicate folder.
+        for (const name of ["Desktop", "Documents", "Downloads"]) {
           const full = path.join(home, name)
           try {
             await fs.access(full)

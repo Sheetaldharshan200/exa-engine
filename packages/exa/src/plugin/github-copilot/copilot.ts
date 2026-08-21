@@ -184,6 +184,13 @@ export async function CopilotAuthPlugin(input: PluginInput): Promise<Hooks> {
             // actually reading.
             warnOnce(error)
 
+            // An EXPIRED sign-in is not a transient fault: listing models
+            // that every request will refuse just moves the failure to a
+            // worse place. Return none — the provider drops out of the model
+            // list and the connect flow shows it as needing sign-in again.
+            const reason = error instanceof Error ? error.message : String(error)
+            if (/\b401\b|\b403\b|unauthor/i.test(reason)) return {}
+
             // Prefer what GitHub actually served this session. The catalogue is
             // a generic list of what Copilot offers SOMEWHERE — for an account
             // that cannot reach those models it is entirely wrong, and picking
