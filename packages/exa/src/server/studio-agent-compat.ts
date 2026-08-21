@@ -14,7 +14,95 @@
  * engine's own session API directly.
  */
 
+import path from "node:path"
+import fs from "node:fs/promises"
+import os from "node:os"
+import crypto from "node:crypto"
+
 type Json = Record<string, unknown> | unknown[] | null
+
+/**
+ * Dashboards, file-per-dashboard with embedded revisions — the same contract
+ * as the desktop sidecar's DashboardStore, so saved dashboards behave
+ * identically in the web build (System dashboards locked, 15 revisions).
+ */
+const dashDir = async () => {
+  const dir = path.join(os.homedir(), ".exasol", "web-dashboards")
+  await fs.mkdir(dir, { recursive: true })
+  return dir
+}
+const sanitizeId = (id: string) => id.replace(/[^a-zA-Z0-9_-]/g, "_")
+
+const dashboards = {
+  async list() {
+    const dir = await dashDir()
+    const out: unknown[] = []
+    for (const f of await fs.readdir(dir)) {
+      if (!f.endsWith(".json")) continue
+      try {
+        const d = JSON.parse(await fs.readFile(path.join(dir, f), "utf8"))
+        out.push({
+          id: d.id,
+          title: d.title,
+          description: d.description ?? "",
+          group: d.group,
+          panels: Array.isArray(d.panels) ? d.panels.length : 0,
+          updatedAt: d.updatedAt ?? 0,
+        })
+      } catch {
+        /* skip corrupt file */
+      }
+    }
+    return out
+  },
+  async get(id: string) {
+    try {
+      return JSON.parse(await fs.readFile(path.join(await dashDir(), `${sanitizeId(id)}.json`), "utf8"))
+    } catch {
+      return null
+    }
+  },
+  async save(input: unknown) {
+    const raw = (input ?? {}) as Record<string, any>
+    if (!raw.id) raw.id = crypto.randomUUID().slice(0, 8)
+    const existing = await this.get(String(raw.id))
+    if (existing?.group === "System") throw new Error("System dashboards are read-only and cannot be modified")
+    let revisions: unknown[] = []
+    if (existing) {
+      revisions = Array.isArray(existing.revisions) ? existing.revisions : []
+      delete existing.revisions
+      revisions.unshift(existing)
+      revisions = revisions.slice(0, 15)
+    }
+    const doc = { ...raw, updatedAt: Date.now(), revisions }
+    await fs.writeFile(path.join(await dashDir(), `${sanitizeId(String(raw.id))}.json`), JSON.stringify(doc, null, 2))
+    const { revisions: _r, ...current } = doc
+    return current
+  },
+  async history(id: string) {
+    const doc = await this.get(id)
+    return ((doc?.revisions ?? []) as any[]).map((r, index) => ({
+      index,
+      updatedAt: r.updatedAt ?? 0,
+      title: r.title ?? "",
+      panels: Array.isArray(r.panels) ? r.panels.length : 0,
+    }))
+  },
+  async rollback(id: string, index: number) {
+    const doc = await this.get(id)
+    const rev = (doc?.revisions ?? [])[index]
+    if (!rev) return null
+    return this.save(rev)
+  },
+  async remove(id: string) {
+    try {
+      await fs.rm(path.join(await dashDir(), `${sanitizeId(id)}.json`))
+      return true
+    } catch {
+      return false
+    }
+  },
+}
 
 export type CompatResult = { status: number; body: Json } | undefined
 
@@ -67,6 +155,34 @@ export async function handleAgentCompat(
   const base = `http://127.0.0.1:${self.port}`
 
   try {
+    // GET /v1/models — the panel's PRIMARY provider list (the desktop sidecar
+    // ranks Local Runtime → cloud). Built here from the engine's own catalog:
+    // ollama and the built-in engine surface as running local providers, so
+    // local models appear in the web picker exactly like on the desktop.
+    if (method === "GET" && parts[1] === "models" && !parts[2]) {
+      const r = await engineFetch(base, "/config/providers")
+      const LOCAL = new Set(["ollama", "builtin", "lmstudio"])
+      const providers = (r?.providers ?? []).map((p: any) => ({
+        id: p.id,
+        name: p.id === "builtin" ? "Exa engine (local)" : p.id === "ollama" ? "Ollama (local)" : (p.name ?? p.id),
+        kind: LOCAL.has(p.id) ? "local" : "cloud",
+        configured: true,
+        // A local provider only appears in the engine's list when it was
+        // actually detected/serving, so listing it as running is the truth.
+        ...(LOCAL.has(p.id) ? { running: true } : {}),
+        models: Object.entries(p.models ?? {}).map(([id, m]: [string, any]) => ({
+          id,
+          name: m?.name ?? id,
+          context: m?.limit?.context,
+          toolCall: m?.capabilities?.toolcall,
+          variants: m?.variants ? Object.keys(m.variants) : undefined,
+        })),
+      }))
+      const defaults = r?.default ?? {}
+      const first = Object.entries(defaults)[0]
+      return { status: 200, body: { providers, defaultModel: first ? `${first[0]}/${first[1]}` : null } }
+    }
+
     if (parts[1] === "engine") {
       if (method === "GET" && parts[2] === "status") {
         // This server IS the engine — if this code runs, it is running.
@@ -151,12 +267,32 @@ export async function handleAgentCompat(
           const allowed = rules.length === 0 ? true : rules[rules.length - 1].action !== "deny"
           return { status: 200, body: { allowed, live: true } }
         }
-        // Flipping the sandbox restarts the engine — which would kill this
-        // very server. Say so instead of pretending.
-        return {
-          status: 501,
-          body: { error: "The sandbox toggle needs the desktop app — flipping it restarts the engine serving this page." },
+        if (method === "POST") {
+          // The engine's own global-config API: writes the winning config
+          // file (jsonc-aware), invalidates the config cache, and disposes
+          // every instance — the very mechanism `exa sandbox` lacks a running
+          // server for. Then verify against the LIVE merged rules.
+          const want = Boolean(body["allow"])
+          const action = want ? "allow" : "deny"
+          await engineFetch(base, "/global/config", {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ agent: { exa: { permission: { webfetch: action, websearch: action } } } }),
+          })
+          const enforced = async () => {
+            const agents = await engineFetch(base, "/agent")
+            const exa = (agents ?? []).find((a: any) => a.name === "exa")
+            const rules = (exa?.permission ?? []).filter((r: any) => r.permission === "webfetch")
+            return rules.length === 0 ? true : rules[rules.length - 1].action !== "deny"
+          }
+          let verified = false
+          for (let attempt = 0; attempt < 10 && !verified; attempt++) {
+            await new Promise((r) => setTimeout(r, 300))
+            verified = (await enforced().catch(() => !want)) === want
+          }
+          return { status: 200, body: { ok: true, verified } }
         }
+        return { status: 404, body: { error: "not found" } }
       }
 
       if (method === "GET" && parts[2] === "sessions" && !parts[3]) {
@@ -197,6 +333,35 @@ export async function handleAgentCompat(
 
       return { status: 404, body: { error: "not found" } }
     }
+
+    // ── Dashboards: same routes and semantics as the desktop sidecar ──
+    if (parts[1] === "dashboards") {
+      if (method === "GET" && !parts[2]) return { status: 200, body: { dashboards: await dashboards.list() } }
+      if (method === "GET" && parts[2] && parts[3] === "history") {
+        return { status: 200, body: { history: await dashboards.history(decodeURIComponent(parts[2])) } }
+      }
+      if (method === "POST" && parts[2] && parts[3] === "rollback") {
+        const d = await dashboards.rollback(decodeURIComponent(parts[2]), Number(body["index"] ?? 0))
+        return d ? { status: 200, body: { dashboard: d } } : { status: 404, body: { error: "no such revision" } }
+      }
+      if (method === "GET" && parts[2]) {
+        const d = await dashboards.get(decodeURIComponent(parts[2]))
+        return d ? { status: 200, body: { dashboard: d } } : { status: 404, body: { error: "not found" } }
+      }
+      if (method === "PUT") {
+        try {
+          return { status: 200, body: { dashboard: await dashboards.save(body) } }
+        } catch (e) {
+          return { status: 400, body: { error: e instanceof Error ? e.message : String(e) } }
+        }
+      }
+      if (method === "DELETE" && parts[2]) {
+        return { status: (await dashboards.remove(decodeURIComponent(parts[2]))) ? 200 : 404, body: { ok: true } }
+      }
+    }
+
+    // Artifacts: none stored web-side yet — an empty list, not an error.
+    if (method === "GET" && parts[1] === "artifacts" && !parts[2]) return { status: 200, body: { artifacts: [] } }
 
     // Anything else under /v1 belongs to the desktop sidecar.
     return { status: 501, body: { error: `"${pathname}" needs the desktop app's agent sidecar.` } }

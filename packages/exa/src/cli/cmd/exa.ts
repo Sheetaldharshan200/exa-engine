@@ -1,4 +1,5 @@
 import path from "path"
+import { existsSync } from "fs"
 import { Effect } from "effect"
 import { Global } from "@exa/core/global"
 import { effectCmd, fail } from "../effect-cmd"
@@ -20,7 +21,14 @@ const SQL_OPS = ["insert", "update", "delete", "create", "alter", "drop", "dcl",
 type AgentEntry = { permission?: Record<string, unknown>; options?: Record<string, unknown> } & Record<string, unknown>
 type ConfigRoot = { agent?: Record<string, AgentEntry> } & Record<string, unknown>
 
-const configFile = () => path.join(Global.Path.config, "exa.json")
+// The engine merges config.json → exa.json → exa.jsonc (last wins), so a
+// toggle written to exa.json is silently shadowed when an exa.jsonc exists.
+// Write to the file that actually wins.
+const configFile = () => {
+  const jsonc = path.join(Global.Path.config, "exa.jsonc")
+  if (existsSync(jsonc)) return jsonc
+  return path.join(Global.Path.config, "exa.json")
+}
 
 const readConfig = Effect.promise(async () => {
   const fs = await import("node:fs/promises")
