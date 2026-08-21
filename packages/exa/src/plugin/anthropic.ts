@@ -201,7 +201,8 @@ export async function AnthropicAuthPlugin(input: PluginInput): Promise<Hooks> {
             const pkce = await generatePKCE()
             return {
               url: authorizeUrl("claude.ai", pkce),
-              instructions: "Sign in with your Claude account, then paste the code shown on the final page.",
+              instructions:
+                "Sign in with your Claude account (Google sign-in is fine) and press Authorize. Anthropic's pages say \"Claude Code\" — that is their name for the official CLI client every tool signs in through; the code is for exa. Copy the WHOLE code (both parts around the #) and paste it here.",
               method: "code" as const,
               callback: async (pasted: string) => {
                 try {
@@ -227,7 +228,8 @@ export async function AnthropicAuthPlugin(input: PluginInput): Promise<Hooks> {
             const pkce = await generatePKCE()
             return {
               url: authorizeUrl("console.anthropic.com", pkce),
-              instructions: "Sign in to the Anthropic Console, then paste the code shown on the final page.",
+              instructions:
+                "Sign in to the Anthropic Console and press Authorize. Copy the WHOLE code shown on the final page (both parts around the #) and paste it here — exa will create and store an API key for you.",
               method: "code" as const,
               callback: async (pasted: string) => {
                 try {
