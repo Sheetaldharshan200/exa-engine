@@ -14,3 +14,9 @@ An interactive operator graph: each node carries a cost ring, operator type, dur
 Selecting an operator fills the right rail with the profile columns that back every number: duration and share of total, CPU-max node, rows out, scan selectivity, network MiB, temp DB RAM peak, HDD read/write, per-node row and duration skew, part info and remarks — each citing its source column. Below that: the warnings list (click to jump), a profile overview, a time-by-category bar, and which statistics view the evidence came from.
 
 When there is no plan, the panel says exactly why and offers a manual *Profile query* retry — never an invented diagram.
+
+<Callout type="info" title="In the browser (exa web)">
+The bridge driver serving `exa web` cannot capture a per-run profiling baseline, so Query Performance offers a manual **Profile query** instead of the automatic plan — the full experience lives in the desktop app.
+
+![Query Performance in exa web — the honest empty state with a manual profile action](../img/query-performance-web.png)
+</Callout>

@@ -31,9 +31,33 @@ export function baseOptions(): BaseLayoutProps {
     },
     links: [
       { text: 'Documentation', url: '/', active: 'nested-url' },
-      { text: 'Releases', url: `https://github.com/${gitConfig.user}/${gitConfig.repo}/releases`, external: true },
+      {
+        type: 'menu',
+        text: 'Releases',
+        items: [
+          {
+            text: 'Exa · AI engine',
+            description: 'CLI + engine releases',
+            url: `https://github.com/${gitConfig.user}/${gitConfig.repo}/releases`,
+            external: true,
+          },
+          {
+            text: 'Exasol Studio · IDE',
+            description: 'Desktop app releases',
+            url: 'https://github.com/Sheetaldharshan200/Exasol-studio/releases',
+            external: true,
+          },
+        ],
+      },
+      {
+        type: 'menu',
+        text: 'GitHub',
+        items: [
+          { text: 'exa-engine', url: `https://github.com/${gitConfig.user}/${gitConfig.repo}`, external: true },
+          { text: 'Exasol-studio', url: 'https://github.com/Sheetaldharshan200/Exasol-studio', external: true },
+        ],
+      },
     ],
-    githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
     // The three-way segmented pill: light / dark / follow-the-system.
     themeSwitch: { mode: 'light-dark-system' },
   };

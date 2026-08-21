@@ -5,6 +5,8 @@ description: The database tree — objects, context menus, search, and favorites
 
 The Databases sidebar shows every connection with a liveness dot (probed continuously), its accent stripe, refresh/collapse controls, and an overflow menu that reaches everything about the connection: info, properties, database info, data types, the DBA dashboard, health, logs, backups, BucketFS, new virtual schema, and disconnect.
 
+![The database tree with schemas, virtual schemas, system schemas and the DBA branch](../img/schema-browser.png)
+
 ## The tree
 
 Schemas → tables / views / functions / scripts (adapters, Lua, UDFs, preprocessors); tables expand into columns (primary-key marker, type, NOT NULL badge) and constraints (PK/FK/NN with the referenced table). Virtual schemas get their own badged folder; system schemas (`SYS`, `EXA_STATISTICS`) their own section; and a **DBA** branch lists users (with consumer group), roles, consumer groups, connections, and live sessions.

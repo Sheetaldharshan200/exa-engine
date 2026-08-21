@@ -5,6 +5,8 @@ description: Paged results, a cell inspector, multi-statement views, and safe in
 
 Every run lands in the results panel with a status strip: when it started, a live *Running… Ns* timer, then ✓ Completed or ✗ Failed with duration, statement count, and rows. While a batch runs you see the engine's real progress — statement i of N, its current activity, percent or elapsed — with the previous result pinned underneath.
 
+![A completed run: status strip, filter, CSV export, and the cell inspector with query statistics](../img/editor-results.png)
+
 ## Reading results
 
 - **Server-side paging** for a single SELECT: rows a–b with ◀ ▶; pages are prefetched and cached.
