@@ -29,6 +29,10 @@ export function isVaultPublicPath(method: string, pathname: string) {
     pathname === "/index.html" ||
     pathname === "/favicon.svg" ||
     pathname === "/favicon.ico" ||
-    pathname.startsWith("/assets/")
+    pathname.startsWith("/assets/") ||
+    // The documentation is the same public site as the web — Studio's
+    // desktop Docs tab iframes it without ever holding a vault session.
+    pathname === "/docs" ||
+    pathname.startsWith("/docs/")
   )
 }
