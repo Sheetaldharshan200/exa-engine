@@ -1,0 +1,10 @@
+{
+  "title": "Develop",
+  "defaultOpen": true,
+  "pages": [
+    "sdk",
+    "server",
+    "plugins",
+    "ecosystem"
+  ]
+}

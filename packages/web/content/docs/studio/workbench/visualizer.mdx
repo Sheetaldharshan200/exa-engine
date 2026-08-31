@@ -1,0 +1,14 @@
+---
+title: Schema visualizer
+description: ER diagrams and a visual query builder.
+---
+
+Each visualizer tab is an independent ER diagram — open several, one per schema or question.
+
+## Diagram mode
+
+Pick a schema and get its tables and relationships, with an **Inferred** toggle that adds relationships matched by key-column naming when no foreign keys are declared. Fuzzy-search tables and columns (`⌘F`), style the links (line style, width, colors), and navigate with a minimap and zoom controls.
+
+## Build mode — the query builder
+
+Tick columns directly on the diagram to build a SELECT: chosen columns appear as chips, with order-by, limit, and a full WHERE-clause rule builder. The generated SQL is live — **Copy**, **Open in editor**, or **Run** it straight from the builder. Join clauses are generated from declared keys (or matching column names, per your [Query Builder settings](../connections/properties.mdx)).

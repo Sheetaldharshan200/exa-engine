@@ -1,0 +1,18 @@
+---
+title: History & terminals
+description: The bottom dock — every statement you ran, and real shells.
+---
+
+The collapsible bottom dock (drag to resize; sizes persist) holds three things:
+
+## SQL history
+
+A sortable execution log — time, status, command verb, execution and fetch times, row counts, message, and the SQL itself. Every cell opens a detail overlay with the full value and a copy button; the SQL cell reopens the statement in a query tab. The retention limit lives in Settings.
+
+## Git log
+
+The last commits of your workspace repository — subject, hash, author, relative time — beside the history. The full workflow lives in [Source control](./source-control.mdx).
+
+## Terminals
+
+Real PTY terminals, VS Code-style: `+` for a new one, a rail listing `zsh 1`, `zsh 2`, …, switching keeps scrollback alive, and each can be killed independently. (In the assistant, `!command` runs a one-off shell command through the agent session instead — see [Assistant](../assistant.mdx#shell-commands).)

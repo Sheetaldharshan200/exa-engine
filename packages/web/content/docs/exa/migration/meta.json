@@ -1,0 +1,9 @@
+{
+  "title": "Migration",
+  "defaultOpen": true,
+  "pages": [
+    "from-opencode",
+    "from-claude-code",
+    "from-db-tools"
+  ]
+}

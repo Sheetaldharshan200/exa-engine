@@ -1,0 +1,57 @@
+---
+title: From Claude Code
+description: Bring your CLAUDE.md, skills, agents, and MCP servers to Exa.
+---
+
+Most of what you built for Claude Code carries over — some of it Exa can read in place, the rest is a copy with a small frontmatter change.
+
+<Callout type="info" title="What changes is where it all points">
+The pieces that behave differently do so because Exa is built around Exasol: `exa connect` can install **Exasol Personal** locally, connections live in the registry shared with **Exasol Studio**, and the agent's database tools speak to Exasol natively — no MCP server required for that part. See [Databases](../data/databases.mdx).
+</Callout>
+
+## CLAUDE.md and ~/.claude/skills — readable in place
+
+By default Exa does **not** read Claude Code's files: your `~/.claude/CLAUDE.md` was written for a coding agent, and mixing it into Exa's instructions changes how a data agent behaves. Opt in when you want them:
+
+```bash
+EXA_CLAUDE_CODE_COMPAT=1 exa
+```
+
+That single flag makes Exa read `~/.claude/CLAUDE.md` as instructions and pick up skills from `~/.claude/skills`. Two narrower switches force either half back off: `EXA_DISABLE_CLAUDE_CODE_PROMPT=1` and `EXA_DISABLE_CLAUDE_CODE_SKILLS=1`.
+
+The native homes are `AGENTS.md` in your folder root (committed, shared with your team — see [Rules](../configure/rules.mdx)) and `.exa/skills/` or `~/.agents/skills/` for skills. A skill is the same thing in both worlds: a directory with a `SKILL.md` — copying it over is the whole migration. See [Skills](../configure/skills.mdx).
+
+## Agents
+
+Claude Code subagents (`.claude/agents/*.md`) and Exa agents (`.exa/agent/*.md`) share the shape — markdown with frontmatter, the body as the prompt — but the frontmatter fields differ:
+
+| Claude Code | Exa |
+| --- | --- |
+| `name:` (frontmatter) | the filename is the name |
+| `description:` | `description:` |
+| `tools: Read, Grep` | `tools:` map / `permission:` rules |
+| `model: sonnet` | `model: anthropic/claude-sonnet-4-5` (full `provider/model` id) |
+
+Copy the file into `.exa/agent/`, adjust those fields, and it becomes both an `@agent` and a `/name` command. See [Agents](../configure/agents.mdx) for every field, including `variant` for reasoning effort.
+
+## MCP servers
+
+The servers themselves are unchanged — only the config file moves. What `claude mcp add` wrote becomes an entry under `mcp` in `exa.json`:
+
+```json title="exa.json"
+{
+  "mcp": {
+    "my-server": {
+      "type": "local",
+      "command": ["npx", "-y", "my-mcp-server"],
+      "enabled": true
+    }
+  }
+}
+```
+
+See [MCP servers](../configure/mcp-servers.mdx). One class of server you can retire: anything that existed to reach a database. Exa's Exasol driver is built in, multi-database, and write-protected in code — [connect directly](../data/databases.mdx) instead.
+
+## Your Anthropic subscription
+
+Claude Pro/Max works in Exa the same way it does in Claude Code — sign in once with `/connect` → Anthropic → **Claude Pro/Max (subscription)**, and usage bills to the plan. Several accounts are managed with [`exa accounts`](../usage/cli.mdx#accounts). See [Providers](../configure/providers.mdx#anthropic).

@@ -1,0 +1,39 @@
+---
+title: From database tools
+description: Replace MCP database plugins and SQL-client workflows with Exa's native stack.
+---
+
+If your current setup reaches a database through an MCP plugin, or your day runs through a SQL client next to a separate AI chat, both of those collapse into Exa.
+
+<Callout type="info" title="What changes is where it all points">
+This is the migration where the Exasol foundation shows the most: the driver is native, `exa connect` can install **Exasol Personal** on your machine, every connection is shared with **Exasol Studio**, and `exa web` serves Studio itself — schema browser, SQL editor, dashboards, and the agent in one place.
+</Callout>
+
+## From an MCP database plugin
+
+A database MCP server (like `exasol-mcp-server` or a generic SQL MCP) gave your agent read access through an extra process and an extra config block. Exa replaces that layer entirely:
+
+```bash
+exa connect                          # finds what's running, or installs Exasol Personal
+exa connect exasol://sys@host:8563   # or connect directly
+```
+
+What you gain over the plugin route:
+
+- **No server to manage** — the driver is inside the binary, speaking Exasol's WebSocket API.
+- **Several databases in one session** — every tool takes a `database` argument; `/connect-db` switches the default. MCP setups typically bound you to one.
+- **Writes refused in code, not by prompt** — reads always work; anything mutating needs an explicit `exa ops grant`. See [Databases](../data/databases.mdx).
+
+Your non-database MCP servers keep working unchanged — move their config into `exa.json` as shown in [MCP servers](../configure/mcp-servers.mdx).
+
+## From a SQL client + separate AI chat
+
+If you work in DBeaver, DbVisualizer, or DataGrip and paste schemas into a chat window, the two halves merge:
+
+- **`exa web`** opens Exasol Studio in your browser: connections, schema browser, SQL editor, dashboards — with the agent beside them, already grounded in your real schema. See [Web](../usage/web.mdx).
+- **Connections migrate once.** Add each database with `exa connect --add`; host, port, and user go to `~/.exasol/connections.json` (shared with Studio), passwords go to the OS credential store — never to a file.
+- **The agent reads the real catalog** (`SYS.EXA_ALL_*`) before writing SQL, so column names come from the database, not from whatever was pasted last week.
+
+## No database yet?
+
+`exa connect` offers to install **Exasol Personal** locally (~170&nbsp;MB, no configuration). That gives every migration above a place to land — and everything in these docs works against it.

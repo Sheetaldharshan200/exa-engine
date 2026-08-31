@@ -1,0 +1,15 @@
+---
+title: DBA tools
+description: Users, roles, sessions — with confirmations that state consequences.
+---
+
+## DBA dashboard
+
+Grids for **Users**, **Roles**, and live **Sessions**, with per-row actions gated on your actual privileges: a privileges drawer (granted roles with optional ADMIN OPTION, system privileges, object privileges on schemas or tables), change password, rename, delete, and kill session.
+
+Every action shows an explicit confirmation before running: what is true *now*, what will be true *after*, whether it is recoverable — and the exact SQL.
+
+## Database info & data types
+
+- **Database Info**: server metadata and parameters, filterable.
+- **Data Types**: a searchable, sortable grid of Exasol's data types (`Enter` / `Shift+Enter` between matches).

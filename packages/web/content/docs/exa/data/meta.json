@@ -1,0 +1,8 @@
+{
+  "title": "Data",
+  "defaultOpen": true,
+  "pages": [
+    "databases",
+    "local-models"
+  ]
+}

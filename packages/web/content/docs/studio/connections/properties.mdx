@@ -1,0 +1,28 @@
+---
+title: Connection properties
+description: Thirteen categories of per-connection behavior, DbVisualizer-style.
+---
+
+Each saved connection has a **Properties** tab — a searchable category rail with per-category *Defaults…* reset. What lives where:
+
+| Category | Controls |
+| --- | --- |
+| Database Profile | Settings format, database type, driver type, server version |
+| Driver Properties | `clientname`, `connectionPoolSize` (1–16), `encryption`, `compression`, `querytimeout`, `fetchsize` — with origin/edited/default columns |
+| Authentication | Require userid/password; password policy — save between sessions, save during session, clear at disconnect |
+| Delimited Identifiers | Quote characters and where quoting applies (scripting, completion, export, actions) with a live example |
+| Qualifiers | Schema-qualify objects and columns per surface (scripting, completion, query builder, export) |
+| Physical Connection | Single shared physical connection; validation/keep-alive SQL (`SELECT 1`); keep-alive on/off + idle seconds |
+| Transaction | Auto-commit; ask-when-off policy; isolation (Exasol is always SERIALIZABLE); commit batch size for the data editor |
+| Encoding | Text-to-binary charset (UTF-8, ISO-8859-x, UTF-16, Shift_JIS, GB18030, …) |
+| SQL Statements | Nine editable statement templates (`SELECT ALL`, `INSERT INTO TABLE`, `DROP TABLE`, …) with `$$schema$$`/`$$table$$`/`$$columns$$`/`$$where$$` variables |
+| Connection Hooks | SQL to run at connect and at disconnect — failures log, never block |
+| Color and Border | Accent color shown on tabs, result sets and the connection name — the prod/dev guard |
+| SQL Editor | Initial schema for new tabs; reconnect policy on connection loss |
+| Query Builder | Auto-join (by declared keys or matching names), JOIN clause generation, column sorting |
+
+The header shows a driver-aware URL (`exa:ws://…`, `jdbc:exa:…`, `pyexasol://…`), a live connected-uptime ticker, and an Actions menu (refresh objects / connect / disconnect).
+
+## Testing a connection
+
+**Test connection** runs three verified steps — ping the server (TCP), authenticate, open the database (read server info) — each with a timestamped status log, so a failure names its layer instead of a generic error.

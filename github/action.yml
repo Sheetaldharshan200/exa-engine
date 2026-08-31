@@ -1,0 +1,66 @@
+name: "exa GitHub Action"
+description: "Run exa in GitHub Actions workflows"
+branding:
+  icon: "database"
+  color: "orange"
+
+inputs:
+  model:
+    description: "Model to use"
+    required: true
+
+  agent:
+    description: "Agent to use. Must be a primary agent. Falls back to default_agent from config or 'build' if not found."
+    required: false
+
+  prompt:
+    description: "Custom prompt to override the default prompt"
+    required: false
+
+  mentions:
+    description: "Comma-separated list of trigger phrases (case-insensitive). Defaults to '/exa'"
+    required: false
+
+  variant:
+    description: "Model variant for provider-specific reasoning effort (e.g., high, max, minimal)"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get exa version
+      id: version
+      shell: bash
+      run: |
+        VERSION=$(curl -sf https://api.github.com/repos/Sheetaldharshan200/exa-engine/releases/latest | grep -o '"tag_name": *"[^"]*"' | cut -d'"' -f4)
+        echo "version=${VERSION:-latest}" >> $GITHUB_OUTPUT
+
+    - name: Cache exa
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.exa/bin
+        key: exa-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
+
+    - name: Install exa
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.sh | bash
+
+    - name: Add exa to PATH
+      shell: bash
+      run: echo "$HOME/.exa/bin" >> $GITHUB_PATH
+
+    - name: Run exa
+      shell: bash
+      id: run_exa
+      run: exa github run
+      env:
+        MODEL: ${{ inputs.model }}
+        AGENT: ${{ inputs.agent }}
+        PROMPT: ${{ inputs.prompt }}
+        # The action authenticates with the workflow's own GITHUB_TOKEN; there
+        # is no app-token exchange service.
+        USE_GITHUB_TOKEN: "true"
+        MENTIONS: ${{ inputs.mentions }}
+        VARIANT: ${{ inputs.variant }}

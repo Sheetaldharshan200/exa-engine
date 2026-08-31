@@ -1,0 +1,47 @@
+---
+title: Local models
+description: Run models on your own machine — exa's engine or Ollama.
+---
+
+Exa runs models locally two ways: its **own engine** (llama.cpp, fetched on
+demand — nothing else to install) and **Ollama**, picked up automatically
+when it is running.
+
+## The built-in engine
+
+```bash
+exa model list             # what is available, sizes, RAM needed
+exa model run qwen3-4b     # download if needed, then serve
+exa model status
+exa model stop
+```
+
+Models also appear in the picker before they are downloaded — choosing one
+that is not installed tells you the size and the command instead of failing.
+The `/connect` dialog's **Exa engine (local)** entry lists them with
+one-keypress install.
+
+The engine allocates the **largest context window your machine can hold**:
+the model's trained window, halved until the KV cache fits in memory, never
+below 8k. The window is reported honestly — what the server allocated, not
+what the model card says.
+
+Nothing is bundled into the exa binary: the server (~50&nbsp;MB) and
+weights (2–5&nbsp;GB) are fetched when you ask and cached. The engine
+shares its port with Exasol Studio's, so a machine running both serves one
+engine rather than two fighting over the GPU.
+
+## Ollama
+
+If Ollama is listening on `127.0.0.1:11434`, its models appear with **no
+configuration and no API key** — being reachable is the credential.
+Capabilities are read per model, and the context window shown is the one
+Ollama will actually serve (its default is 4k; raise it with
+`OLLAMA_CONTEXT_LENGTH` on the Ollama server).
+
+## Honest sizing
+
+A model needs to follow the agent's system prompt — tool schemas, skills,
+database context. In practice **4B parameters is the floor** and 7B is
+where SQL quality gets good; smaller models answer in prose *about*
+querying your database instead of querying it.

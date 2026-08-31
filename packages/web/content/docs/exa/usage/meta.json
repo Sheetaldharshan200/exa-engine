@@ -1,0 +1,12 @@
+{
+  "title": "Usage",
+  "defaultOpen": true,
+  "pages": [
+    "tui",
+    "cli",
+    "web",
+    "ide",
+    "github",
+    "gitlab"
+  ]
+}

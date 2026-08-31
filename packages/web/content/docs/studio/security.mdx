@@ -1,0 +1,22 @@
+---
+title: Security
+description: The master-password vault, recovery codes, and where secrets live.
+---
+
+## The master password
+
+First run asks you to set a master password (at least 10 characters with a letter and a number). It derives the key that encrypts stored secrets at rest — connection passwords in Studio's own storage — and doubles as the local database's SYS credential, kept in sync so there is one password to remember.
+
+Five **recovery codes** are shown once at setup. Each can reset a forgotten master password exactly once; regenerate a fresh set any time from Settings (which invalidates the old ones).
+
+A configured-but-locked vault gates the app: returning users unlock with the password, and the key lives in memory only for the session.
+
+<Callout type="info" title="exa web has its own vault">
+The browser build served by the exa engine keeps an equivalent vault on the server side (`~/.exasol/web-vault.json`, scrypt-derived) — same behavior, same recovery-code model, separate file. Set it up on first `exa web` run.
+</Callout>
+
+## Where secrets live
+
+- **Shared connection passwords** — the OS credential store (Keychain, Credential Manager, Secret Service), used by both Studio and the exa CLI.
+- **Studio-stored profile secrets** — encrypted with the vault key (AES-256-GCM); without the vault they are not written in a recoverable form the app would pretend is secure.
+- **Provider credentials for the assistant** — the engine's auth store, held by the sidecar; the UI never receives them.

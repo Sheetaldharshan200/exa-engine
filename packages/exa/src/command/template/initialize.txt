@@ -1,0 +1,48 @@
+Profile the connected database and write `AGENTS.md` so future Exa sessions start knowing it.
+
+Exa loads `AGENTS.md` into every session automatically. What you put there is what the agent knows before it has run a single query — so the test for every line is: "would a competent analyst get this wrong, or spend queries rediscovering it?" If not, leave it out.
+
+User-provided focus or constraints (honor these):
+$ARGUMENTS
+
+## How to investigate
+
+Work through the database with the tools you have. Do not guess at any of it.
+
+1. `exasol_schemas` — what schemas exist. Ignore the system schemas (SYS, EXA_STATISTICS) unless the user asks about them.
+2. `exasol_tables` per schema — the tables and views, and which schemas are actually populated versus empty.
+3. `exasol_describe` on the tables that matter — columns, types, nullability.
+4. `exasol_query` for the facts only data answers: row counts per table, the real date range of each fact table, distinct counts for the columns you would group by, and how the keys actually join.
+
+Prefer measuring over assuming. A column named `IS_ACTIVE` may hold three values; a table named `ORDERS_2024` may hold last week's rows. Check.
+
+Go wide before deep. Cover every populated schema at least at table level before profiling any one table exhaustively. On a large database, profile the biggest and most-joined tables and say plainly which ones you did not cover.
+
+## What to record
+
+The facts that change how a query gets written:
+
+- what each schema is for, in one line, and which are empty or stale
+- the fact tables and the dimensions around them, and the columns they join on — including joins the naming does not make obvious
+- grain: what one row of each fact table represents. Getting this wrong is what produces double-counted totals.
+- the real date column to filter on when a table has several, and the range it actually covers
+- the meaning of codes and enum-like columns: status flags, type codes, currency and unit columns, and what the values mean
+- metric definitions the data implies — how revenue, margin, or an active user would have to be computed here, including which rows to exclude (test accounts, cancelled orders, internal customers)
+- data quality traps: nullable columns that are usually null, duplicate keys, rows that need deduplicating, soft-deleted records
+- naming and casing conventions, and any table or column whose name misleads
+
+Exasol specifics worth writing down when they apply: identifiers fold to uppercase unless they were created quoted, so a quoted mixed-case name must be quoted in every query. Note anything that has to be quoted.
+
+## Questions
+
+Only ask what the database cannot tell you — which of two plausible revenue definitions the business uses, which schema is authoritative when two hold the same thing, whether a period is fiscal or calendar. Use the `question` tool for one short batch at most, and only after profiling; most of these answer themselves once you have looked.
+
+## Writing rules
+
+Write `AGENTS.md` at `${path}`. If it already exists, improve it in place: keep what is still true, correct what the profile contradicts, and delete what you cannot verify. If it holds guidance about something other than the database, leave that alone.
+
+Include only what is specific to this database. Exclude general SQL advice, exhaustive column dumps of every table, and anything you did not verify. Prefer short sections and bullets; a small database deserves a small file.
+
+Every claim in the file must come from something you ran. If you inferred rather than measured, say so in the line itself — a wrong fact stated confidently is worse than no file, because every later session inherits it.
+
+Finish by telling the user what you covered, what you skipped, and any question the profile raised that they should answer.

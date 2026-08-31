@@ -1,0 +1,11 @@
+{
+  "title": "Connections",
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "properties",
+    "drivers",
+    "virtual-schemas",
+    "operations"
+  ]
+}

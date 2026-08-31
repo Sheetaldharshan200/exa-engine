@@ -1,0 +1,23 @@
+---
+title: Tabs & workspace
+description: Query tabs, tab groups, and a workspace that survives restarts.
+---
+
+Everything in the workbench lives in tabs — SQL queries, object details, dashboards, the visualizer, notebooks, source control, even the Marketplace. Each **connection keeps its own tab workspace**: switching databases switches the whole set.
+
+## Working with tabs
+
+- **New tab**: the `+` button, or double-click empty space on the tab bar. New query tabs are named `Untitled-N`, reusing the lowest free number.
+- **Rename**: double-click the title. **Reorder**: drag. **Close**: the ×, or middle-click.
+- **Pin** a tab to protect it from *Close all*; the overflow menu has *New query tab, Pin/Unpin, Close tab, Close other tabs, Close all tabs*.
+- A tab whose backing file was deleted shows struck-out in red.
+
+## Tab groups
+
+Right-click a tab → **New group from tab**, then add others via **Add to group**. Group headers collapse the whole set, show a member count, and rename on right-click.
+
+## Persistence
+
+Open tabs, groups, and the active tab are saved per connection and restored on restart, so a machine reboot never costs you a workspace. Panel sizes (bottom dock, sidebar, assistant panel) persist too.
+
+Each connection can also carry an **accent color** (set in [Connection properties](../connections/properties.mdx#color-and-border)) that tints its tabs — the classic prod-versus-dev guard.

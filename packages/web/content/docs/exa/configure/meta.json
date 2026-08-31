@@ -1,0 +1,23 @@
+{
+  "title": "Configure",
+  "defaultOpen": true,
+  "pages": [
+    "config",
+    "providers",
+    "models",
+    "agents",
+    "permissions",
+    "policies",
+    "tools",
+    "custom-tools",
+    "commands",
+    "skills",
+    "rules",
+    "mcp-servers",
+    "keybinds",
+    "themes",
+    "formatters",
+    "lsp",
+    "acp"
+  ]
+}

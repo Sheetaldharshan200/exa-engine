@@ -1,0 +1,27 @@
+---
+title: Connections
+description: Connect Exasol databases; profiles are shared with the exa CLI.
+---
+
+Studio connects to any Exasol — the local **Exasol Personal**, a server, or a cluster — over Exasol's WebSocket protocol with the bundled driver. No driver installs.
+
+## Adding a connection
+
+**New connection** asks for host, port (8563 by default), user, and password, with a **Test** that reports reachability, version, and session identity before saving. Each connection has a **Properties** tab for keep-alive, pool size, and connect hooks.
+
+## Shared with the CLI
+
+Profiles are published to the registry the whole stack shares:
+
+- Metadata (host, port, user, schema) → `~/.exasol/connections.json`
+- Passwords → the OS credential store (Keychain, Credential Manager, Secret Service) — never a file
+
+Connect a database in Studio and it is immediately usable from `exa` in a terminal, and the other way round. The list view merges both sources on every refresh.
+
+## The local database
+
+Exasol Personal appears as a card with a live status dot. Studio manages its lifecycle — deploy, start, stop, destroy — from the Marketplace, and keeps its SYS credential in sync with your master password (the unified-credential model: one password to remember).
+
+## Several databases
+
+Open as many connections as you need; the assistant can speak for **all open connections at once** — each one is registered with the agent as it opens. Exasol cannot join across separate databases, so cross-database questions are answered by querying each and combining results, with every number attributed to its source.
