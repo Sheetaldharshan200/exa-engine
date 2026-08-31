@@ -904,6 +904,67 @@ describe("session.compaction.process", () => {
     }).pipe(withCompaction({ result: "compact" })),
   )
 
+  itCompaction.instance(
+    "local providers trim deterministically instead of asking the model to summarize",
+    Effect.gen(function* () {
+      const ssn = yield* SessionNs.Service
+      const session = yield* ssn.create({})
+      const msg = yield* ssn.updateMessage({
+        id: MessageID.ascending(),
+        role: "user",
+        sessionID: session.id,
+        agent: "build",
+        model: { providerID: ProviderV2.ID.make("ollama"), modelID: ModelV2.ID.make("qwen") },
+        time: { created: Date.now() },
+      })
+      yield* ssn.updatePart({
+        id: PartID.ascending(),
+        messageID: msg.id,
+        sessionID: session.id,
+        type: "text",
+        text: "hello",
+      })
+      const msgs = yield* ssn.messages({ sessionID: session.id })
+
+      const result = yield* SessionCompaction.use.process({
+        parentID: msg.id,
+        messages: msgs,
+        sessionID: session.id,
+        auto: true,
+      })
+      // Local models never auto-continue — one deterministic trim, then stop.
+      expect(result).toBe("stop")
+
+      const after = yield* ssn.messages({ sessionID: session.id })
+      const summary = after.find((m) => m.info.role === "assistant" && m.info.summary)
+      expect(summary?.info.role).toBe("assistant")
+      if (summary?.info.role === "assistant") {
+        expect(summary.info.finish).toBe("stop")
+        expect(summary.info.error).toBeUndefined()
+      }
+      const text = (summary?.parts ?? [])
+        .filter((part): part is SessionV1.TextPart => part.type === "text")
+        .map((part) => part.text)
+        .join("")
+      // The deterministic stub, NOT model output — proves no summarizer ran.
+      expect(text).toContain("trimmed to fit this model's context window")
+      const syntheticContinue = after.some((m) =>
+        m.parts.some(
+          (part) =>
+            part.type === "text" &&
+            (part as { metadata?: { compaction_continue?: boolean } }).metadata?.compaction_continue === true,
+        ),
+      )
+      expect(syntheticContinue).toBe(false)
+    }).pipe(
+      withCompaction({
+        provider: ProviderTest.fake({
+          model: { ...createModel({ context: 100_000, output: 32_000 }), id: ModelV2.ID.make("qwen"), providerID: ProviderV2.ID.make("ollama") },
+        }),
+      }),
+    ),
+  )
+
   it.instance(
     "adds synthetic continue prompt when auto is enabled",
     Effect.gen(function* () {

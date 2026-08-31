@@ -420,45 +420,70 @@ const layer = Layer.effect(
         },
       }
       yield* session.updateMessage(msg)
-      const processor = yield* processors.create({
-        assistantMessage: msg,
-        sessionID: input.sessionID,
-        model,
-      })
-      const result = yield* processor.process({
-        user: userMessage,
-        agent,
-        sessionID: input.sessionID,
-        tools: {},
-        system: [],
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: [
-                  nextPrompt,
-                  ...(compacting.prompt ? ["The following is the conversation history:", conversation] : []),
-                ]
-                  .filter(Boolean)
-                  .join("\n\n"),
-              },
-            ],
-          },
-        ],
-        model,
-      })
+      let result: "continue" | "stop" | "compact"
+      let processorError = false
+      if (LOCAL_PROVIDERS.has(model.providerID)) {
+        // Local models take minutes to write a summary (and small ones write
+        // garbage) — trim deterministically instead of asking the model: the
+        // preserved tail plus the previous summary (when one exists) carries
+        // the context forward, instantly.
+        yield* session.updatePart({
+          id: PartID.ascending(),
+          messageID: msg.id,
+          sessionID: input.sessionID,
+          type: "text",
+          synthetic: true,
+          text:
+            previousSummary ??
+            "[Earlier conversation was trimmed to fit this model's context window. Ask again if something from before is needed.]",
+          time: { start: Date.now(), end: Date.now() },
+        })
+        msg.finish = "stop"
+        msg.time.completed = Date.now()
+        yield* session.updateMessage(msg)
+        result = "continue"
+      } else {
+        const processor = yield* processors.create({
+          assistantMessage: msg,
+          sessionID: input.sessionID,
+          model,
+        })
+        result = yield* processor.process({
+          user: userMessage,
+          agent,
+          sessionID: input.sessionID,
+          tools: {},
+          system: [],
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: [
+                    nextPrompt,
+                    ...(compacting.prompt ? ["The following is the conversation history:", conversation] : []),
+                  ]
+                    .filter(Boolean)
+                    .join("\n\n"),
+                },
+              ],
+            },
+          ],
+          model,
+        })
 
-      if (result === "compact") {
-        processor.message.error = new SessionV1.ContextOverflowError({
-          message: replay
-            ? "Conversation history too large to compact - exceeds model context limit"
-            : "Session too large to compact - context exceeds model limit even after stripping media",
-        }).toObject()
-        processor.message.finish = "error"
-        yield* session.updateMessage(processor.message)
-        return "stop"
+        if (result === "compact") {
+          processor.message.error = new SessionV1.ContextOverflowError({
+            message: replay
+              ? "Conversation history too large to compact - exceeds model context limit"
+              : "Session too large to compact - context exceeds model limit even after stripping media",
+          }).toObject()
+          processor.message.finish = "error"
+          yield* session.updateMessage(processor.message)
+          return "stop"
+        }
+        processorError = Boolean(processor.message.error)
       }
 
       if (compactionPart && selected.tail_start_id && compactionPart.tail_start_id !== selected.tail_start_id) {
@@ -568,7 +593,7 @@ const layer = Layer.effect(
         }
       }
 
-      if (processor.message.error) return "stop"
+      if (processorError) return "stop"
       if (result === "continue") {
         yield* events.publish(Event.Compacted, { sessionID: input.sessionID })
       }
