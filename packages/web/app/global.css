@@ -12,7 +12,9 @@
 }
 .dark {
   --color-fd-primary: oklch(0.78 0.2 138);
-  --color-fd-background: oklch(0.16 0.012 240);
+  /* Exactly Exasol Studio's dark editor ground (#0a0a0b) — the docs render
+   * inside the app's Docs tab, and any shade difference reads as a seam. */
+  --color-fd-background: #0a0a0b;
 }
 
 html {
