@@ -170,6 +170,10 @@ export async function AnthropicAuthPlugin(input: PluginInput): Promise<Hooks> {
         if (auth.type !== "oauth") return {}
 
         let refreshPromise: Promise<string> | undefined
+        // A refresh token the endpoint rejects (400/401) is DEAD — rotated by
+        // a sign-in from another app or instance. Remember that and fail fast
+        // with instructions instead of hammering the token endpoint per request.
+        let refreshDead: string | undefined
 
         return {
           apiKey: OAUTH_DUMMY_KEY,
@@ -178,6 +182,7 @@ export async function AnthropicAuthPlugin(input: PluginInput): Promise<Hooks> {
             if (currentAuth.type !== "oauth") return fetch(requestInput, init)
 
             if (!currentAuth.access || currentAuth.expires < Date.now()) {
+              if (refreshDead) throw new Error(refreshDead)
               if (!refreshPromise) {
                 refreshPromise = refreshTokens(currentAuth.refresh)
                   .then(async (tokens) => {
@@ -191,6 +196,14 @@ export async function AnthropicAuthPlugin(input: PluginInput): Promise<Hooks> {
                       },
                     })
                     return tokens.access_token
+                  })
+                  .catch((err: unknown) => {
+                    if (/Token refresh failed: (400|401)/.test(String((err as Error)?.message ?? err))) {
+                      refreshDead =
+                        "Anthropic sign-in expired — the saved session was rotated by a newer sign-in (another app or a second exa instance). Reconnect Claude Pro/Max: /connect in a session, or Providers → Anthropic in the app."
+                      throw new Error(refreshDead)
+                    }
+                    throw err
                   })
                   .finally(() => {
                     refreshPromise = undefined
