@@ -25,8 +25,18 @@ jobs:
         with:
           bun-version: 1.3.14 # matches root package.json packageManager
 
+      # Registry-friendly installs: bun's package cache is keyed on the
+      # lockfile, so repeat builds resolve everything locally instead of
+      # re-downloading (and re-rate-limiting) from the registries.
+      - name: Cache bun packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
       - name: Install dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Create the GitHub release (assets attach below)
         env:
@@ -46,6 +56,15 @@ jobs:
       # (packages/app); with that gone, a release without this step would ship
       # binaries with no web UI at all — a failed release that names the
       # missing token is strictly better than that shipping silently.
+      # The Studio clone's pnpm store, keyed on the pinned ref: the embedded
+      # UI build stops re-downloading its whole dependency tree per release.
+      - name: Cache pnpm store (Studio UI)
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ runner.os }}-${{ vars.STUDIO_REF || 'v2026.6.0' }}
+          restore-keys: pnpm-store-${{ runner.os }}-
+
       - name: Build Exasol Studio's web UI
         id: studio
         env:
@@ -66,6 +85,7 @@ jobs:
             "https://x-access-token:${STUDIO_REPO_TOKEN}@github.com/${STUDIO_REPO}.git" /tmp/studio
           corepack enable
           cd /tmp/studio
+          pnpm config set store-dir ~/.pnpm-store
           pnpm install --frozen-lockfile
           pnpm --dir ./apps/desktop build
           # Prove the bundle is real before the binary is built around it: an
@@ -78,6 +98,13 @@ jobs:
       # served under /docs — `exa docs` opens it. The Studio notebook's source
       # of truth is the Studio repository (docs/site), synced from the clone
       # made above; the in-repo copy is the offline fallback.
+      - name: Cache Next.js build (docs site)
+        uses: actions/cache@v4
+        with:
+          path: packages/web/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('packages/web/**/*.tsx', 'packages/web/**/*.ts') }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
+
       - name: Build documentation site
         run: |
           set -euo pipefail
