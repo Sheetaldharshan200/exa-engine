@@ -25,6 +25,9 @@ import { SessionCompactionEvent } from "@exa/schema/session-compaction-event"
 
 export const Event = SessionCompactionEvent
 
+/** Providers that run models on this machine — small contexts, no auto-continue. */
+const LOCAL_PROVIDERS = new Set(["ollama", "lmstudio", "builtin"])
+
 export const PRUNE_MINIMUM = 20_000
 export const PRUNE_PROTECT = 40_000
 const TOOL_OUTPUT_MAX_CHARS = 2_000
@@ -495,6 +498,22 @@ const layer = Layer.effect(
         }
 
         if (!replay) {
+          // Loop guard: when the turn that just overflowed WAS an auto-continue
+          // (its user message carries the compaction_continue marker), another
+          // auto-continue would only overflow again — small-context local
+          // models otherwise ping-pong "Continue if you have next steps…"
+          // forever. One auto-continue per real user turn; after that, stop.
+          const wasAutoContinue = parent.parts.some(
+            (part) =>
+              part.type === "text" &&
+              (part as { metadata?: { compaction_continue?: boolean } }).metadata?.compaction_continue === true,
+          )
+          if (wasAutoContinue) return "stop"
+          // Local models never auto-continue: their small contexts are what
+          // overflowed in the first place, and a synthetic "Continue…" turn
+          // just overflows again — the user sees a wall of compaction
+          // summaries instead of an answer. Summarize once, then stop.
+          if (LOCAL_PROVIDERS.has(userMessage.model.providerID)) return "stop"
           const info = yield* provider.getProvider(userMessage.model.providerID)
           if (
             (yield* plugin.trigger(
