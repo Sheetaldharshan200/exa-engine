@@ -110,7 +110,7 @@ async function targetFor(profileId: string) {
   return { host: entry.host, port: entry.port, user: entry.user, password, schema: entry.schema }
 }
 
-async function withDriver<T>(profileId: string, fn: (d: ReturnType<typeof createDriver>) => Promise<T>): Promise<T> {
+export async function withDriver<T>(profileId: string, fn: (d: ReturnType<typeof createDriver>) => Promise<T>): Promise<T> {
   const driver = createDriver(await targetFor(profileId))
   try {
     await driver.connect()
@@ -120,7 +120,7 @@ async function withDriver<T>(profileId: string, fn: (d: ReturnType<typeof create
   }
 }
 
-function rowsOf(result: unknown): Record<string, unknown>[] {
+export function rowsOf(result: unknown): Record<string, unknown>[] {
   const r = result as { getRows?: () => unknown[] }
   return typeof r?.getRows === "function" ? (r.getRows() as Record<string, unknown>[]) : []
 }
@@ -214,6 +214,41 @@ async function portOpen(port: number): Promise<boolean> {
 }
 
 /** The exa CLI's shared default Exasol Personal deployment on this machine. */
+/** The Exasol MCP server counts as installed when a binary exists anywhere we
+ * know, or any AI client's config launches it (the starter kit wires clients
+ * to run it via uvx — there is no standalone binary in that setup). */
+async function mcpServerPresent(): Promise<boolean> {
+  if (await binPresent("exasol-mcp-server")) return true
+  const home = os.homedir()
+  const binaries = [
+    path.join(home, ".local", "bin", "exasol-mcp-server"),
+    path.join(home, ".exasol-starter-kit", "mcp", "venv", "bin", "exasol-mcp-server"),
+    path.join(home, "Library", "Application Support", "com.exasol.studio", "personal-local", "python", "bin", "exasol-mcp-server"),
+  ]
+  for (const bin of binaries) {
+    try {
+      await fs.access(bin)
+      return true
+    } catch {
+      /* keep looking */
+    }
+  }
+  const configs = [
+    path.join(home, "Library", "Application Support", "Claude", "claude_desktop_config.json"),
+    path.join(home, ".claude.json"),
+    path.join(home, ".codex", "config.toml"),
+    path.join(home, ".cursor", "mcp.json"),
+  ]
+  for (const file of configs) {
+    try {
+      if ((await fs.readFile(file, "utf8")).includes("exasol-mcp-server")) return true
+    } catch {
+      /* absent */
+    }
+  }
+  return false
+}
+
 async function personalDeployment(): Promise<{ installed: boolean; port: number; running: boolean }> {
   const deploymentFile = path.join(os.homedir(), ".exasol", "personal", "deployments", "default", "deployment.json")
   let installed = false
@@ -226,6 +261,64 @@ async function personalDeployment(): Promise<{ installed: boolean; port: number;
     // not installed
   }
   return { installed, port, running: installed ? await portOpen(port) : false }
+}
+
+type AiClientDef = {
+  id: string
+  name: string
+  configRel: string
+  probeRel: string[]
+  serversKey: string
+  auto: boolean
+}
+
+/** Same table as the desktop app's ai_clients.rs — one source of truth per platform. */
+const AI_CLIENTS: AiClientDef[] = [
+  { id: "claude-desktop", name: "Claude Desktop", configRel: "Library/Application Support/Claude/claude_desktop_config.json", probeRel: ["Library/Application Support/Claude"], serversKey: "mcpServers", auto: true },
+  { id: "claude-code", name: "Claude Code", configRel: ".claude.json", probeRel: [".claude"], serversKey: "mcpServers", auto: true },
+  { id: "cursor", name: "Cursor", configRel: ".cursor/mcp.json", probeRel: [".cursor"], serversKey: "mcpServers", auto: true },
+  { id: "vscode-copilot", name: "VS Code (Copilot)", configRel: "Library/Application Support/Code/User/mcp.json", probeRel: ["Library/Application Support/Code/User"], serversKey: "servers", auto: true },
+  { id: "gemini-cli", name: "Gemini CLI", configRel: ".gemini/settings.json", probeRel: [".gemini"], serversKey: "mcpServers", auto: true },
+  { id: "codex", name: "Codex CLI", configRel: ".codex/config.toml", probeRel: [".codex"], serversKey: "mcp_servers", auto: false },
+  { id: "opencode", name: "OpenCode", configRel: ".config/opencode/opencode.json", probeRel: [".config/opencode"], serversKey: "mcp", auto: false },
+]
+const GATEWAY_ENTRY = "exasol-studio"
+const GATEWAY_LEGACY = "exasol"
+
+function gatewayUrl(args: Record<string, unknown>): string {
+  const host = String(args["__requestHost"] ?? "127.0.0.1:4096")
+  const port = host.includes(":") ? host.split(":").pop() : "4096"
+  return `http://127.0.0.1:${port}/studio-mcp`
+}
+
+/** The written entry: npx mcp-remote bridges stdio clients to the engine's HTTP endpoint. */
+function gatewayEntryJson(url: string) {
+  return { command: "npx", args: ["-y", "mcp-remote", url] }
+}
+
+async function aiClientStatus(def: AiClientDef) {
+  const home = os.homedir()
+  const configPath = path.join(home, def.configRel)
+  let detected = false
+  for (const probe of [def.configRel, ...def.probeRel]) {
+    try {
+      await fs.access(path.join(home, probe))
+      detected = true
+      break
+    } catch {
+      /* keep probing */
+    }
+  }
+  let connected = false
+  try {
+    const raw = await fs.readFile(configPath, "utf8")
+    connected = def.auto
+      ? Boolean((JSON.parse(raw) as Record<string, Record<string, unknown>>)[def.serversKey]?.[GATEWAY_ENTRY])
+      : raw.includes(GATEWAY_ENTRY)
+  } catch {
+    /* absent or unreadable = not connected */
+  }
+  return { id: def.id, name: def.name, detected, connected, configPath, auto: def.auto }
 }
 
 const REQUIRES_DESKTOP = new Set([
@@ -807,6 +900,93 @@ export async function handleIpc(command: string, args: Record<string, unknown>):
       // ── Marketplace: the web can't install components (that's desktop),
       // but it MUST report what is already on this machine — most importantly
       // a CLI-installed Exasol Personal, so its card never says "Install". ──
+      case "driver_status": {
+        const driverId = String(arg("driverId", ""))
+        if (driverId === "exasol" || driverId === "sqlx-exasol" || driverId === "bundled") {
+          return { ok: true, value: { driverId, runtime: "bundled", ready: true, supported: true, hint: "Bundled with the exa engine — nothing to install." } }
+        }
+        return {
+          ok: true,
+          value: { driverId, runtime: "external", ready: false, supported: false, hint: "External driver runtimes are managed in the desktop app." },
+        }
+      }
+
+      case "ai_clients_ready":
+        return { ok: true, value: { ready: true, reason: null } }
+      case "list_ai_clients": {
+        const value = []
+        for (const def of AI_CLIENTS) value.push(await aiClientStatus(def))
+        return { ok: true, value }
+      }
+      case "connect_ai_client": {
+        const def = AI_CLIENTS.find((d) => d.id === String(arg("clientId", "")))
+        if (!def) return { ok: false, status: 400, error: `Unknown AI client: ${arg("clientId", "")}` }
+        if (!def.auto) return { ok: false, status: 400, error: `${def.name} uses a non-JSON config — use the copyable snippet instead.` }
+        const configPath = path.join(os.homedir(), def.configRel)
+        let cfg: Record<string, unknown> = {}
+        try {
+          const raw = await fs.readFile(configPath, "utf8")
+          cfg = raw.trim() ? (JSON.parse(raw) as Record<string, unknown>) : {}
+          // One-time backup before the first edit we ever make to this file.
+          const backup = configPath.replace(/\.json$/, "") + ".json.exasol-backup"
+          try {
+            await fs.access(backup)
+          } catch {
+            await fs.copyFile(configPath, backup).catch(() => undefined)
+          }
+        } catch {
+          await fs.mkdir(path.dirname(configPath), { recursive: true }).catch(() => undefined)
+        }
+        const servers = (cfg[def.serversKey] ??= {}) as Record<string, unknown>
+        if (typeof servers !== "object" || Array.isArray(servers)) {
+          return { ok: false, status: 500, error: `"${def.serversKey}" in ${configPath} is not an object; not touching it.` }
+        }
+        delete servers[GATEWAY_LEGACY]
+        servers[GATEWAY_ENTRY] = gatewayEntryJson(gatewayUrl(args))
+        await fs.writeFile(configPath, JSON.stringify(cfg, null, 2))
+        return { ok: true, value: await aiClientStatus(def) }
+      }
+      case "disconnect_ai_client": {
+        const def = AI_CLIENTS.find((d) => d.id === String(arg("clientId", "")))
+        if (!def) return { ok: false, status: 400, error: `Unknown AI client: ${arg("clientId", "")}` }
+        if (!def.auto) return { ok: false, status: 400, error: `${def.name} uses a non-JSON config — remove the exasol-studio entry manually.` }
+        const configPath = path.join(os.homedir(), def.configRel)
+        try {
+          const cfg = JSON.parse(await fs.readFile(configPath, "utf8")) as Record<string, unknown>
+          const servers = cfg[def.serversKey] as Record<string, unknown> | undefined
+          if (servers && typeof servers === "object") {
+            delete servers[GATEWAY_ENTRY]
+            delete servers[GATEWAY_LEGACY]
+            await fs.writeFile(configPath, JSON.stringify(cfg, null, 2))
+          }
+        } catch {
+          /* nothing to remove */
+        }
+        return { ok: true, value: await aiClientStatus(def) }
+      }
+      case "ai_client_snippet": {
+        const clientId = String(arg("clientId", ""))
+        const url = gatewayUrl(args)
+        if (clientId === "codex") {
+          return {
+            ok: true,
+            value: `# ~/.codex/config.toml
+[mcp_servers.exasol-studio]
+command = "npx"
+args = ["-y", "mcp-remote", "${url}"]
+`,
+          }
+        }
+        if (clientId === "opencode") {
+          return {
+            ok: true,
+            value: `// merge into ~/.config/opencode/opencode.json
+${JSON.stringify({ mcp: { "exasol-studio": { type: "remote", url } } }, null, 2)}`,
+          }
+        }
+        return { ok: true, value: JSON.stringify({ mcpServers: { [GATEWAY_ENTRY]: gatewayEntryJson(url) } }, null, 2) }
+      }
+
       case "market_env":
         return {
           ok: true,
@@ -828,11 +1008,63 @@ export async function handleIpc(command: string, args: Record<string, unknown>):
             "exasol-personal:running": dep.running,
             "exasol-cloud": await binPresent("exasol"),
             exapump: await binPresent("exapump"),
-            "mcp-server": await binPresent("exasol-mcp-server"),
+            "mcp-server": await mcpServerPresent(),
             "agent-skills": true,
           },
         }
       }
+      case "market_install": {
+        const id = String(arg("id", ""))
+        const { execFile, spawn } = await import("node:child_process")
+        const pip = (pkg: string) =>
+          new Promise<{ ok: boolean; error?: string }>((resolve) => {
+            execFile("python3", ["-m", "pip", "install", "--user", "--upgrade", pkg], { timeout: 300_000 }, (err, _out, stderr) =>
+              resolve(err ? { ok: false, error: String(stderr || err).slice(-400) } : { ok: true }),
+            )
+          })
+        if (id === "pyexasol" || id === "sqlalchemy-exasol") {
+          const res = await pip(id === "pyexasol" ? "pyexasol" : "sqlalchemy-exasol")
+          if (!res.ok) return { ok: false, status: 500, error: `pip install failed: ${res.error}` }
+          return { ok: true, value: { done: true, note: `${id} installed with pip (--user).` } }
+        }
+        if (id === "exasol-personal" || id === "exapump" || id === "mcp-server") {
+          // The official starter-kit installer sets up the database, exapump
+          // and the MCP wiring — the same path the CLI uses. Detached: first
+          // deployment takes ~2 minutes; the card flips when detection sees it.
+          const env = {
+            ...process.env,
+            EXAKIT_LOAD_SAMPLE: "0",
+            ...(id === "mcp-server" ? { EXAKIT_MCP_CLIENTS: "all" } : { EXAKIT_SKIP_MCP: "1" }),
+          }
+          const child = spawn(
+            "sh",
+            ["-c", "curl -fsSL https://raw.githubusercontent.com/krishna-exasol/starter-kit-testing-v1/main/install.sh | sh"],
+            { env, detached: true, stdio: "ignore" },
+          )
+          child.unref()
+          return {
+            ok: true,
+            value: {
+              done: false,
+              started: true,
+              note: "Installer running in the background — the first database deployment takes about two minutes. This card updates itself when it lands.",
+            },
+          }
+        }
+        if (id === "ai-lab") {
+          const runner = (await binPresent("docker")) ? "docker" : (await binPresent("podman")) ? "podman" : null
+          if (!runner) return { ok: false, status: 400, error: "ai-lab needs Docker or Podman — install one first." }
+          const child = spawn(runner, ["pull", "exasol/ai-lab:latest"], { detached: true, stdio: "ignore" })
+          child.unref()
+          return { ok: true, value: { done: false, started: true, note: `${runner} is pulling exasol/ai-lab in the background.` } }
+        }
+        return {
+          ok: false,
+          status: 501,
+          error: `"${id}" installs from the desktop app — it needs the managed runtime directory a browser session cannot own.`,
+        }
+      }
+
       case "market_catalog": {
         try {
           const res = await fetch(

@@ -17,15 +17,27 @@ For the database itself: connect an existing Exasol, or let Studio install **Exa
 
 When Personal is your only database, Studio connects to it automatically on launch — zero-setup. The moment you add your own connections, nothing connects without a click.
 
-## In the browser instead
+## The local web app
 
-If you use the [exa CLI](../exa/index.mdx), Studio is already in it:
+Studio is also a **local web app** — the exa engine ships the exact same application and serves it in your browser. Install the engine once:
+
+```bash
+# one-line installer
+curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exa-engine/main/install.sh | bash
+
+# or via npm
+npm install -g exa-ai
+```
+
+Then:
 
 ```bash
 exa web
 ```
 
-That serves this same application from the engine, against the same shared connections. A few desktop-only abilities (managing the local database's lifecycle, filesystem access, terminals) are named as such in the UI rather than failing silently.
+Your browser opens Studio at `http://127.0.0.1:4096` — the app's own unlock screen asks for your master password once (the same vault as the desktop app), and you work against the same shared connections. The server runs until you stop it (`Ctrl+C`) — after a reboot, just run `exa web` again.
+
+A few desktop-only abilities (managing the local database's lifecycle, filesystem access, native terminals) are named as such in the UI rather than failing silently — a CLI-installed Exasol Personal still shows up connected and running.
 
 ## Staying current
 

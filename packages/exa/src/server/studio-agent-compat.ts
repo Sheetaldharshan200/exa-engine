@@ -344,6 +344,23 @@ export async function handleAgentCompat(
       return { status: 404, body: { error: "not found" } }
     }
 
+    // ── MCP gateway bus: exposure + services, same routes as the sidecar ──
+    if (parts[1] === "gateway") {
+      const gw = await import("./studio-mcp-gateway")
+      if (method === "GET" && parts[2] === "databases" && !parts[3]) {
+        return { status: 200, body: await gw.gatewayState() }
+      }
+      if (method === "PUT" && parts[2] === "databases" && parts[3]) {
+        await gw.setGatewayDatabase(decodeURIComponent(parts[3]), body as { exposed?: boolean; caps?: { sql?: boolean; nl2sql?: boolean } })
+        return { status: 200, body: { ok: true } }
+      }
+      if (method === "PUT" && parts[2] === "services" && parts[3]) {
+        await gw.setGatewayService(decodeURIComponent(parts[3]), Boolean((body as { exposed?: boolean })["exposed"]))
+        return { status: 200, body: { ok: true } }
+      }
+      return { status: 404, body: { error: "not found" } }
+    }
+
     // ── Dashboards: same routes and semantics as the desktop sidecar ──
     if (parts[1] === "dashboards") {
       if (method === "GET" && !parts[2]) return { status: 200, body: { dashboards: await dashboards.list() } }

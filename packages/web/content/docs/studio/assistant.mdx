@@ -10,6 +10,12 @@ The assistant is the [exa engine](../exa/index.mdx) running as Studio's sidecar 
 - **Modes**: **Agent** (all tools), **Plan** (read-only, proposes before changing), **Chat** (conversation only — also what keeps small local models usable).
 - **SQL operation grants**: reads are always allowed; Insert, Update, Delete, Create, Alter, Drop, Access control, and Administration are explicit, persisted toggles behind the shield control. The engine refuses anything not granted.
 - **Personas** tune the answer's depth and format — Data Analyst, BI Analyst, Data Scientist, Finance Analyst, Data Engineer, DBA, Executive — or adaptive.
+
+## Structured questions
+
+When the agent needs a decision ("which schema?", "what best describes your role?") it pauses the turn and asks with concrete choices instead of prose. The questionnaire shows **one question per card** — Prev/Next walk the set, progress dots show where you are, and a free-text field accepts your own answer. Dismiss skips the whole set.
+
+Answering a role question also **sets the persona**: reply "Developer" and the persona picker switches to Data Engineer, immediately and for every following message — same as picking it by hand.
 - **Internet toggle**: sandboxed by default; enabling web access restarts the engine with webfetch/websearch in the tool list and verifies the enforcement.
 
 ## Grounded context

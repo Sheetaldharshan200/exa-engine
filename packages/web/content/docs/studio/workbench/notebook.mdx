@@ -1,18 +1,38 @@
 ---
 title: Notebook
-description: SQL, Markdown, and Mermaid cells in shareable documents.
+description: The artifact hub — SQL, text, diagrams, every chart kind, and dashboards in one document.
 ---
 
-Notebooks mix analysis and narrative. Keep several, named, switchable; rename and delete from the header.
+The Notebook is Studio's home for every analysis artifact: queries, narrative, diagrams, charts, KPIs — and dashboards, which live here as auto-running documents. Keep several notebooks, named, switchable; rename and delete from the header.
 
 ## Three cell types
 
-- **SQL** — Monaco with the same Exasol completion as the editor; `⌘⏎` runs the cell into a result table or an automatic chart; *Ask Exa about this SQL* hands it to the assistant.
+- **SQL** — Monaco with the same Exasol completion as the editor; `⌘⏎` runs the cell into a result grid or any chart; *Ask Exa* hands the cell (SQL and current chart design) to the assistant to explain, improve, or redesign it.
 - **Markdown** — a WYSIWYG editor: headings, bold/italic/underline/strikethrough, inline code, lists, quotes, code blocks, links, images from disk, text color and size, and full table editing, with a preview/code toggle.
 - **Mermaid** — rendered diagrams with an edit-code toggle and *Ask Exa about this diagram*.
 
-Cells add from the toolbar or between-cell insert zones, move by drag or arrows, and **Run all** executes top to bottom. A data-sources bar shows chips for each connected database.
+Cells add from the toolbar or between-cell insert zones, move by drag or arrows, and **Run all** executes top to bottom.
+
+## Every chart, picked by picture
+
+A ran SQL cell shows a **visualization picker** — a dropdown of mini-chart tiles, picture plus name, so you choose by what it looks like: table (the grid), bar, horizontal bar, line, area, pie, donut, scatter, heatmap, funnel, radar, radial, treemap, gauge, and a **KPI** tile for the one number that matters. The choice persists with the notebook.
+
+## Per-cell database
+
+Each SQL cell can run against a different connected database: a small database dropdown on the cell defaults to **Active** (the app's current connection) and lists every open connection — cross-database notebooks in one document. If a cell's chosen database is disconnected later, the cell says so instead of silently querying another one.
+
+The data-sources bar above the cells shows chips for each connected database, plus shortcuts to connect another or add a virtual schema.
+
+## System dashboards
+
+The **System** button at the bottom opens Studio's built-in live views, each as an auto-running notebook:
+
+- **Query performance** — statements/24h, failure rate, durations, volume by command class, duration-vs-CPU scatter, heaviest statements.
+- **Sessions & activity** — active sessions, sessions by user, session detail.
+- **Storage & size** — raw and compressed size, recommended DB RAM, size over the day.
+
+They regenerate from Studio itself on every open — they can't be broken or deleted; edits belong in a copy (just rename the notebook).
 
 ## In and out
 
-**Import** pulls dashboard panels in as cells; **Export** writes the whole notebook as Markdown, HTML, or PDF.
+**Import** pulls any saved dashboard's panels in as cells — including dashboards the [assistant](../assistant.mdx) builds with its dashboard tools — and runs them immediately. **Export** writes the whole notebook as Markdown, HTML, or PDF.

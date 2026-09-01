@@ -22,7 +22,7 @@ const VAULT_IPC = new Set(["/ipc/vault_status", "/ipc/vault_setup", "/ipc/vault_
  */
 export function isVaultPublicPath(method: string, pathname: string) {
   if (isPublicUIPath(method, pathname)) return true
-  if (method === "POST") return VAULT_IPC.has(pathname)
+  if (method === "POST") return pathname === "/studio-mcp" || VAULT_IPC.has(pathname)
   if (method !== "GET") return false
   return (
     pathname === "/" ||

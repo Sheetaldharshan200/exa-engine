@@ -198,6 +198,23 @@ const docRoute = HttpRouter.use((router) => router.add("GET", "/doc", () => Effe
  * shell the same call goes to Rust instead. Mounted before the catch-all so a
  * command name is never mistaken for a static path.
  */
+/** Streamable-HTTP MCP endpoint for the Studio gateway (see studio-mcp-gateway.ts).
+ *  Vault-public like /docs: external AI clients hold no session cookie; the
+ *  endpoint is read-only and bound to localhost. */
+const studioMcpRoute = HttpRouter.use((router) =>
+  Effect.gen(function* () {
+    yield* router.add("POST", "/studio-mcp", (request) =>
+      Effect.gen(function* () {
+        const { handleStudioMcp } = yield* Effect.promise(() => import("../../../studio-mcp-gateway"))
+        const body = yield* request.json.pipe(Effect.orElseSucceed(() => ({}) as unknown))
+        const reply = yield* Effect.promise(() => handleStudioMcp(body))
+        if (reply === undefined) return HttpServerResponse.empty({ status: 202 })
+        return HttpServerResponse.jsonUnsafe(reply)
+      }),
+    )
+  }),
+)
+
 const studioIpcRoute = HttpRouter.use((router) =>
   Effect.gen(function* () {
     yield* router.add("POST", "/ipc/:command", (request) =>
@@ -212,6 +229,8 @@ const studioIpcRoute = HttpRouter.use((router) =>
           Effect.map((value) => (value && typeof value === "object" ? (value as Record<string, unknown>) : {})),
           Effect.orElseSucceed(() => ({}) as Record<string, unknown>),
         )
+        // The gateway IPCs need the server's own port to write client configs.
+        args["__requestHost"] = request.headers["host"] ?? ""
         const result = yield* Effect.promise(() => handleIpc(command, args))
         if (!result.ok) {
           return HttpServerResponse.jsonUnsafe({ error: result.error }, { status: result.status })
@@ -367,6 +386,7 @@ export function createRoutes(
     serverRoutes,
     docRoute,
     studioIpcRoute,
+    studioMcpRoute,
     agentCompatRoute,
     docsRoute,
     uiRoute,
