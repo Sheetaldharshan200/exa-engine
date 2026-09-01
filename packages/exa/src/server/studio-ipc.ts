@@ -1136,6 +1136,44 @@ ${JSON.stringify({ mcp: { "exasol-studio": { type: "remote", url } } }, null, 2)
         }
       }
 
+      // GitHub metadata (repo name, About, homepage) for marketplace cards —
+      // mirrors the desktop's market_repo_meta: 24h cache in ~/.exasol, failed
+      // fetches keep the last-known entry, so cards stay populated offline.
+      case "market_repo_meta": {
+        const repos: string[] = (Array.isArray(args?.repos) ? args.repos : []).filter(
+          (r: unknown): r is string => typeof r === "string" && /^[\w.-]+\/[\w.-]+$/.test(r),
+        )
+        const cachePath = path.join(os.homedir(), ".exasol", "repo-meta.json")
+        let cache: { fetchedAt?: number; repos?: Record<string, unknown> } = {}
+        try {
+          cache = JSON.parse(await fs.readFile(cachePath, "utf8"))
+        } catch {}
+        const entries: Record<string, unknown> = { ...(cache.repos ?? {}) }
+        const fresh = Date.now() - (cache.fetchedAt ?? 0) < 24 * 3600 * 1000
+        if (!(fresh && repos.every((r) => r in entries))) {
+          await Promise.all(
+            repos.map(async (repo) => {
+              try {
+                const res = await fetch(`https://api.github.com/repos/${repo}`, {
+                  headers: { Accept: "application/vnd.github+json", "User-Agent": "exasol-studio" },
+                  signal: AbortSignal.timeout(6_000),
+                })
+                if (!res.ok) return
+                const v = (await res.json()) as { name?: string; description?: string | null; html_url?: string }
+                entries[repo] = { name: v.name ?? null, description: v.description ?? null, htmlUrl: v.html_url ?? null }
+              } catch {}
+            }),
+          )
+          try {
+            await fs.mkdir(path.dirname(cachePath), { recursive: true })
+            await fs.writeFile(cachePath, JSON.stringify({ fetchedAt: Date.now(), repos: entries }))
+          } catch {}
+        }
+        const out: Record<string, unknown> = {}
+        for (const r of repos) if (entries[r]) out[r] = entries[r]
+        return { ok: true, value: out }
+      }
+
       default:
         if (REQUIRES_DESKTOP.has(command)) {
           return {
