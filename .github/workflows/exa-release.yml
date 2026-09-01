@@ -73,7 +73,7 @@ jobs:
           # never a moving branch, so a broken Studio main can't poison an exa
           # release that didn't touch Studio. Bump deliberately (or override
           # per-run with the STUDIO_REF repo variable).
-          STUDIO_REF: ${{ vars.STUDIO_REF || 'v2026.6.0' }}
+          STUDIO_REF: ${{ vars.STUDIO_REF || 'v2026.6.1' }}
           STUDIO_REPO_TOKEN: ${{ secrets.STUDIO_REPO_TOKEN }}
         run: |
           set -euo pipefail
