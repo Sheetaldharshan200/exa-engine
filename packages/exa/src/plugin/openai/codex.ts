@@ -336,6 +336,8 @@ export async function CodexAuthPlugin(input: PluginInput, options: CodexAuthPlug
               accountId: string | undefined
             }>
           | undefined
+        // A refresh token the endpoint rejects is DEAD (rotated by a newer sign-in) — fail fast with instructions.
+        let refreshDead: string | undefined
 
         return {
           apiKey: OAUTH_DUMMY_KEY,
@@ -359,6 +361,7 @@ export async function CodexAuthPlugin(input: PluginInput, options: CodexAuthPlug
             const authWithAccount = currentAuth as typeof currentAuth & { accountId?: string }
 
             if (!currentAuth.access || currentAuth.expires < Date.now()) {
+              if (refreshDead) throw new Error(refreshDead)
               if (!refreshPromise) {
                 refreshPromise = refreshAccessToken(currentAuth.refresh, issuer)
                   .then(async (tokens) => {
@@ -377,6 +380,14 @@ export async function CodexAuthPlugin(input: PluginInput, options: CodexAuthPlug
                       access: tokens.access_token,
                       accountId,
                     }
+                  })
+                  .catch((err: unknown) => {
+                    if (/Token refresh failed: (400|401|403)/.test(String((err as Error)?.message ?? err))) {
+                      refreshDead =
+                        "ChatGPT sign-in expired — the saved session was rotated by a newer sign-in (another app or device). Reconnect ChatGPT: /connect in a session, or Providers → OpenAI in the app."
+                      throw new Error(refreshDead)
+                    }
+                    throw err
                   })
                   .finally(() => {
                     refreshPromise = undefined
