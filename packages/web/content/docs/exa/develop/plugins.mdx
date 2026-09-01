@@ -74,10 +74,28 @@ Duplicate npm packages with the same name and version are loaded once. However, 
 
 ---
 
+### In Exasol Studio
+
+Studio's managed engine runs against Studio's own config directory (not
+`~/.config/exa`): on macOS that is
+`~/Library/Application Support/com.exasol.studio/personal-local/components/exa-agent/config/exa/`.
+Drop-in plugins for the app's engine go in that directory's `plugins/` folder,
+and config-entry plugins in that directory's `exa.json`. Installed plugins are
+listed in **Settings → AI → Tools & Plugins**, which links back to this page.
+
+---
+
 ## Create a plugin
 
 A plugin is a **JavaScript/TypeScript module** that exports one or more plugin
 functions. Each function receives a context object and returns a hooks object.
+
+To author one in its own package with types (verified against
+`exa-engine-plugin@2026.1.85`):
+
+```sh
+npm i "@exa/plugin@npm:exa-engine-plugin" && npm i -D @types/node typescript
+```
 
 ---
 
