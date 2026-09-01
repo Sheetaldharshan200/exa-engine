@@ -1027,28 +1027,43 @@ ${JSON.stringify({ mcp: { "exasol-studio": { type: "remote", url } } }, null, 2)
           if (!res.ok) return { ok: false, status: 500, error: `pip install failed: ${res.error}` }
           return { ok: true, value: { done: true, note: `${id} installed with pip (--user).` } }
         }
-        if (id === "exasol-personal" || id === "exapump" || id === "mcp-server") {
-          // The official starter-kit installer sets up the database, exapump
-          // and the MCP wiring — the same path the CLI uses. Detached: first
-          // deployment takes ~2 minutes; the card flips when detection sees it.
-          const env = {
-            ...process.env,
-            EXAKIT_LOAD_SAMPLE: "0",
-            ...(id === "mcp-server" ? { EXAKIT_MCP_CLIENTS: "all" } : { EXAKIT_SKIP_MCP: "1" }),
-          }
-          // Download-then-run (a broken pipe would fail silently) and keep a
-          // log the user can read when something goes wrong.
-          const logPath = path.join(os.homedir(), ".exasol", "kit-install.log")
-          await fs.mkdir(path.dirname(logPath), { recursive: true }).catch(() => undefined)
-          const logFd = await fs.open(logPath, "w")
-          const child = spawn(
-            "sh",
-            [
-              "-c",
-              'tmp="$(mktemp)" && curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exasol-personal-local-starter-kit/main/install.sh -o "$tmp" && sh "$tmp"',
-            ],
-            { env, detached: true, stdio: ["ignore", logFd.fd, logFd.fd] },
+        if (id === "exasol-personal") {
+          // OFFICIAL Exasol Personal, same flow as the desktop app: download
+          // the launcher from exasol/exasol-personal, then `install local`
+          // into the standard user deployment (~/.exasol/personal) that the
+          // CLI and detection already share. No starter kit involved.
+          const rel = (await (
+            await fetch("https://api.github.com/repos/exasol/exasol-personal/releases/latest", {
+              headers: { accept: "application/vnd.github+json" },
+            })
+          ).json()) as { assets?: { name: string; browser_download_url: string }[] }
+          const plat = process.platform === "darwin" ? "macOS" : process.platform === "win32" ? "Windows" : "Linux"
+          const arch = process.arch === "arm64" ? "arm64" : "x86_64"
+          const asset = (rel.assets ?? []).find((a) => a.name.includes(plat) && a.name.includes(arch))
+          if (!asset) return { ok: false, status: 502, error: `No exasol-personal release asset for ${plat}/${arch}.` }
+          const launcherDir = path.join(os.homedir(), ".exasol", "launcher")
+          await fs.mkdir(launcherDir, { recursive: true })
+          const archive = path.join(launcherDir, asset.name)
+          const res = await fetch(asset.browser_download_url, { redirect: "follow" })
+          if (!res.ok) return { ok: false, status: 502, error: `Launcher download failed: HTTP ${res.status}` }
+          await fs.writeFile(archive, Buffer.from(await res.arrayBuffer()))
+          const { execFile: run } = await import("node:child_process")
+          await new Promise<void>((resolve, reject) =>
+            run("tar", ["-xzf", archive, "-C", launcherDir], (err) => (err ? reject(err) : resolve())),
           )
+          let launcher = ""
+          for (const f of await fs.readdir(launcherDir)) {
+            if (/^exasol(-personal)?$/.test(f)) launcher = path.join(launcherDir, f)
+          }
+          if (!launcher) return { ok: false, status: 500, error: "Launcher binary not found in the archive." }
+          await fs.chmod(launcher, 0o755)
+          const ddir = path.join(os.homedir(), ".exasol", "personal", "deployments", "default")
+          const logPath = path.join(os.homedir(), ".exasol", "personal-install.log")
+          const logFd = await fs.open(logPath, "w")
+          const child = spawn(launcher, ["install", "local", "--deployment-dir", ddir], {
+            detached: true,
+            stdio: ["ignore", logFd.fd, logFd.fd],
+          })
           child.on("exit", () => void logFd.close().catch(() => undefined))
           child.unref()
           return {
@@ -1056,9 +1071,44 @@ ${JSON.stringify({ mcp: { "exasol-studio": { type: "remote", url } } }, null, 2)
             value: {
               done: false,
               started: true,
-              note: "Installer running in the background — the first database deployment takes about two minutes. This card updates itself when it lands. Log: ~/.exasol/kit-install.log",
+              note: "Official Exasol Personal is deploying — about two minutes for the first install. This card updates itself when the database is up. Log: ~/.exasol/personal-install.log",
             },
           }
+        }
+        if (id === "exapump") {
+          // Official exasol-labs/exapump binary straight into ~/.local/bin.
+          const rel = (await (
+            await fetch("https://api.github.com/repos/exasol-labs/exapump/releases/latest", {
+              headers: { accept: "application/vnd.github+json" },
+            })
+          ).json()) as { assets?: { name: string; browser_download_url: string }[] }
+          const plat = process.platform === "darwin" ? "macos" : process.platform === "win32" ? "windows" : "linux"
+          const arch = process.arch === "arm64" ? "aarch64" : "x86_64"
+          const asset = (rel.assets ?? []).find((a) => a.name.includes(plat) && a.name.includes(arch))
+          if (!asset) return { ok: false, status: 502, error: `No exapump release asset for ${plat}/${arch}.` }
+          const binDir = path.join(os.homedir(), ".local", "bin")
+          await fs.mkdir(binDir, { recursive: true })
+          const dest = path.join(binDir, process.platform === "win32" ? "exapump.exe" : "exapump")
+          const res = await fetch(asset.browser_download_url, { redirect: "follow" })
+          if (!res.ok) return { ok: false, status: 502, error: `exapump download failed: HTTP ${res.status}` }
+          await fs.writeFile(dest, Buffer.from(await res.arrayBuffer()))
+          await fs.chmod(dest, 0o755)
+          return { ok: true, value: { done: true, note: `exapump installed to ${dest}.` } }
+        }
+        if (id === "mcp-server") {
+          // Official exasol-mcp-server as a uv tool (the same package clients
+          // run via uvx). Needs uv — the honest requirement, no kit detour.
+          if (!(await binPresent("uv"))) {
+            return { ok: false, status: 400, error: "Installing the MCP server needs uv (astral.sh/uv). Install uv, then retry." }
+          }
+          const { execFile: run } = await import("node:child_process")
+          const out = await new Promise<{ ok: boolean; err?: string }>((resolve) =>
+            run("uv", ["tool", "install", "--force", "exasol-mcp-server"], { timeout: 300_000 }, (err, _o, stderr) =>
+              resolve(err ? { ok: false, err: String(stderr || err).slice(-300) } : { ok: true }),
+            ),
+          )
+          if (!out.ok) return { ok: false, status: 500, error: `uv tool install failed: ${out.err}` }
+          return { ok: true, value: { done: true, note: "exasol-mcp-server installed as a uv tool." } }
         }
         if (id === "ai-lab") {
           const runner = (await binPresent("docker")) ? "docker" : (await binPresent("podman")) ? "podman" : null

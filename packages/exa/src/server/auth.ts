@@ -124,7 +124,7 @@ export function header(credentials?: Credentials) {
   return `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`
 }
 
-export function headers(credentials?: Credentials) {
+export function headers(credentials?: Credentials): Record<string, string> | undefined {
   const authorization = header(credentials)
   if (authorization) return { Authorization: authorization }
   // Vault mode: in-process callers (plugins) authenticate with the process's
