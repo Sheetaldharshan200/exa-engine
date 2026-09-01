@@ -946,6 +946,8 @@ export const RunCommand = effectCmd({
         const headers = new Headers(request.headers)
         const auth = ServerAuth.header()
         if (auth) headers.set("Authorization", auth)
+        const cookie = ServerAuth.selfCookie()
+        if (cookie) headers.append("cookie", cookie)
         return Server.Default().app.fetch(new Request(request, { headers }))
       }) as typeof globalThis.fetch
       const sdk = createExaClient({

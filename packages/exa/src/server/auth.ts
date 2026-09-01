@@ -74,6 +74,17 @@ export function usingVaultAuth(config: Info) {
 // which is exactly what a restart should do.
 const sessions = new Set<string>()
 
+let selfSession: string | undefined
+/** Cookie for the process's OWN in-process requests (TUI worker, `exa run`,
+ * plugins): with vault auth on, they must pass the same gate the browser
+ * does — mint one session per process. Never sent over the network. */
+export function selfCookie(): string | undefined {
+  if (Flag.EXA_SERVER_PASSWORD) return undefined
+  if (!vaultConfigured()) return undefined
+  selfSession ??= issueSession()
+  return `exa_session=${selfSession}`
+}
+
 export function issueSession(): string {
   const token = randomBytes(32).toString("base64url")
   sessions.add(token)
@@ -115,6 +126,10 @@ export function header(credentials?: Credentials) {
 
 export function headers(credentials?: Credentials) {
   const authorization = header(credentials)
-  if (!authorization) return undefined
-  return { Authorization: authorization }
+  if (authorization) return { Authorization: authorization }
+  // Vault mode: in-process callers (plugins) authenticate with the process's
+  // own session instead of a password.
+  const cookie = selfCookie()
+  if (cookie) return { cookie }
+  return undefined
 }

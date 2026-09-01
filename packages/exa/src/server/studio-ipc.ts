@@ -1036,18 +1036,27 @@ ${JSON.stringify({ mcp: { "exasol-studio": { type: "remote", url } } }, null, 2)
             EXAKIT_LOAD_SAMPLE: "0",
             ...(id === "mcp-server" ? { EXAKIT_MCP_CLIENTS: "all" } : { EXAKIT_SKIP_MCP: "1" }),
           }
+          // Download-then-run (a broken pipe would fail silently) and keep a
+          // log the user can read when something goes wrong.
+          const logPath = path.join(os.homedir(), ".exasol", "kit-install.log")
+          await fs.mkdir(path.dirname(logPath), { recursive: true }).catch(() => undefined)
+          const logFd = await fs.open(logPath, "w")
           const child = spawn(
             "sh",
-            ["-c", "curl -fsSL https://raw.githubusercontent.com/krishna-exasol/starter-kit-testing-v1/main/install.sh | sh"],
-            { env, detached: true, stdio: "ignore" },
+            [
+              "-c",
+              'tmp="$(mktemp)" && curl -fsSL https://raw.githubusercontent.com/Sheetaldharshan200/exasol-personal-local-starter-kit/main/install.sh -o "$tmp" && sh "$tmp"',
+            ],
+            { env, detached: true, stdio: ["ignore", logFd.fd, logFd.fd] },
           )
+          child.on("exit", () => void logFd.close().catch(() => undefined))
           child.unref()
           return {
             ok: true,
             value: {
               done: false,
               started: true,
-              note: "Installer running in the background — the first database deployment takes about two minutes. This card updates itself when it lands.",
+              note: "Installer running in the background — the first database deployment takes about two minutes. This card updates itself when it lands. Log: ~/.exasol/kit-install.log",
             },
           }
         }

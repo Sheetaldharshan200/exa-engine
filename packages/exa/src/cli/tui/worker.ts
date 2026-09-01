@@ -34,6 +34,8 @@ export const rpc = {
     if (auth && !headers["authorization"] && !headers["Authorization"]) {
       headers["Authorization"] = auth
     }
+    const cookie = ServerAuth.selfCookie()
+    if (cookie) headers["cookie"] = headers["cookie"] ? `${headers["cookie"]}; ${cookie}` : cookie
     const request = new Request(input.url, {
       method: input.method,
       headers,
