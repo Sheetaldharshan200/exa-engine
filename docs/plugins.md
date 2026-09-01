@@ -7,12 +7,20 @@ file. The engine loads them at startup; in Exasol Studio they're listed under
 
 ## Create a plugin
 
+The types live on npm as `exa-engine-plugin`, installed under the `@exa/plugin`
+alias so the documented import works verbatim (verified with
+`exa-engine-plugin@2026.1.85`):
+
+```sh
+npm i "@exa/plugin@npm:exa-engine-plugin" && npm i -D @types/node typescript
+```
+
 A plugin is a module with named exports; each export is an async function that
 receives the engine context and returns the hooks it wants to handle:
 
 ```ts
 // my-plugin.ts
-import type { Plugin } from "@exa-ai/plugin"
+import type { Plugin } from "@exa/plugin"
 
 export const MyPlugin: Plugin = async ({ project, client, directory, $ }) => {
   return {
