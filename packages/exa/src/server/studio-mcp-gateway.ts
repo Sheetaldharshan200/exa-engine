@@ -80,6 +80,36 @@ export function readOnlySql(sql: string): string | null {
   return null
 }
 
+/** Studio's saved dashboards live in the same store the app writes. */
+async function dashboardsDir() {
+  const dir = path.join(os.homedir(), ".exasol", "web-dashboards")
+  await fs.mkdir(dir, { recursive: true }).catch(() => undefined)
+  return dir
+}
+
+async function dashboardsExposed(): Promise<boolean> {
+  const state = await gatewayState()
+  return state.services.some((svc) => svc.id === "dashboards" && svc.exposed)
+}
+
+const DASHBOARD_TOOLS = [
+  {
+    name: "list_dashboards",
+    description: "List Exasol Studio's saved BI dashboards (title, description, panel count).",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    name: "get_dashboard",
+    description: "Read one saved dashboard in full — every panel with its title, visualization, and the SQL behind it.",
+    inputSchema: {
+      type: "object",
+      properties: { id: { type: "string", description: "Dashboard id or title from list_dashboards." } },
+      required: ["id"],
+      additionalProperties: false,
+    },
+  },
+]
+
 const TOOLS = [
   {
     name: "list_databases",
@@ -147,6 +177,33 @@ async function callTool(name: string, args: Record<string, unknown>) {
       return textResult(`Query failed: ${error instanceof Error ? error.message : String(error)}`, true)
     }
   }
+  if (name === "list_dashboards" || name === "get_dashboard") {
+    if (!(await dashboardsExposed())) return textResult("The Dashboards service is not exposed on this gateway.", true)
+    const dir = await dashboardsDir()
+    const files = (await fs.readdir(dir).catch(() => [] as string[])).filter((f) => f.endsWith(".json"))
+    const docs: Record<string, unknown>[] = []
+    for (const file of files) {
+      try {
+        docs.push(JSON.parse(await fs.readFile(path.join(dir, file), "utf8")) as Record<string, unknown>)
+      } catch {
+        /* skip corrupt file */
+      }
+    }
+    if (name === "list_dashboards") {
+      if (!docs.length) return textResult("No saved dashboards yet.")
+      return textResult(
+        JSON.stringify(
+          docs.map((d) => ({ id: d["id"], title: d["title"], description: d["description"] ?? "", panels: Array.isArray(d["panels"]) ? (d["panels"] as unknown[]).length : 0 })),
+          null,
+          2,
+        ),
+      )
+    }
+    const wanted = String(args["id"] ?? "").toLowerCase()
+    const doc = docs.find((d) => String(d["id"]).toLowerCase() === wanted || String(d["title"]).toLowerCase() === wanted)
+    if (!doc) return textResult(`No dashboard called "${args["id"]}". Use list_dashboards first.`, true)
+    return textResult(JSON.stringify(doc, null, 2))
+  }
   return textResult(`Unknown tool: ${name}`, true)
 }
 
@@ -170,7 +227,7 @@ export async function handleStudioMcp(body: unknown): Promise<unknown | undefine
     case "ping":
       return reply({})
     case "tools/list":
-      return reply({ tools: TOOLS })
+      return reply({ tools: (await dashboardsExposed()) ? [...TOOLS, ...DASHBOARD_TOOLS] : TOOLS })
     case "tools/call": {
       const name = String(msg.params?.["name"] ?? "")
       const args = (msg.params?.["arguments"] ?? {}) as Record<string, unknown>

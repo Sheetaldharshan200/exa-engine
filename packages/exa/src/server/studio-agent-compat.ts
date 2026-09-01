@@ -232,10 +232,16 @@ export async function handleAgentCompat(
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ type: "api", key }),
         })
+        // The provider list is cached per instance — dispose so connect (and
+        // the models it brings) is visible immediately, not after a restart.
+        await engineFetch(base, "/instance/dispose", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })
         return { status: 200, body: { ok: true } }
       }
       if (method === "DELETE" && parts[2] === "auth" && parts[3]) {
         await engineFetch(base, `/auth/${encodeURIComponent(parts[3])}`, { method: "DELETE" })
+        // Same cache: without disposing, a disconnected provider stays listed
+        // (with dead models) until the engine restarts.
+        await engineFetch(base, "/instance/dispose", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" })
         return { status: 200, body: { ok: true } }
       }
 
