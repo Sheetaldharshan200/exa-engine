@@ -650,17 +650,38 @@ export async function handleIpc(command: string, args: Record<string, unknown>):
         const split = arg<boolean>("split", true)
         const started = Date.now()
         const statements = split ? splitStatements(sql) : [sql.trim()].filter(Boolean)
-        const results = await withDriver(profileId, async (driver) => {
+        const run = await withDriver(profileId, async (driver) => {
+          // Profiling baseline — same contract as the desktop driver: turn
+          // profiling on for THIS session, then capture the session and the
+          // statement id BEFORE the user's statements. Query Performance later
+          // reads the plan from EXA_STATISTICS with these two ids, no re-run.
+          // withDriver opens a fresh connection per call, so the whole batch
+          // shares one clean session with nothing interleaved. Best-effort —
+          // execution proceeds without a baseline if the capture fails.
+          let profileSession: string | undefined
+          let profileBaseStmt: string | undefined
+          try {
+            await driver.query("ALTER SESSION SET PROFILE = 'ON'")
+            const base = rowsOf(await driver.query("SELECT TO_CHAR(CURRENT_SESSION) AS S, TO_CHAR(CURRENT_STATEMENT) AS B"))[0]
+            if (base) {
+              profileSession = base["S"] == null ? undefined : String(base["S"])
+              profileBaseStmt = base["B"] == null ? undefined : String(base["B"])
+            }
+          } catch {
+            // profiling unavailable (permissions, driver) — run anyway
+          }
           const out = []
           for (const statement of statements) out.push(await runStatement(driver, statement, maxRows))
-          return out
+          return { out, profileSession, profileBaseStmt }
         })
         return {
           ok: true,
           value: {
-            results,
+            results: run.out,
             totalElapsedMs: Date.now() - started,
-            success: results.every((r) => r.error === null),
+            success: run.out.every((r) => r.error === null),
+            profileSession: run.profileSession,
+            profileBaseStmt: run.profileBaseStmt,
           },
         }
       }
