@@ -59,11 +59,18 @@ else
 fi
 
 url="https://github.com/$REPO/releases/download/$tag/$asset"
-printf 'installing %s%s%s (%s) to %s\n' "$BOLD" "$tag" "$RESET" "$asset" "$INSTALL_DIR"
+if [ -x "$INSTALL_DIR/exa" ]; then
+  current="$("$INSTALL_DIR/exa" --version 2>/dev/null || echo "unknown")"
+  printf 'updating %s%s%s → %s%s%s (%s) in %s\n' "$BOLD" "$current" "$RESET" "$BOLD" "$tag" "$RESET" "$asset" "$INSTALL_DIR"
+else
+  printf 'installing %s%s%s (%s) to %s\n' "$BOLD" "$tag" "$RESET" "$asset" "$INSTALL_DIR"
+fi
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-curl -fsSL -o "$tmp/$asset" "$url" || fail "download failed: $url"
+# Visible progress — the archive is ~55MB and a silent download reads as a
+# hang. Bounded so a stalled connection fails instead of sitting forever.
+curl -fL --progress-bar --connect-timeout 15 --max-time 600 -o "$tmp/$asset" "$url" || fail "download failed: $url"
 
 mkdir -p "$INSTALL_DIR"
 case "$asset" in
